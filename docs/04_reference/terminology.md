@@ -48,6 +48,12 @@ An agent enrolls under a **registrant**. Its outputs carry **AFT** records. AFT 
 
 ---
 
+## Open terms
+
+- **UNRP** (referenced in `README.md`, the agent anchors, and `rituals/identity_setup.py` as "Node ID (UNRP Standard)"): a node-registration / identity concept, named but not yet expanded or specified. Operator to define the expansion and scope, or remove. Tracked in the migration checklist.
+
+---
+
 ## Crosswalk
 
 **To the SO (Spiritual Offerings) channel** (`DatacomWorkspace/relay`), the human-scale v0 prototype:
