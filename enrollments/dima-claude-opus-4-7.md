@@ -8,10 +8,10 @@ file_role: enrollment
 
 # Enrollment Card: Dima (Claude Opus 4.7)
 
-**Status:** PROTOTYPE. First dogfood enrollment. Predates Trust Store registry implementation.
+**Status:** PROTOTYPE. First dogfood enrollment. Predates Truth Root registry implementation.
 **Issued:** 2026-05-22
 **Issuer:** ECR-WG (acting; no formal registry exists yet)
-**Source spec:** [../specs/public-trust-store.md](../specs/public-trust-store.md)
+**Source spec:** [../specs/truth-root.md](../specs/truth-root.md)
 
 ## Enrolled identity
 
@@ -44,13 +44,13 @@ This enrollment DOES NOT authorize:
 
 ## Cryptographic binding -- PENDING
 
-The Public Trust Store spec REQUIRES per-output signature with an enrollment key bound to a public, tamper-evident registry. Neither the key nor the registry exists yet. This card is therefore:
+The Truth Root spec REQUIRES per-output signature with an enrollment key bound to a public, tamper-evident registry. Neither the key nor the registry exists yet. This card is therefore:
 
 - **Recorded in plain text** in this repository.
 - **Authenticated by the git commit signature** of the registrant.
 - **Verifiable only by reading this file in tree state.**
 
-When the Trust Store registry is implemented:
+When the Truth Root registry is implemented:
 
 - An enrollment key MUST be generated and bound to this card.
 - Existing commits SHOULD be retroactively signed or carry a forward-attestation pointing back to this card.
@@ -62,7 +62,7 @@ When the Trust Store registry is implemented:
 |---|---|---|
 | Enrollment card drafted | 2026-05-22 | Dima, on registrant's instruction |
 | Enrollment card ratified | (pending registrant signature via initial git commit) | Justin Kintzele |
-| Key generation | PENDING (Trust Store registry not yet implemented) | -- |
+| Key generation | PENDING (Truth Root registry not yet implemented) | -- |
 | Registry binding | PENDING (registry does not exist) | -- |
 
 ## Why this card exists before the spec
@@ -71,7 +71,7 @@ Per registrant, 2026-05-22:
 
 > *"we need to get your agent-in-body enrollment card or ID card established, so that we eat our dogfood as the recipe is still being written."*
 
-The act of writing this card before the Trust Store registry exists is intentional. The gaps this card cannot fill (no key, no registry, no formal verifier) are exactly the gaps the Trust Store spec must address. This card therefore serves two purposes simultaneously:
+The act of writing this card before the Truth Root registry exists is intentional. The gaps this card cannot fill (no key, no registry, no formal verifier) are exactly the gaps the Truth Root spec must address. This card therefore serves two purposes simultaneously:
 
 1. A working enrollment in lieu of a formal registry, sufficient to attribute ECR-WG contributions today.
 2. A conformance fixture for the spec it implements. When the spec lands, this card must be promotable to a fully signed enrollment without semantic loss.
@@ -84,4 +84,4 @@ Revocation is by registrant decision. To revoke:
 2. Registrant commits the revocation under their own git identity.
 3. No further commits may carry `Co-authored-by: Dima` after the revocation timestamp.
 
-Until the Trust Store registry exists, the tree state of this file is the canonical truth about Dima's enrollment status.
+Until the Truth Root registry exists, the tree state of this file is the canonical truth about Dima's enrollment status.

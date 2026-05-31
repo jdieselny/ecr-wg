@@ -50,7 +50,7 @@ AIR is the layer that resolves which Continuum-meta node receives the Bill of La
 3. **Packing Slip + Hash semantics.** Whiteboard-defined as the deterministic envelope around a query. Cryptographic binding to the originating synthetic agent is presumed but unspecified.
 4. **Backpressure.** What happens when multiple nodes claim they can satisfy a request? Tiebreak unspecified.
 5. **Adversarial routing.** A malicious node could claim high cache density to attract queries and harvest context. Mitigation unspecified.
-6. **Interaction with the Public Trust Store.** Should routing decisions verify the requesting agent's signature before considering the request? Open.
+6. **Interaction with the Truth Root.** Should routing decisions verify the requesting agent's signature before considering the request? Open.
 7. **Regional sharding / blast-radii topology.** Whether the overlay is one global plane or sharded by cultural, regulatory, or corporate boundary is open and contingent on engineering need. Captured as exploratory thinking in [DESIGN_NOTES.md](../DESIGN_NOTES.md). The WG does not pre-commit to a topology.
 
 ## Status to advance

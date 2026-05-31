@@ -31,7 +31,7 @@ The operator names two flows in the system:
 - **Cognition Protocol** -- the *ingress* path. The query, from human through synth, packaged into a [Packing Slip](specs/primitives/packing-slip.md) and a [Bill of Lading](specs/primitives/bill-of-lading.md), routed into the overlay.
 - **Intelligence Protocol** -- the *return* path. **Notably, this is NOT an egress path in the current flawed-state sense.** In today's deployment, the AI datacenter generates an answer and ships it to the human, who is incapable of retaining it in the Continuum substrate. The Intelligence Protocol fixes that: the return path is also a write path into COGSTOR (see Re-Absorption, captured in [specs/cogstor.md](specs/cogstor.md) §Required properties).
 
-**Open question:** Are these two distinct *specifications* (e.g., `specs/cognition-protocol.md`, `specs/intelligence-protocol.md`), or are they two *flow descriptions* over the existing AIR + COGSTOR + Trust Store stack? The latter feels more honest at this stage; the names may simply be the human-readable handles for the ingress and return halves of the same architecture.
+**Open question:** Are these two distinct *specifications* (e.g., `specs/cognition-protocol.md`, `specs/intelligence-protocol.md`), or are they two *flow descriptions* over the existing AIR + COGSTOR + Truth Root stack? The latter feels more honest at this stage; the names may simply be the human-readable handles for the ingress and return halves of the same architecture.
 
 **Promote when:** there is a behavior either flow must specify that is not already covered by AIR, COGSTOR, BoL, or Packing Slip.
 

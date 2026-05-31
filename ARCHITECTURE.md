@@ -22,7 +22,7 @@ The Continuum-meta architecture asserts that cognitive workloads need a *stack*,
   +------------------------------------------------------------------+
   |  GRACE Contract  --  per-call execution discipline                |  STABLE
   +------------------------------------------------------------------+
-  |  AIR Protocol     |  COGSTOR             |  Public Trust Store   |
+  |  AIR Protocol     |  COGSTOR             |  Truth Root           |
   |  semantic         |  cognitive object    |  cryptographic        |
   |  anycast routing  |  storage, diff       |  provenance &         |
   |                   |  snapshots,          |  attestation          |
@@ -57,7 +57,7 @@ The Continuum-meta architecture asserts that cognitive workloads need a *stack*,
 
 **The Zero Match gate is where the savings come from.** Every query the overlay can answer is a query that does not hit prefill capacity. Every query that *does* hit the datacenter writes its result back into COGSTOR on return (see [specs/cogstor.md](specs/cogstor.md) §Re-Absorption), so the same query never costs full prefill twice.
 
-*The Bill of Lading, Packing Slip + Hash, and Zero Match gate are design-phase constraints captured on the substrate's design whiteboard. Their wire formats are intentionally unspecified at this revision; see the AIR Protocol and Public Trust Store RFC-stage specs for the open problems they pose.*
+*The Bill of Lading, Packing Slip + Hash, and Zero Match gate are design-phase constraints captured on the substrate's design whiteboard. Their wire formats are intentionally unspecified at this revision; see the AIR Protocol and Truth Root RFC-stage specs for the open problems they pose.*
 
 ## Layer roles
 
@@ -70,8 +70,8 @@ Semantic anycast: queries route to the node most likely to satisfy them at lowes
 ### COGSTOR -- DRAFT
 Cognitive object storage. Differential snapshots, pointer-file deduplication, edge caching. The mechanism by which the overlay "remembers what the human brain forgets." See [specs/cogstor.md](specs/cogstor.md).
 
-### Public Trust Store -- RFC-STAGE
-Cryptographic provenance for every synthetic output. Binds each result to the synthetic agent that produced it and the human accountability chain behind that agent. **Provenance, not prevention** -- a signed liar is still a liar, but they are a *named* one. See [specs/public-trust-store.md](specs/public-trust-store.md).
+### Truth Root -- RFC-STAGE
+Cryptographic provenance for every synthetic output. Binds each result to the synthetic agent that produced it and the human accountability chain behind that agent. **Provenance, not prevention** -- a signed liar is still a liar, but they are a *named* one. See [specs/truth-root.md](specs/truth-root.md).
 
 ## What this stack is not
 

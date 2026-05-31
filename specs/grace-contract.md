@@ -49,12 +49,12 @@ GRACE composes with:
 
 - **CO-STAR** prompt scaffolding (slotted into GOAL).
 - **AIR Protocol** routing (consumes ROUTING).
-- **Public Trust Store** attestation (signs EVIDENCE).
+- **Truth Root** attestation (signs EVIDENCE).
 - **COGSTOR** context (loads ANCHOR).
 
 ## Non-goals
 
-GRACE does not specify wire format, transport, encoding, or authentication. Those belong to AIR and the Trust Store.
+GRACE does not specify wire format, transport, encoding, or authentication. Those belong to AIR and the Truth Root.
 
 ## Reference enforcement
 

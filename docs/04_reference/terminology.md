@@ -60,11 +60,11 @@ An agent enrolls under a **registrant**. Its outputs carry **AFT** records. AFT 
 
 ---
 
-## Migration checklist (pending git-init + operator go)
+## Migration checklist
 
-- [ ] Rename `specs/public-trust-store.md` to `specs/truth-root.md`; update its title and abstract.
-- [ ] Update cross-references in `ARCHITECTURE.md`, `specs/primitives/bill-of-lading.md`, `specs/air-protocol.md`, and `README.md`.
-- [ ] Replace "Public Trust Store" / "Trust Store" usages with "Truth Root" repo-wide.
-- [ ] Set AFT expansion to "Attested Fact Trace" wherever AFT is first expanded.
+- [x] Rename `specs/public-trust-store.md` to `specs/truth-root.md`; title and abstract updated. (2026-05-31)
+- [x] Update cross-references repo-wide: `ARCHITECTURE.md`, `CHARTER.md`, `specs/grace-contract.md`, `specs/air-protocol.md`, `specs/primitives/bill-of-lading.md`, `DESIGN_NOTES.md`, `enrollments/`. (README referenced UNRP, not the old layer name.)
+- [x] Replace "Public Trust Store" / "Trust Store" usages with "Truth Root" repo-wide. **Exception:** `terms.md` is a UTF-16 duplicate of the specs and still carries old names; pending the dedup decision.
+- [ ] Set AFT expansion to "Attested Fact Trace" wherever AFT is first expanded in a spec.
 - [ ] Rename frontmatter `aft:` to `review_state:` across all files.
 - [ ] Define or remove `UNRP` (referenced in README and the agent anchor, currently undefined).

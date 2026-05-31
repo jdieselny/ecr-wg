@@ -6,14 +6,14 @@ generated_at: 2026-05-22
 file_role: spec-rfc-stage
 ---
 
-# Public Trust Store Specification
+# Truth Root Specification
 
 **Status:** RFC-STAGE
 **Version:** 0.0 (problem statement only)
 
 ## Abstract
 
-The Public Trust Store is the proposed attestation layer of the Continuum-meta stack. It provides **cryptographic provenance** for every synthetic output: a signed, append-only record binding each result to the synthetic agent that produced it, and binding that agent to its human accountability chain.
+The Truth Root is the proposed attestation layer of the Continuum-meta stack. It provides **cryptographic provenance** for every synthetic output: a signed, append-only record binding each result to the synthetic agent that produced it, and binding that agent to its human accountability chain.
 
 **It is provenance, not prevention.** A signed liar is still a liar. The point is that they are a *named* liar, and the lie is auditable.
 
@@ -21,7 +21,7 @@ The Public Trust Store is the proposed attestation layer of the Continuum-meta s
 
 Generative outputs today are unattributed. When a synthetic agent fabricates, the fabrication propagates with no durable link to its originator, no signed record of the input that produced it, and no chain back to a human accountable party. The downstream cost -- wasted human verification, compounding misinformation, legal ambiguity -- is borne by everyone except the agent operator who produced the output.
 
-The Trust Store closes the attribution loop.
+The Truth Root closes the attribution loop.
 
 ## Required behavior (target)
 
@@ -35,12 +35,12 @@ The Trust Store closes the attribution loop.
 
 ## Design constraints (from substrate whiteboard, 2026-05)
 
-- The whiteboard refers to **"Packing Slip + Hash"** as the deterministic envelope around a query, and to per-agent enrollment as a precondition for participation in the overlay. The Trust Store is where those enrollments live.
+- The whiteboard refers to **"Packing Slip + Hash"** as the deterministic envelope around a query, and to per-agent enrollment as a precondition for participation in the overlay. The Truth Root is where those enrollments live.
 - Apache License 2.0: no implementer may be excluded from the verification path.
 
 ## Non-goals (explicit and load-bearing)
 
-The Trust Store DOES NOT:
+The Truth Root DOES NOT:
 
 - **Prevent hallucinations.** Models hallucinate; the Store records *who* hallucinated.
 - **Adjudicate truth.** The Store records provenance, not correctness.

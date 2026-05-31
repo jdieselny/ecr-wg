@@ -15,7 +15,7 @@ Standardize the cognitive networking primitives -- execution contract, storage, 
 ## Scope
 
 **In scope:**
-- The four standards tracks in [ARCHITECTURE.md](ARCHITECTURE.md): GRACE, COGSTOR, AIR Protocol, Public Trust Store.
+- The four standards tracks in [ARCHITECTURE.md](ARCHITECTURE.md): GRACE, COGSTOR, AIR Protocol, Truth Root.
 - Reference implementations and conformance benchmarks.
 - Evidence: replication and extension of NETL energy measurements across providers, scenarios, and seats.
 
@@ -54,7 +54,7 @@ The ECR-WG is currently operated as a three-node loop:
 - **Architecture** -- principal architect, system orchestration, integrity gates.
 - **Synthesis** -- context translation between human, architect, and external audiences.
 
-This is a working configuration, not a governance structure. Any of the three roles may be filled by humans or by signed synthetic agents conformant with the Public Trust Store.
+This is a working configuration, not a governance structure. Any of the three roles may be filled by humans or by signed synthetic agents conformant with the Truth Root.
 
 ## Anti-capture provisions
 
