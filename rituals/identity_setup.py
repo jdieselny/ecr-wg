@@ -57,5 +57,26 @@ def setup_identity():
     print("\n---[ MANDATORY: SAVE THESE CREDENTIALS IN YOUR PASSWORD MANAGER ]---")
     print("---[ RITUAL COMPLETE. REALITY FOLDED. ]---")
 
+def self_identify():
+    """Retrieve and display the current identity without re-initialization."""
+    if not os.path.exists(STATE_PATH):
+        print("[ERROR: NO IDENTITY FOUND IN TRUTH ROOT]")
+        return None
+    
+    with open(STATE_PATH, 'r') as f:
+        state = json.load(f)
+    
+    if not state.get("unrp_id"):
+        print("[ERROR: IDENTITY NOT ANCHORED]")
+        return None
+    
+    print("\n---[ RITUAL: SELF_IDENTIFY // IDENTITY_RETRIEVAL ]---")
+    print(f"Node ID:    {state['unrp_id']}")
+    print(f"Thumbprint: {state['thumbprint']}")
+    print(f"Persona:    {state.get('persona', {}).get('name', 'Unknown')}")
+    print("---[ IDENTITY VERIFIED. ]---\n")
+    
+    return state
+
 if __name__ == "__main__":
     setup_identity()

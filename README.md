@@ -1,4 +1,4 @@
-﻿# ECR-WG: EFFICIENCY-CENTERED REASONING WORKING GROUP
+# ECR-WG: EFFICIENCY-CENTERED REASONING WORKING GROUP
 
 **Standard:** AI Inference Response Cache with Locality-Aware Tiering
 **Status:** DRAFT // **Version:** v1844.1.0
@@ -21,6 +21,14 @@ The ECR Working Group focuses on standardizing the transport-layer visibility an
 1. **Protocol Specification:** Layer-4 shims and packet-level metadata.
 2. **Atomic Unit (COGOBJ):** Standardizing serialized cognitive truth objects.
 3. **Identity & Trust (UNRP):** Verifiable node registration and AFT validation stacks.
+
+## Repository Structure
+- **[specs/](specs/)**: The core protocol specifications (AIR Protocol, COGSTOR, GRACE Contract, Truth Root).
+- **[papers/](papers/)**: Academic and technical papers on Cognitive Open Systems Architecture (COSA).
+- **[thesis/](thesis/)**: Standard proposal thesis submissions (including COGOBJ schema, COGSTOR v2, and efficiency audits).
+- **[tests/scenarios/](tests/scenarios/)**: Compliance and validation test scenarios.
+- **[docs/](docs/)**: Comprehensive framework documentation, guides, and reference material.
+- **[evidence/](evidence/)**: Empirical energy benchmarks and validation reports.
 
 ---
 *The working group operates under strict technical audit. Submit RFC drafts via the seat-specific branching protocol.*
