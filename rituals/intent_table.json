@@ -1,0 +1,65 @@
+{
+  "LATTICE_REGISTRY": {
+    "UPHOLSTERY": {
+      "REPAIR": {
+        "STITCHING": {
+          "canonical_key": "UPHOLSTERY::REPAIR::STITCHING",
+          "task_shape": "compute_heavy",
+          "description": "Techniques for mending fabric and cushions using various stitches.",
+          "synonyms": ["sew", "mending", "slip stitch", "ladder stitch", "seam"],
+          "active_cogobj": "14042ef6f3e6c2fb08e1c3cf43331182"
+        },
+        "CORNERS": {
+          "canonical_key": "UPHOLSTERY::REPAIR::CORNERS",
+          "task_shape": "compute_heavy",
+          "description": "Professional techniques for folding and blocking chair corners.",
+          "synonyms": ["blocking", "folding", "hospital corners", "chair corner"],
+          "active_cogobj": "3b326f42c455e11cdc5961410a9a9b4a"
+        },
+        "SPRINGS": {
+          "canonical_key": "UPHOLSTERY::REPAIR::SPRINGS",
+          "task_shape": "compute_heavy",
+          "description": "Techniques for tying and securing upholstery springs.",
+          "synonyms": ["8-way hand-tied", "coil springs", "sinuous springs"]
+        }
+      },
+      "FABRIC": {
+        "DURABILITY": {
+          "canonical_key": "UPHOLSTERY::FABRIC::DURABILITY",
+          "task_shape": "data_extraction",
+          "description": "Fabric specifications, rub tests (Martindale/Wyzenbeek), and durability ratings.",
+          "synonyms": ["martindale", "wyzenbeek", "rub count", "velvet"]
+        }
+      },
+      "TOOLS": {
+        "STRETCHING": {
+          "canonical_key": "UPHOLSTERY::TOOLS::STRETCHING",
+          "task_shape": "compute_heavy",
+          "description": "Use of webbing stretchers and tension tools.",
+          "synonyms": ["webbing", "tension", "stretcher tool"]
+        }
+      }
+    },
+    "APPLIANCE": {
+      "WASHING_MACHINE": {
+        "SPIN_DRY": {
+          "canonical_key": "APPLIANCE::WASHING_MACHINE::SPIN_DRY",
+          "task_shape": "compute_heavy",
+          "description": "Troubleshooting direct-drive washer spin issues.",
+          "synonyms": ["kenmore", "not spinning", "clutch", "direct drive"]
+        }
+      }
+    },
+    "BROADCAST": {
+      "ENVIRONMENT": {
+        "WEATHER": {
+          "canonical_key": "BROADCAST::ENVIRONMENT::WEATHER",
+          "task_shape": "zero_shot_broadcast",
+          "description": "Local weather data retrieved via broadcast/API, requiring no fresh inference.",
+          "synonyms": ["weather", "temperature", "forecast", "rain", "snow"],
+          "validity_window_seconds": 3600
+        }
+      }
+    }
+  }
+}

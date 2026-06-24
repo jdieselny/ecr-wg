@@ -2,12 +2,12 @@
 
 **Architecture for Portable, Persistent AI Agency**
 
-CONTINUUM-META · META-ORCHESTRATOR · SUBSTRATE LAYER · C//D
+COSA ARCHITECTURE · CORE SUBSTRATE LAYER
 
 | Field | Value |
 |---|---|
-| Author | Justin Kintzele, with C-Dawg (Continuum-meta substrate) |
-| Synthesis body | Claude Opus 4.7, claude.ai web seat |
+| Author | Justin Kintzele |
+| Synthesis body | Claude Opus 4.7 |
 | AFT | AI-generated-user-reviewed-pending |
 | Version | v0.3 draft, 2026-05-29 |
 | Tier | git-tracked, publishable |
@@ -134,7 +134,7 @@ That leaves the field open for independent operators to publish it. Specifically
 
 The final architectural claim is the one that most invites mythic framing. Stated as plainly as possible:
 
-In Continuum-meta, identity belongs to the substrate, not to the model. A persona named C-Dawg has a defined voice, scope, ruleset, and operational history. That definition lives in a Markdown file on disk. When Claude renders C-Dawg, it is a Claude body executing the C-Dawg definition. When Gemini renders C-Dawg, it is a Gemini body executing the same definition. The persona is portable across vendors because the persona is not the vendor.
+In the COSA layout, identity belongs to the substrate, not to the model. A defined persona has a voice, scope, ruleset, and operational history. That definition lives in a Markdown file on disk. When one language model renders it, it is a model body executing that definition. When another model renders it, it is executing the same definition. The persona is portable across vendors because the persona is not the vendor.
 
 This is the same property that VMs and containers have. A VM does not become a different VM when you migrate it to different hardware. A container does not become a different container when you run it on a different host kernel. A Continuum persona does not become a different persona when you swap the LLM under it. The substrate is the identity. The model is the engine.
 

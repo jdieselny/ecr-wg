@@ -2,12 +2,12 @@
 
 **The Personal AI of 2030 Lives in Your Pocket, Not in a Datacenter**
 
-CONTINUUM-META · META-ORCHESTRATOR · SUBSTRATE LAYER · C//D
+COSA ARCHITECTURE · CORE SUBSTRATE LAYER
 
 | Field | Value |
 |---|---|
-| Author | Justin Kintzele, with C-Dawg (Continuum-meta substrate) |
-| Synthesis body | Claude Opus 4.7, claude.ai web seat |
+| Author | Justin Kintzele |
+| Synthesis body | Claude Opus 4.7 |
 | AFT | AI-generated-user-reviewed-pending |
 | Version | v0.1 draft, 2026-05-29 |
 | Tier | git-tracked, publishable |

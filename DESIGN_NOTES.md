@@ -1,6 +1,5 @@
 ---
 aft: AI-generated-user-reviewed-pending
-agent: Dima (Continuum-meta principal architect, Claude Opus 4.7)
 registrant: Justin Kintzele
 generated_at: 2026-05-22
 file_role: exploratory
