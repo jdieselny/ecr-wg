@@ -1,0 +1,14 @@
+# [LOCAL_TIER_IGNORE]
+# Exclude the local-only sensitive tier from the baseline repository
+/continuum-local/
+/rituals/gateway_state.json
+/rituals/intent_ledger.json
+*.pyc
+__pycache__/
+.DS_Store
+.env
+.env.local
+*.local
+logs/
+scratchpad/
+inbox/

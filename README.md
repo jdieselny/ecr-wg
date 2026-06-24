@@ -29,6 +29,15 @@ The ECR Working Group focuses on standardizing the transport-layer visibility an
 - **[tests/scenarios/](tests/scenarios/)**: Compliance and validation test scenarios.
 - **[docs/](docs/)**: Comprehensive framework documentation, guides, and reference material.
 - **[evidence/](evidence/)**: Empirical energy benchmarks and validation reports.
+- **[examples/](examples/)**: Runnable reference implementations and demonstrations (e.g. the L5 broadcast caching demo).
+
+## Quickstart: Run the COSA L5 Broadcast Demo
+To run the live demonstration of the **L5 Broadcast Inference Cache** (bypassing inference entirely and returning structured `COGOBJs` on cache hits):
+
+```bash
+python examples/l5_broadcast_demo.py
+```
+This demo runs a live fetch from the public weather broadcast plane (`wttr.in`), packages it into a canonical `COGOBJ`, and executes a warm-start cache bypass proving 100% token savings and sub-millisecond resolution times.
 
 ---
 *The working group operates under strict technical audit. Submit RFC drafts via the seat-specific branching protocol.*
