@@ -92,15 +92,22 @@ The L6 contract with the lower layers is narrow. The application surface renders
 
 ### L7 · Governance
 
-The override and accountability layer. The branch on the whiteboard labeled "broadcast, emergency, gov. override all." This is the layer most current AI architectures lack entirely, and the one most likely to be required by regulation regardless of whether vendors want it.
+The override, authorization, and accountability layer. Rather than operating as a passive topmost layer, L7 is structured as a **cross-cutting governance plane** that intercepts execution across the stack. Whenever a COSA agent proposes an irreversible or high-risk action (such as cache deletion at L2, persona modification at L4, or a transactional application action at L6), it must carry cryptographic proof of human authorization before the action executes.
+
+COSA formally adopts the **EMILIA Protocol (EP)** as its reference Layer 7 implementation. This establishes a clean architectural synergy:
+- **L5 (Inference Authenticity):** Uses signed canonical objects with a freshness window to prove that a broadcast inference result is authentic, preventing spoofing and optimizing energy/compute cost.
+- **L7 (Action Authorization):** Uses signed canonical receipts (EP Trust Receipts) to prove that an irreversible action was authorized by an accountable human, enforcing a fail-closed gate ("no receipt, no action").
+
+This represents two applications of a single discipline: signed, JCS-canonical, offline-verifiable objects.
 
 Responsibilities of L7:
+- **Action Authorization Gating (EP Reference):** Enforcement points (executors or middleware) verify an EP receipt containing the JCS-canonical action details, policy commitments, and user-verification-gated signatures (e.g., WebAuthn/Class A keys held by the human approver) before executing.
 - **Emergency override.** A public safety authority can require that certain queries (severe weather, AMBER alerts, civil emergencies) be delivered to all available bodies regardless of routing preferences. The cognitive equivalent of the Emergency Alert System.
-- **Auditability.** L4 signed work products give per-artifact audit trails. L7 extends this to system-level audit: who issued which override, when, against which population of bodies, with what justification.
+- **Auditability.** L4 signed work products give per-artifact audit trails. L7 extends this to system-level audit: who issued which override or authorized which action, when, with what cryptographic proof.
 - **Common-carrier obligations.** Foundational cognitive outputs (the broadcast layer's outputs at L5) should be regulated for accuracy, freshness, and availability the way utility outputs are regulated. The user should be able to trust that the broadcast weather is from a known authority, not from an unsourced inference.
-- **Rights and consent.** The user's persona, cache, and history belong to the user. Vendors providing bodies must operate as service providers against user-owned substrate, not as platforms owning the user. L7 is the layer that encodes this principle as enforceable policy.
+- **Rights and consent.** The user's persona, cache, and history belong to the user. Vendors providing bodies must operate as service providers against user-owned substrate, not as platforms owning the user. L7 is the layer encodes this principle as enforceable policy.
 
-The L7 argument is the one most likely to invite the "this is regulatory overreach" objection, and the one with the clearest precedent for why it is not. Every prior infrastructure technology (electricity, telephony, broadcast, network) eventually required a governance layer. The history is unanimous. AI will not be exempt. The question is whether the governance layer is designed thoughtfully alongside the rest of the architecture, or whether it is bolted on later in panic.
+The L7 argument is the one most likely to invite the "this is regulatory overreach" objection, and the one with the clearest precedent for why it is not. Every prior infrastructure technology (electricity, telephony, broadcast, network) eventually required a governance layer. The history is unanimous. AI will not be exempt. The question is whether the governance layer is designed thoughtfully alongside the rest of the architecture, or whether it is bolted on later in panic. By utilizing EP, COSA incorporates a running, formally-verified implementation of this critical layer.
 
 ---
 
@@ -118,7 +125,7 @@ The axes proposed here:
 - **Identity** (L4): who the agent is, separate from what model is rendering it. The substrate-versus-engine distinction.
 - **Sharing** (L5): when many users want the same answer, compute it once. Multicast is a different shape from unicast and deserves its own layer.
 - **Presentation** (L6): how the user encounters the assistant. Form-factor concerns that should not contaminate the lower layers.
-- **Policy and accountability** (L7): the oversight, governance, and override surface.
+- **Policy and accountability** (L7): the cross-cutting authorization, oversight, and override surface (implemented via EMILIA Protocol).
 
 These are real separations. Today's AI products collapse them all into a single vertical stack and inherit the resulting brittleness. Layering them produces the same kind of gains layering produced in networking: independent innovation per layer, clear interfaces, replaceability of any single layer without rebuilding the others.
 
@@ -172,7 +179,7 @@ A reference architecture published without explicit limitations is a sales docum
 - **The number of layers is provisional.** Seven was chosen because it maps cleanly to OSI and because the seven distinct concerns identified are genuinely separate. The final shape of a successful reference model may differ. The contribution is the decomposition, not the count.
 - **The substrate (L4) has been validated at single-operator scale only.** The cross-vendor portability claim is empirically supported for one operator working across Claude, Gemini, and OpenAI. It has not been tested with N operators, M personas, K vendors. The scaling thesis is not yet proven.
 - **The broadcast layer (L5) is a proposal, not a deployed system.** The watt-hour math is defensible. The deployment, the governance, the trust model, and the economics are all design problems that have not been solved.
-- **The governance layer (L7) crosses into policy and law.** This document offers an engineering view of what L7 should encompass. It does not propose specific legal frameworks. That work requires legal expertise this author does not have alone.
+- **The governance layer (L7) has a concrete reference implementation but crosses into policy and law.** While the EMILIA Protocol (EP) serves as the running, formally-verified engineering reference for L7 authorization gating, the broader regulatory, legal, and operational aspects of governance require co-authorship with policy experts.
 - **The author has commercial and personal stakes in the substrate.** Continuum-meta is the author's own work. While the architectural argument stands independent of that work, the author has not pretended to write from a neutral position. The framing here is from a builder who believes the architecture has implications beyond personal use, not from a disinterested observer.
 - **Vendor cooperation is uncertain at best.** Every major AI vendor has commercial reasons to resist the layering proposed here. The standards-and-regulation pathway is plausible but slow, and may be slower than the rate at which proprietary vertical stacks lock in user behavior.
 
@@ -191,7 +198,7 @@ The work to do, in rough priority order:
 1. Continue building and validating the substrate at L4. Multi-operator, multi-persona, multi-vendor validation is the next empirical anchor.
 2. Build a minimal reference implementation of L5 (broadcast cognition) for a single high-value use case (weather is the obvious starting point). Measure the watt-hours saved. Publish the measurement.
 3. Engage with standards bodies (IETF first, on the routing and substrate layers) to make the vocabulary public.
-4. Develop the L7 governance proposal with policy and legal co-authors.
+4. Integrate the EMILIA Protocol (EP) as the reference L7 implementation, establishing concrete L5+L7 composition patterns, and develop the broader governance proposal with policy and legal co-authors.
 5. Continue documenting the architecture honestly: confidence levels, limitations, what is built and what is not.
 
 This is a generational program of work. It does not need to be completed by one person, or in one decade. What it needs is to be started visibly enough that other operators can join.
