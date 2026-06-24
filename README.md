@@ -1,7 +1,7 @@
 # ECR-WG: EFFICIENCY-CENTERED REASONING WORKING GROUP
 
 **Standard:** AI Inference Response Cache with Locality-Aware Tiering
-**Status:** DRAFT // **Version:** v1844.1.0
+**Status:** DRAFT // **Version:** v0.1.0
 
 ---
 
@@ -25,9 +25,9 @@ The ECR Working Group focuses on standardizing the transport-layer visibility an
 ## Repository Structure
 - **[specs/](specs/)**: The core protocol specifications (AIR Protocol, COGSTOR, GRACE Contract, Truth Root).
 - **[papers/](papers/)**: Academic and technical papers on Cognitive Open Systems Architecture (COSA).
-- **[thesis/](thesis/)**: Standard proposal thesis submissions (including COGOBJ schema, COGSTOR v2, and efficiency audits).
+- **[thesis/](thesis/)**: Standard specifications and schema definitions (including COGOBJ schema, COGSTOR v2, and efficiency audits).
 - **[tests/scenarios/](tests/scenarios/)**: Compliance and validation test scenarios.
-- **[docs/](docs/)**: Comprehensive framework documentation, guides, and reference material.
+- **[rituals/](rituals/)**: Executable reference code, identity, and query routing logic.
 - **[evidence/](evidence/)**: Empirical energy benchmarks and validation reports.
 - **[examples/](examples/)**: Runnable reference implementations and demonstrations (e.g. the L5 broadcast caching demo).
 

@@ -31,8 +31,8 @@ The COGOBJ is the atomic unit of the Cognition Protocol. It is a cryptographical
 ```
 
 ## UNRP IDENTIFIER FORMAT (Universal Node Registry Protocol)
-- **Format:** `[TIER]-[OPERATOR_HASH]-[ITERATION]-[INSTANCE]`
-- **Example:** `E-JK84A291-184501-001`
+- **Format:** `[TIER]-[OPERATOR_HASH]-[EPOCH]-[INSTANCE]`
+- **Example:** `E-JK84A291-01-001`
 - **Verification:** The `OPERATOR_HASH` is a local determinism-anchor, verified against the node's initial boot-context hash. 
 - **Decentralization:** Identity is generated locally, ensuring the Lattice scales without central registry authority.
 

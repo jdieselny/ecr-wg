@@ -35,7 +35,7 @@ def setup_identity():
 
     # Generate Node ID (UNRP Standard)
     op_hash = hashlib.md5(f"{op_id}ANCHOOR".encode()).hexdigest()[:8].upper()
-    unrp_id = f"E-{op_hash}-1845-001"
+    unrp_id = f"E-{op_hash}-01-001"
     
     # Generate Cryptographic Thumbprint
     # (Simplified machine data for local instantiation)
