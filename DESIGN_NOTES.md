@@ -95,7 +95,36 @@ This note remains here as the **rationale** for the COGSTOR Re-Absorption requir
 
 Operator's two stated personal prevention goals:
 
-1. **No direct path between `[dummy] <----> [a.i. prompt]`** -- i.e., the Continuum overlay should always interpose structure between unsophisticated human ingress and raw model compute. This is consonant with the ARCHITECTURE.md thesis line.
-2. **At least two offsite backups of the Continuum-meta-sphere.** -- a substrate operational concern (backup of the operator's local substrate), not a public standard the WG should ratify.
+1. **No direct path between `[dummy] <----> [a.i. prompt]`** - i.e., the Continuum overlay should always interpose structure between unsophisticated human ingress and raw model compute. This is consonant with the ARCHITECTURE.md thesis line.
+2. **At least two offsite backups of the Continuum-meta-sphere.** - a substrate operational concern (backup of the operator's local substrate), not a public standard the WG should ratify.
 
 Goal #1 is already encoded as architectural thesis. Goal #2 is captured here for completeness but does not propagate to specs.
+
+---
+
+## Note 06: L3/L5/L7 Grid Curtailment Composition
+
+**Status:** EXPLORATORY  
+**Captured:** 2026-06-25  
+**Source:** Operator thread convergence and Grok-Build Synthesis Note  
+
+This note establishes the architectural mapping for graceful grid curtailment using composed L3, L5, and L7 behaviors to handle power-grid emergencies without binary datacenter shutdowns.
+
+### 1. Mechanism-Level Mapping to Existing Specs
+
+*   **L7 Receipt Gate (EMILIA)**: Cryptographically signed, offline-verifiable authorization blocks (`EP-RECEIPT-v1`) carry the policy parameters (action_type, sites, outcome, duration). This implements the grid authority's demand-response instruction without trusting the gateway or the agent.
+*   **L3 QoS Priority Marker (AIR/Truth Root)**: Extends `inference_router.py` logic to recognize a GRACE routing constraint marker derived from the L7 receipt hash, artificially elevating raw L1 GPU path costs.
+*   **L5 Broadcast Plane**: Shift query volume to pre-computed, signed `COGOBJs` (provenance-verified cache), dropping token cost to zero.
+*   **COGs / COGSTOR Deduplication**: Uses COGSTOR Re-Absorption (`specs/cogstor.md`) to deduplicate identical queued requests under curtailment events, compressing thousands of redundant requests into a single GPU compute followed by a multicast L5 broadcast flush.
+
+### 2. Demonstrated vs. Speculative Boundaries
+
+*   **Demonstrated (Running Code)**: Single-node L5 broadcast caching (`examples/l5_broadcast_demo.py`) and offline L7 PEP receipt gates (`examples/cosa/cosa_l5_l7.py`).
+*   **Speculative (Requires Protocol Work)**: EIGRP/BGP-style planetary cost propagation (AIR Protocol routing cost cascades), settlement-grade audit ledgers, and edge-thermodynamic TTL offloading (thermostats acting as BGP route advertisers).
+
+### 3. Friday Whiteboard Agenda
+
+*   **L7 Receipt Fields**: Confirm metadata structure needed to express grid curtailment instructions.
+*   **L3 Priority Markers**: Define the minimal routing marker required to trigger L5 cache preference in the intent router.
+*   **Governance Track**: Evaluate whether this composition remains in exploratory design notes or graduates to a formal governance specification track.
+
