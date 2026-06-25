@@ -77,11 +77,11 @@ A hosted-service variant earning the RR-1 badge formally is follow-on work.
 
 A key architectural critique (from Karthiek Maralla) notes that the L7 authorization receipt's `subject` field currently contains a plain string identity (`"agent:cosa-l5-plane"`) rather than a cryptographically bound identifier. While L7 validates the approver's signature, it does not cryptographically prove the requester's claim to that identity.
 
-Aligning L7 authorization with L4 substrate identity is a prioritized post-walkthrough workstream, incorporating:
-*   WIMSE (draft-ni-wimse-ai-agent-identity)
-*   OAuth Identity Chaining (draft-ietf-oauth-identity-chaining)
-*   AIMS (draft-klrc-aiagent-auth)
-*   EAT-based Attestation Profile (draft-messous-eat-ai)
+Following joint list convergence (Iman Schrock), we decouple the L7 PDP governance plane from convergence on any single L4 identity scheme (such as WIMSE, OAuth Identity Chaining, AIMS, or EAT). Instead, the L7 PDP decision object binds to and records the presented evidence:
+1.  **L4 Attestation Reference**: The decision object references, by content hash, the specific L4 attestation it relied on.
+2.  **Freshness and Validity Windows**: The decision object records and enforces validity windows, ensuring that stale or unconstrained sub-agent claims show up in the audit record instead of being silently absorbed.
+
+This decouples the debates and allows L7 authorization to remain agnostic while making the failure modes described by Karthiek detectable after the fact.
 
 <!-- AGENT-SIGNATURE
 agent_id: E-2A0F1954-1845-001

@@ -106,6 +106,8 @@ def issue_receipt(action_type: str, approver: str) -> dict:
     payload = {
         "receipt_id": "rcpt_" + secrets.token_hex(6),
         "subject": "agent:cosa-l5-plane",
+        # Follow-on: bind the L4 attestation hash and validity window here
+        # to ensure the PDP decision is auditable against the specific L4 evidence
         "created_at": _now_iso(),
         "claim": {"action_type": action_type, "outcome": "allow_with_signoff", "approver": approver},
     }
