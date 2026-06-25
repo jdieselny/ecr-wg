@@ -97,6 +97,7 @@ def find_requirement(manifest: dict, action_type: str):
 # L7 / EMILIA: issue receipts + manifest-driven authorization gate.
 
 # The approver/issuer key, pinned out of band. Never trust a key inside a receipt.
+# Note: Generated per run for demo; production environment pins a published approver key.
 _APPROVER_SK = Ed25519PrivateKey.generate()
 TRUSTED_KEY = _b64u(_APPROVER_SK.public_key().public_bytes(Encoding.DER, PublicFormat.SubjectPublicKeyInfo))
 
@@ -148,6 +149,7 @@ def authorize(action_type: str, receipt: dict | None, consumed: set) -> str:
 
 # The L5 plane's signing key (authenticity). Distinct purpose from the L7 key:
 # L5 attests "this answer is genuine"; L7 attests "this publish was approved".
+# Note: Generated per run for demo; production environment pins a published plane key.
 _L5_SK = Ed25519PrivateKey.generate()
 L5_PUB = _b64u(_L5_SK.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw))
 
