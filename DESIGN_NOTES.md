@@ -119,12 +119,12 @@ This note establishes the architectural mapping for graceful grid curtailment us
 
 ### 2. Demonstrated vs. Speculative Boundaries
 
-*   **Demonstrated (Running Code)**: Single-node L5 broadcast caching (`examples/l5_broadcast_demo.py`) and offline L7 PEP receipt gates (`examples/cosa/cosa_l5_l7.py`).
-*   **Speculative (Requires Protocol Work)**: EIGRP/BGP-style planetary cost propagation (AIR Protocol routing cost cascades), settlement-grade audit ledgers, and edge-thermodynamic TTL offloading (thermostats acting as BGP route advertisers).
+*   **Demonstrated (Running Code)**: Single-node L5 broadcast caching (`examples/l5_broadcast_demo.py`), offline L7 PEP receipt gates (`examples/cosa-l5-l7-compose.py` and `examples/cosa/cosa_l5_l7.py`), and the L5 + L7 composition simulator (`examples/l5_l7_composition_demo.py`).
+*   **Speculative (Requires Protocol Work)**: BGP/EIGRP-style planetary cost propagation (AIR Protocol routing cost cascades), settlement-grade audit ledgers, and edge-thermodynamic TTL offloading (thermostats acting as BGP route advertisers). Specifically, the current L3 router has no defined wire format or propagation rule for signed cost updates; any cascade behavior requires an AIR Protocol extension to emit and consume these cost updates.
 
 ### 3. Friday Whiteboard Agenda
 
-*   **L7 Receipt Fields**: Confirm metadata structure needed to express grid curtailment instructions.
+*   **L7 Receipt Fields**: Confirm metadata structure needed to express grid curtailment instructions. Test a prototype claim schema for grid curtailment (e.g., action_type: "grid.curtailment", parameters: {sites: ["us-east-1"], mw_target: 50, duration_seconds: 7200, priority_marker: "<hash>"}) to run within the demo's receipt-issuer logic.
 *   **L3 Priority Markers**: Define the minimal routing marker required to trigger L5 cache preference in the intent router.
 *   **Governance Track**: Evaluate whether this composition remains in exploratory design notes or graduates to a formal governance specification track.
 
