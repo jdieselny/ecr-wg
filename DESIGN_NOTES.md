@@ -124,7 +124,53 @@ This note establishes the architectural mapping for graceful grid curtailment us
 
 ### 3. Friday Whiteboard Agenda
 
-*   **L7 Receipt Fields**: Confirm metadata structure needed to express grid curtailment instructions. Test a prototype claim schema for grid curtailment (e.g., action_type: "grid.curtailment", parameters: {sites: ["us-east-1"], mw_target: 50, duration_seconds: 7200, priority_marker: "<hash>"}) to run within the demo's receipt-issuer logic.
+*   **L7 Receipt Fields**: PIP-013-aligned `grid.curtailment` action-type per Iman's 2026-06-25 review (see "Iman Refinements" subsection below for the corrected schema and rationale).
 *   **L3 Priority Markers**: Define the minimal routing marker required to trigger L5 cache preference in the intent router.
 *   **Governance Track**: Evaluate whether this composition remains in exploratory design notes or graduates to a formal governance specification track.
+
+### 4. Iman Refinements (2026-06-25 evening review)
+
+Iman Schrock (EMILIA Protocol) reviewed Note 06 by email on 2026-06-25 evening and supplied four refinements that align the candidate `grid.curtailment` schema with EMILIA's existing receipt model (PIP-013 Human-Oversight Profile), so the schema verifies under standard EP verifiers with zero new code and stays consistent across COSA and EMILIA layers.
+
+**Refinement 1: Expiry uses EP's validity window, not a custom field.**
+EP receipts already carry `issued_at` and `expires_at`. The binding control is `expires_at = issued_at + duration`; the receipt auto-expires under the standard offline verifier. `duration_seconds` may remain as a human-readable echo, not as the binding control.
+
+**Refinement 2: Map parameters to PIP-013 `authorization_scope`, not a parallel schema.**
+The proposed `{sites, mw_target, duration}` is structurally PIP-013's `{target_set, effect_class, magnitude, window}`. Expressing `grid.curtailment` as an EP action-type that uses PIP-013's fields keeps one receipt model across COSA and EMILIA, and keeps the receipt spec EMILIA-owned, which keeps the composition clean to cite.
+
+**Refinement 3: Named human + quorum live in the signoff, not the parameters.**
+The action parameters describe WHAT. The EP signoff (Class-A, device-bound) proves WHO. For hard cuts (large MW or full-site shutdown), require EP-QUORUM: m-of-n distinct humans, the cryptographic two-person rule. The example below shows a named approver; quorum is required for hard cuts.
+
+**Refinement 4: `priority_marker` is the SHA-256 of the canonical EP receipt.**
+The L3 marker is unforgeable by construction: no valid receipt, no valid marker. The verifier already computes the canonical receipt hash; the L3 layer reuses it. No new crypto, no parallel verification surface.
+
+**Corrected `grid.curtailment` receipt shape:**
+
+```json
+{
+  "action": {
+    "action_type": "grid.curtailment",
+    "effect_class": "grid",
+    "target_set": ["us-east-1"],
+    "mw_cap": 50,
+    "window": {
+      "not_before": "2026-07-01T18:00:00Z",
+      "not_after":  "2026-07-01T20:00:00Z"
+    }
+  },
+  "human_oversight": {
+    "control_mode": "on_the_loop"
+  },
+  "approver": "ep:approver:grid-authority-1",
+  "issued_at": "2026-07-01T17:59:00Z",
+  "expires_at": "2026-07-01T20:00:00Z",
+  "nonce": "b64u:...",
+  "policy_id": "ep:policy:grid-curtailment@v1",
+  "policy_hash": "sha256:..."
+}
+```
+
+`L3 priority_marker = sha256(canonical_receipt)`
+
+**Governance track decision (Friday agenda item 3, Iman's vote):** receipt fields ride the EMILIA receipts draft plus PIP-013 as the EP action-type profile; COSA references them. One receipt model, both layers share. COSA's contribution at L7 is the composition for grid use cases, not a parallel receipt schema. Locks on the Friday whiteboard.
 
