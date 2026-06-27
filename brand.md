@@ -11,16 +11,18 @@ This document defines the visual, structural, and typographical guidelines for t
 
 ## Colors
 
-The following hex color values must be applied for consistent rendering of documents and visual models:
+The following hex color values (adapted from the jdieselny-genetics signature palette) must be applied for consistent rendering of documents and visual models:
 
 | Name | Hex | Use case |
 |---|---|---|
-| ECR_INDIGO | #4F46E5 | Primary accent, main title, section headers (H1), primary callouts |
-| ECR_SLATE | #475569 | Secondary accent, subheaders (H2, H3), blockquote borders |
-| ECR_CHARCOAL | #0F172A | Primary body text, main headings, table headers |
-| ECR_LIGHT_BG | #F8FAFC | Code block background shading |
+| ECR_MIDNIGHT | #0C1117 | Primary dark accent, main title, H1 headings |
+| ECR_ICE_BLUE | #8ECAE6 | Secondary light accent, heading bottom borders, blockquote left borders |
+| ECR_SLATE | #475569 | Muted accent, subheaders (H2, H3), blockquote/header text |
+| ECR_CHARCOAL | #0F172A | Primary body text, table headers |
+| ECR_LIGHT_BG | #F8FAFC | Code block and callout background shading |
 
 No ad-hoc colors. All documents must use this unified palette.
+
 
 ## Typography
 
