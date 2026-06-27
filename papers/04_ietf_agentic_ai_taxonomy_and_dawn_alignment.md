@@ -19,8 +19,8 @@ The IETF taxonomy outlines seven top-level functional domains. ECR-WG aligns wit
 
 ### 2.2. Identity Domain
 *   **Taxonomy Requirement**: Delegation Chains, Credential Management, Selective Disclosure, Naming and Addressing.
-*   **ECR-WG Implementation**: The **Truth Root** (`specs/truth-root.md`) specification defines static agent enrollment profiles, cryptographic authorship signatures, and human-accountability links.
-*   **Gap Resolution**: ECR-WG implements offline-verifiable agent signatures (AFT-Signed metadata) to track delegation and execution provenance without relying on centralized online registries.
+*   **ECR-WG Implementation**: The **Truth Root** (`specs/truth-root.md`) specification defines static agent enrollment profiles and cryptographic authorship signatures.
+*   **Gap Resolution**: ECR-WG implements offline-verifiable agent signatures (AFT-Signed metadata) to track delegation and execution authorship provenance, keeping human-accountability links scoped strictly to agent creation and enrollment rather than real-time action authorization (which is delegated to L7 receipts in §2.4).
 
 ### 2.3. Data and Context Management Domain
 *   **Taxonomy Requirement**: Context Exchange, Provenance and Citations, Data Minimization.
