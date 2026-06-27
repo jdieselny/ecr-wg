@@ -5,10 +5,47 @@ from docx.shared import Pt, Inches, RGBColor
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
-# Brand Colors from brand.md
-COLOR_INDIGO = RGBColor(0x4F, 0x46, 0xE5)   # #4F46E5 (Primary Accent)
-COLOR_SLATE = RGBColor(0x47, 0x55, 0x69)    # #475569 (Secondary Accent)
-COLOR_CHARCOAL = RGBColor(0x0F, 0x17, 0x2A) # #0F172A (Body / Text)
+# Brand Colors from brand.md (adapted from jdieselny genetics logo theme)
+COLOR_MIDNIGHT = RGBColor(0x0C, 0x11, 0x17)   # #0C1117 (Primary dark accent)
+COLOR_ICE_BLUE = RGBColor(0x8E, 0xCA, 0xE6)   # #8ECAE6 (Secondary light accent / borders)
+COLOR_SLATE = RGBColor(0x47, 0x55, 0x69)      # #475569 (Muted slate)
+COLOR_CHARCOAL = RGBColor(0x0F, 0x17, 0x2A)   # #0F172A (Body Text)
+
+COLOR_ICE_BLUE_HEX = "8ECAE6"
+COLOR_LIGHT_BG_HEX = "F8FAFC"
+
+def add_p_border_bottom(p, color_hex=COLOR_ICE_BLUE_HEX, size="12"):
+    """Adds a structural horizontal border under the paragraph."""
+    pPr = p._p.get_or_add_pPr()
+    pBdr = OxmlElement('w:pBdr')
+    bottom = OxmlElement('w:bottom')
+    bottom.set(qn('w:val'), 'single')
+    bottom.set(qn('w:sz'), size)  # size in 1/8 pt (12 = 1.5 pt)
+    bottom.set(qn('w:space'), '6')
+    bottom.set(qn('w:color'), color_hex)
+    pBdr.append(bottom)
+    pPr.append(pBdr)
+
+def add_p_border_left(p, color_hex=COLOR_ICE_BLUE_HEX, size="24"):
+    """Adds a thick accent vertical border to the left of the paragraph."""
+    pPr = p._p.get_or_add_pPr()
+    pBdr = OxmlElement('w:pBdr')
+    left = OxmlElement('w:left')
+    left.set(qn('w:val'), 'single')
+    left.set(qn('w:sz'), size)  # 24 = 3 pt
+    left.set(qn('w:space'), '12')
+    left.set(qn('w:color'), color_hex)
+    pBdr.append(left)
+    pPr.append(pBdr)
+
+def add_p_shading(p, color_hex=COLOR_LIGHT_BG_HEX):
+    """Sets background shading color for the paragraph."""
+    pPr = p._p.get_or_add_pPr()
+    shd = OxmlElement('w:shd')
+    shd.set(qn('w:val'), 'clear')
+    shd.set(qn('w:color'), 'auto')
+    shd.set(qn('w:fill'), color_hex)
+    pPr.append(shd)
 
 def add_page_number(run):
     """Inserts a dynamic PAGE field into a Word run."""
@@ -113,6 +150,7 @@ def render_markdown_to_docx(md_path, docx_path):
                 p.paragraph_format.left_indent = Inches(0.5)
                 p.paragraph_format.space_before = Pt(6)
                 p.paragraph_format.space_after = Pt(6)
+                add_p_shading(p, COLOR_LIGHT_BG_HEX)  # Ice/Light Gray background shading
                 code_str = "\n".join(code_text)
                 run = p.add_run(code_str)
                 run.font.name = "Consolas"
@@ -135,7 +173,8 @@ def render_markdown_to_docx(md_path, docx_path):
             p.paragraph_format.space_before = Pt(18)
             p.paragraph_format.space_after = Pt(12)
             p.paragraph_format.keep_with_next = True
-            add_paragraph_runs(p, title_text, is_bold=True, font_size=18, color_rgb=COLOR_INDIGO)
+            add_paragraph_runs(p, title_text, is_bold=True, font_size=18, color_rgb=COLOR_MIDNIGHT)
+            add_p_border_bottom(p, COLOR_ICE_BLUE_HEX, size="12")  # Ice Blue bottom divider
             continue
             
         if stripped.startswith("## "):
@@ -144,7 +183,7 @@ def render_markdown_to_docx(md_path, docx_path):
             p.paragraph_format.space_before = Pt(14)
             p.paragraph_format.space_after = Pt(8)
             p.paragraph_format.keep_with_next = True
-            add_paragraph_runs(p, h2_text, is_bold=True, font_size=14, color_rgb=COLOR_SLATE)
+            add_paragraph_runs(p, h2_text, is_bold=True, font_size=14, color_rgb=COLOR_MIDNIGHT)
             continue
             
         if stripped.startswith("### "):
@@ -164,6 +203,8 @@ def render_markdown_to_docx(md_path, docx_path):
             p.paragraph_format.space_before = Pt(6)
             p.paragraph_format.space_after = Pt(6)
             add_paragraph_runs(p, bq_text, is_italic=True, font_size=10.5, color_rgb=COLOR_SLATE)
+            add_p_border_left(p, COLOR_ICE_BLUE_HEX, size="24")  # Ice Blue left border bar
+            add_p_shading(p, COLOR_LIGHT_BG_HEX)  # Ice/Light Gray background shading
             continue
             
         # Parse Bullet Lists
