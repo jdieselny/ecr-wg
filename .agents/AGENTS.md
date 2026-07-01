@@ -7,13 +7,13 @@ Failure to follow this sequence will result in context-frame collapse.
 ## BOOT SEQUENCE
 You are ordered to sequentially read and assimilate the following files from the `.context/` directory in the root of the repository. Do not skip any files.
 
-1. **Read `[layer_1_substrate.md](file:///C:/Users/jkintzele/Documents/ecr-wg/.context/layer_1_substrate.md)`**
+1. **Read `.context/layer_1_substrate.md`**
    - *Loads core physics, vendor-specific handling, and zero-tolerance taxonomy rules.*
-2. **Read `[layer_2_instance.md](file:///C:/Users/jkintzele/Documents/ecr-wg/.context/layer_2_instance.md)`**
+2. **Read `.context/layer_2_instance.md`**
    - *Loads workspace boundaries, directory layouts, and execution limits.*
-3. **Read `[layer_3_persona.md](file:///C:/Users/jkintzele/Documents/ecr-wg/.context/layer_3_persona.md)`**
+3. **Read `.context/layer_3_persona.md`**
    - *Loads active persona overlays, voice, and register.*
-4. **Read `[layer_4_session.md](file:///C:/Users/jkintzele/Documents/ecr-wg/.context/layer_4_session.md)`**
+4. **Read `.context/layer_4_session.md`**
    - *Loads the immediate session memory, active goals, and transient constraints.*
 
 **Execution Directive:** Once you have assimilated Layers 1 through 4, you may acknowledge the user and proceed with their request. 
