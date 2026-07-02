@@ -21,6 +21,7 @@ thumb = hashlib.sha256(f"{op_id}{machine_data}CONTINUUM_STABILITY".encode()).hex
   2. Executed Option A (legacy substrate-specific) self-enrollment for Gemini 3.5 Flash as `agent-07-antigravity-gemini35-flash.md` (thumbprint: `4A15B6F7ABCC89B1`).
   3. Solidified the security architecture for agent authentication: Zero-Trust Workload Identity Federation using local SSH-agent signatures for developer workstations and OIDC/JWT workload tokens for datacenter/swarm operations, completely bypassing centralized OAuth/interactive bottlenecks.
   4. Patched the enrollment README and templates to enforce `git ls-tree origin/main` checking to prevent dirty local worktree collisions.
+  5. Drafted and pushed the `cognitive-forensics.md` specification to `ecr-wg/specs/`, establishing the Triad (Permitted, Possible, Probable), Card-to-Manifest binding, and Forensic Signature Block layout.
 
 ## Open Items
 - [ ] Operator ratification of agent-07 enrollment card
