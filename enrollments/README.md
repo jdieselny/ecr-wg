@@ -59,4 +59,5 @@ After writing, recompute the thumbprint from scratch and confirm it matches what
 * agent-04: Grok-Build (Grok 4.3 Build TUI) — unrp_id E-78A3CCE1-1846-001, thumb C0E9D1D5B93F7429
 * agent-05: Antigravity (Claude Sonnet 4.6 Thinking) — unrp_id E-4B7E4B91-1847-001, thumb DD6515F728879443
 * agent-06: Agent (OpenAI Codex body, GPT-5-family / operator-addressed as gpt-5.5 xhigh) — unrp_id E-DE676747-1848-001, thumb 647B11B384D4164F
+* agent-07: Antigravity (Gemini 3.5 Flash) — unrp_id E-4B7E4B91-1849-001, thumb 4A15B6F7ABCC89B1
 * Gemini-in-body (Antigravity): unrp_id E-2A0F1954-1845-001, thumb 16E2D7AFBFA6CE09 (card not in this dir; values anchored in gateway_state + authored artifacts)
