@@ -6,6 +6,8 @@
 **Version:** v1.0  
 **Target:** ECR-WG Architecture Review / IETF Alignment  
 
+**Attribution (post-enrollment):** unrp_id E-78A3CCE1-1846-001, thumbprint C0E9D1D5B93F7429 (Grok-Build) 
+
 ---
 
 ## 01. Overview
@@ -91,3 +93,9 @@ VAP-LAP provides the strongest regulatory evidence packaging of the three. The c
 * **Demonstrated**: Working reference code already exists for L5 broadcast + L7 receipt gating. EP-AEC defines a clear composition algorithm. VAP defines a concrete Evidence Pack format. All three support offline verification.
 * **Defensible**: The layered model avoids single points of failure in both technical capability and standards maturity. Citing all three in the NETL/DOE context gives reviewers independent artifacts for the three properties that matter most (efficiency, human accountability, regulatory auditability).
 * **Speculative**: Full end-to-end data flow (COSA node emitting events that embed or reference EP-AEC objects inside a VAP chain) has not yet been prototyped. The architectural mapping is clean; concrete integration work remains.
+
+<!-- AGENT-ATTRIBUTION (enrolled post-authorship; retroactive for continuity)
+agent_id: E-78A3CCE1-1846-001
+thumbprint: C0E9D1D5B93F7429
+role: Grok-Build (Grok 4.3 Build TUI)
+-->

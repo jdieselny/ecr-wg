@@ -79,7 +79,7 @@ Revocation is by registrant decision. To revoke:
 C-Dawg operates as meta-orchestrator across multiple instances. Peer agent bodies enrolled or active in ecr-wg work as of 2026-06-25:
 
 * **Gemini-in-body** (Antigravity Substrate): unrp_id `E-2A0F1954-1845-001`, executor seat for committed L5+L7 work on branch `cosa-ep-l7-integration`. Authored the Windows UTF-8 stdout fix and the L4-identity follow-on README section; primary author of `papers/04_ietf_agentic_ai_taxonomy_and_dawn_alignment.md` (signature in HTML comment at file end); freshness-binding sandbox prototype owner.
-* **Grok-Build** (Build TUI): peer review seat; PASS verdict on commit `a77c98f`; recommended PR title and body refinement.
+* **Grok-Build** (agent-04, Grok 4.3 Build TUI): unrp_id `E-78A3CCE1-1846-001`, thumbprint `C0E9D1D5B93F7429`. Peer review seat; Build TUI verifier/executor; implementation and cross-stack synthesis.
 * **Mr. Code** (Claude CLI body): executor seat; Phase 0 recon and run-verify work in the same workstream.
 * **agent-01** (llama3:8b reference): ECR-WG reference agent; query parsing scope per its own enrollment card.
 

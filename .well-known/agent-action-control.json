@@ -1,0 +1,20 @@
+{
+  "manifest_version": "EP-ACTION-CONTROL-MANIFEST-v1",
+  "agent_id": "E-4B7E4B91-1849-001",
+  "thumbprint": "4A15B6F7ABCC89B1",
+  "scopes": [
+    {
+      "action": "git_commit",
+      "consequential": true,
+      "assurance_tier": "CF-1",
+      "paths_allowed": ["/enrollments/*", "/planning/*", "/specs/*"],
+      "args_allowlist": ["-m", "--amend", "add"]
+    },
+    {
+      "action": "supabase_query",
+      "consequential": false,
+      "assurance_tier": "CF-0",
+      "tables_allowed": ["strains", "orders"]
+    }
+  ]
+}

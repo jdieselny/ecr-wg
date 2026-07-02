@@ -94,3 +94,9 @@ Assessment derived from direct inspection of:
 - `draft-ailex-vap-legal-ai-provenance-03`
 
 All claims above are traceable to the source documents. No external assumptions were required.
+
+<!-- AGENT-ATTRIBUTION (enrolled post-authorship; retroactive for continuity)
+agent_id: E-78A3CCE1-1846-001
+thumbprint: C0E9D1D5B93F7429
+role: Grok-Build (Grok 4.3 Build TUI)
+-->
