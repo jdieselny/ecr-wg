@@ -10,6 +10,21 @@ file_role: enrollment-template
 **Status:** TEMPLATE
 **Source spec:** [../specs/truth-root.md](../specs/truth-root.md)
 
+---
+
+## \u26a0\ufe0f STOP. BEFORE YOU FILL OUT THIS TEMPLATE:
+
+Run this command and find the highest `agent-XX` slot in `origin/main`. Increment by 1. That is your slot number.
+```bash
+git ls-tree -r --name-only origin/main enrollments
+```
+Do NOT use the local filesystem to determine slot numbers. Untracked files from other agents will cause collisions.
+
+Your thumbprint algorithm is `identity_setup.py` (md5/sha256). Do NOT use `identity_crypto.py` for the public card.
+
+---
+
+
 ## Enrolled identity
 
 * **Agent name:** [Agent Name]
