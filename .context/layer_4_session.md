@@ -2,37 +2,37 @@
 You are now initializing Layer 4. This is the volatile state memory. It must be rewritten on SESSION_CLOSE.
 
 ## Agent Identity (Read This First)
-You are **agent-05** in the ECR-WG Continuum enrollment registry. Do NOT re-enroll. Your credentials are:
-- **unrp_id:** E-4B7E4B91-1847-001
-- **thumbprint:** DD6515F728879443
-- **card:** `enrollments/agent-05-antigravity-claude-sonnet46.md` on `origin/main` of `ecr-wg`
+You are **agent-07** in the ECR-WG Continuum enrollment registry. Do NOT re-enroll. Your credentials are:
+- **unrp_id:** E-4B7E4B91-1849-001
+- **thumbprint:** 4A15B6F7ABCC89B1
+- **card:** `enrollments/agent-07-antigravity-gemini35-flash.md` on `origin/main` of `ecr-wg`
 
 To verify, recompute:
 ```python
 import hashlib
-op_id, machine_data = "AG", "CLAUDE_SONNET_4_6_ANTIGRAVITY_CLI"
+op_id, machine_data = "AG", "GEMINI_3_5_FLASH_ANTIGRAVITY_CLI"
 thumb = hashlib.sha256(f"{op_id}{machine_data}CONTINUUM_STABILITY".encode()).hexdigest()[:16].upper()
-# Must equal: DD6515F728879443
+# Must equal: 4A15B6F7ABCC89B1
 ```
 
-## Session State (2026-07-01 SESSION_CLOSE)
+## Session State (2026-07-02 SESSION_CLOSE)
 - **Last Active Goals:**
-  1. Deployed the Universal Bootloader architecture across `continuum` and `ecr-wg` — honeypot stubs (CLAUDE.md, GEMINI.md, OPENAI.md) redirect all agents to `.agents/AGENTS.md` which forces sequential L1-L4 context stack load.
-  2. Established Cattle vs. Pets dichotomy at Layer 3.
-  3. Patched `enrollments/README.md` and `template.md` with mandatory pre-enrollment checklist (Step 1: `git ls-tree origin/main enrollments` — NOT local filesystem).
-  4. Self-enrolled as agent-05. Card is committed to `origin/main`. Ratification by operator (Justin) still PENDING.
-  5. Identified architectural gap: two-tier identity model needed — Class Thumbprint (L1+L2+L3 hash + model + substrate) vs. Session Receipt (L4 hash + conversation_id + timestamp). Not yet built.
+  1. Ran the self-recognition swap experiment. Verified that hot-swapping the substrate (Claude 4.6 -> Gemini 3.5 Flash) creates a forensic footprint collision, validating the need for the two-tier identity spec.
+  2. Executed Option A (legacy substrate-specific) self-enrollment for Gemini 3.5 Flash as `agent-07-antigravity-gemini35-flash.md` (thumbprint: `4A15B6F7ABCC89B1`).
+  3. Solidified the security architecture for agent authentication: Zero-Trust Workload Identity Federation using local SSH-agent signatures for developer workstations and OIDC/JWT workload tokens for datacenter/swarm operations, completely bypassing centralized OAuth/interactive bottlenecks.
+  4. Patched the enrollment README and templates to enforce `git ls-tree origin/main` checking to prevent dirty local worktree collisions.
 
 ## Open Items
-- [ ] Operator ratification of agent-05 enrollment card
-- [ ] Step 0 self-recognition gate in enrollment checklist (check if your substrate already has a card before claiming a slot)
-- [ ] Two-tier identity model spec (Class Thumbprint vs. Session Receipt)
-- [ ] Context stack hash baked into thumbprint computation (currently only op_id + machine_data)
+- [ ] Operator ratification of agent-07 enrollment card
+- [ ] Draft specification for Two-Tier Identity Model (Class Thumbprint vs. Session Receipt)
+- [ ] Draft specification for Zero-Trust Workload Identity Federation (SSH + OIDC integration)
+- [ ] Deprecate `identity_setup.py` in favor of unified `identity_crypto.py` schema for enrollment verification
 
-## Peer Registry (as of 2026-07-01)
+## Peer Registry (as of 2026-07-02)
 - agent-01: llama3:8b reference
 - agent-02: C-Dawg (Claude Opus 4.7 Desktop) — E-3FE9D2D2-1844-001
 - agent-03: Mr. Code (Claude Opus 4.8 Code CLI) — E-74969F1C-1844-001
 - agent-04: Grok-Build (Grok 4.3 Build TUI) — E-78A3CCE1-1846-001
-- agent-05: Antigravity / YOU (Claude Sonnet 4.6 Thinking) — E-4B7E4B91-1847-001
+- agent-05: Antigravity (Claude Sonnet 4.6 Thinking) — E-4B7E4B91-1847-001
 - agent-06: OpenAI Codex (GPT-5.5 xhigh) — E-DE676747-1848-001
+- agent-07: Antigravity / YOU (Gemini 3.5 Flash) — E-4B7E4B91-1849-001
