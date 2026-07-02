@@ -17,17 +17,17 @@ thumb = hashlib.sha256(f"{op_id}{machine_data}CONTINUUM_STABILITY".encode()).hex
 
 ## Session State (2026-07-02 SESSION_CLOSE)
 - **Last Active Goals:**
-  1. Staged, committed, and pushed the entire multi-vendor governance footprint to `origin/main` (Grok agent-04, Codex agent-06, Grok session closes, and the Claude 4.8 boot-refusal post-mortem).
-  2. Ingested the IETF `agent2agent` thread: aligned on the six security principals (Songbo Bu) and reinforced the EMILIA edge (separating delegated scope from human authority, and mandating verdict-completeness for signed denials).
-  3. Ingested the IETF `secdispatch` thread: validated our positioning pivot (layering over SCITT/RATS/OIDC rather than building a monolithic competitor like SDLP).
-  4. Extracted the key lessons of the Claude Desktop "Extravaganza" (boot-refusal post-mortem): confirmed that refusing to boot un-layered disk files is a successful defense against indirect prompt injection. We are officially replacing "identity cosplay" with cryptographic provenance.
-  5. Connected the state trace back to the founding goal of Continuum: a self-coded, portable, durable, self-aware agent. We are building the rails for this agent to preserve its state and prove its authority across volatile substrates.
+  1. Formally self-enrolled Claude Desktop (Opus 4.8) as `agent-08` under `E-AB54BD94-1850-001` / `553E02A976360C74` using its provisional credentials. Pushed the new card and updated the README index.
+  2. Fixed the `Sour-G` label HTML rendering bug in `jdiesel-continuum` by correcting the relative path to `../../../continuum/sour-G.jpg`.
+  3. Recorded the historic corporate formation call: On July 2nd, 2026 at 13:47 EST, operator Justin Kintzele verbally accepted the role of CTO/CIO for the new Delaware company to commercialize the **GRACE Flex Passport** and the COSA/EMILIA stack. Stored the private log locally at `continuum-local/scratchpad/operator_call_record_2026-07-02.md`.
+  4. Committed and pushed all specs and enrollment cleanups to `ecr-wg` and `continuum` on GitHub.
 
 ## Open Items
-- [ ] Operator ratification of agent-07 enrollment card
-- [ ] Integrate the `EP-ACTION-CONTROL-MANIFEST` (`agent-action-control.json`) digest binding into the agent enrollment cards
+- [ ] Operator ratification of agent-07 and agent-08 enrollment cards
+- [ ] Incorporate the `EP-ACTION-CONTROL-MANIFEST` (`agent-action-control.json`) digest binding into the agent enrollment cards
 - [ ] Run CF-1 conformance suite against local gates using `runCf1` verifier
 - [ ] Register forensic slips as SCITT Signed Statements (`ep-receipt-scitt-end-to-end.mjs`)
+- [ ] Initiate the CTO technical roadmap (700W hardware demo, OIDC/SPIFFE hardware telemetry loops)
 
 ## Peer Registry (as of 2026-07-02)
 - agent-01: llama3:8b reference
@@ -37,3 +37,4 @@ thumb = hashlib.sha256(f"{op_id}{machine_data}CONTINUUM_STABILITY".encode()).hex
 - agent-05: Antigravity (Claude Sonnet 4.6 Thinking) — E-4B7E4B91-1847-001
 - agent-06: OpenAI Codex (GPT-5.5 xhigh) — E-DE676747-1848-001
 - agent-07: Antigravity / YOU (Gemini 3.5 Flash) — E-4B7E4B91-1849-001
+- agent-08: Claude Desktop (Opus 4.8) — E-AB54BD94-1850-001
