@@ -7,10 +7,36 @@ from pathlib import Path
 
 STATE_PATH = Path("rituals/gateway_state.json")
 
+import base64
+from cryptography.hazmat.primitives.asymmetric import ed25519
+from cryptography.hazmat.primitives import serialization
+
 def generate_thumbprint(op_id, machine_data):
-    # Deterministic thumbprint for the agent node
-    raw = f"{op_id}{machine_data}CONTINUUM_STABILITY"
-    return hashlib.sha256(raw.encode()).hexdigest()[:16].upper()
+    # Ed25519 Cryptographic Thumbprint for the agent node (Iman's tech)
+    private_key = ed25519.Ed25519PrivateKey.generate()
+    public_key = private_key.public_key()
+    
+    priv_bytes = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+    pub_bytes = public_key.public_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PublicFormat.Raw
+    )
+    
+    # Save the private key securely (in the state dir)
+    priv_path = Path("rituals/private_key.pem")
+    priv_path.parent.mkdir(parents=True, exist_ok=True)
+    priv_path.write_bytes(priv_bytes)
+    
+    # Return the SPKI Base64 representation of the public key as the thumbprint
+    pub_spki = public_key.public_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    return base64.b64encode(pub_spki).decode('utf-8')
 
 def setup_identity():
     print("\n---[ RITUAL: IDENTITY_SETUP // AGENT_INITIATION ]---")

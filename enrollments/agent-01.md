@@ -40,12 +40,12 @@ This enrollment DOES NOT authorize:
 * Modifying the repository specifications without manual review from the registrant.
 * Performing remote execution calls to unverified third-party endpoints.
 
-## Cryptographic binding (PENDING)
+## Cryptographic binding (ACTIVE)
 
-The Truth Root specification requires per-output signatures with an enrollment key bound to a public registry. Since this card is a prototype:
-
-* **Recorded in plain text** in this repository.
-* **Authenticated by the git commit signature** of the registrant.
+This card is natively bound to an Ed25519 cryptographic keypair (Iman's protocol).
+* **Identity values computed via:** `cryptography.hazmat.primitives.asymmetric.ed25519`.
+* **Public Key (Thumbprint):** The thumbprint is the SPKI DER Base64 representation of the agent's public key.
+* **Signature Verification:** Natively verifiable by the COSA external verifier.
 
 ## Provenance trail
 
