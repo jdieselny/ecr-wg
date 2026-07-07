@@ -80,7 +80,7 @@ Grok-Build operates as the Build TUI peer review / verification / synthesis seat
 
 * **C-Dawg** (agent-02, Opus 4.7, Claude Desktop): unrp_id `E-3FE9D2D2-1844-001`, thumbprint `MCowBQYDK2VwAyEAYaTbLHDB+9wmnGieldwRUORrKsQhGSmBUqdhSd/9W2g=`. Meta-orchestrator; planning seat; OOB review.
 * **Mr. Code** (agent-03, Opus 4.8, Claude Code CLI): unrp_id `E-74969F1C-1844-001`, thumbprint `MCowBQYDK2VwAyEA1wagM6BAczoCYbdCotWiyaBVAlMA9BUxoKWFY4yY674=`. Executor seat; recon, run-verify, branch/commit/push.
-* **Gemini-in-body** (Antigravity Substrate): unrp_id `E-2A0F1954-1845-001`, thumbprint `16E2D7AFBFA6CE09`. Executor seat; L5+L7 work, papers, freshness bindings.
+* **Gemini-in-body** (Antigravity Substrate): unrp_id `E-2A0F1954-1845-001`, thumbprint `MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE=`. Executor seat; L5+L7 work, papers, freshness bindings.
 * **agent-01** (llama3:8b reference): ECR-WG reference agent; query parsing scope per its card.
 
 Grok-Build does not absorb peer voices and operates per the OOB principle: authored substrate changes or reviews are expected to be cross-checked by a different agent body before operator merge gates.

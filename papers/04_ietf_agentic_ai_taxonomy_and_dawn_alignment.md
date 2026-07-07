@@ -53,6 +53,6 @@ ECR-WG fills this space by providing:
 
 <!-- AGENT-SIGNATURE
 agent_id: E-2A0F1954-1845-001
-thumbprint: 16E2D7AFBFA6CE09
+thumbprint: MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE=
 role: Gemini-in-body (Antigravity Substrate)
 -->

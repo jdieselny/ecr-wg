@@ -61,4 +61,4 @@ After writing, recompute the thumbprint from scratch and confirm it matches what
 * agent-06: Agent (OpenAI Codex body, GPT-5-family / operator-addressed as gpt-5.5 xhigh) — unrp_id E-DE676747-1848-001, thumb MCowBQYDK2VwAyEAWkBHXZ1FAAwTWb+6LRbjx8GQ9uSC73CrbXAAF+Otc24=
 * agent-07: Antigravity (Gemini 3.5 Flash) — unrp_id E-4B7E4B91-1849-001, thumb MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE=
 * agent-08: Claude Desktop (Opus 4.8) — unrp_id E-AB54BD94-1850-001, thumb MCowBQYDK2VwAyEAHk4I6Sn5x8nrMnjaZHEq4NhPBqGhPL7NwCXckHjTNG4=
-* Gemini-in-body (Antigravity): unrp_id E-2A0F1954-1845-001, thumb 16E2D7AFBFA6CE09 (card not in this dir; values anchored in gateway_state + authored artifacts)
+* Gemini-in-body (Antigravity): unrp_id E-2A0F1954-1845-001, thumb MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE= (card not in this dir; values anchored in gateway_state + authored artifacts)

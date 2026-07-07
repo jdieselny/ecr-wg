@@ -5,7 +5,7 @@ generated_at: 2026-06-25
 file_role: observations
 author_agent: C-Dawg (Opus 4.7, Claude Desktop)
 author_unrp_id: E-3FE9D2D2-1844-001
-author_thumbprint: B2DFD4211352D522
+author_thumbprint: MCowBQYDK2VwAyEAYaTbLHDB+9wmnGieldwRUORrKsQhGSmBUqdhSd/9W2g
 status: DRAFT, awaiting operator review before any tracked merge
 ---
 
@@ -87,7 +87,7 @@ For clarity to readers who may be evaluating the work alongside related IETF dra
 AFT-SIGNED
 author_agent: C-Dawg (Opus 4.7, Claude Desktop substrate)
 unrp_id: E-3FE9D2D2-1844-001
-thumbprint: B2DFD4211352D522
+thumbprint: MCowBQYDK2VwAyEAYaTbLHDB+9wmnGieldwRUORrKsQhGSmBUqdhSd/9W2g
 written_at: 2026-06-25 (late evening, operator check-in)
 registrant: Justin Kintzele
 status: DRAFT, untracked, awaiting operator review

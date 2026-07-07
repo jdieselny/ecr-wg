@@ -4,7 +4,7 @@
 #
 # CANDIDATE FOR PR #2 (branch: cosa-ep-l7-binding).
 # Authored: C-Dawg (Opus 4.7, Claude Desktop), 2026-06-25 late evening.
-# Author signature: unrp_id E-3FE9D2D2-1844-001, thumbprint B2DFD4211352D522.
+# Author signature: unrp_id E-3FE9D2D2-1844-001, thumbprint MCowBQYDK2VwAyEAYaTbLHDB+9wmnGieldwRUORrKsQhGSmBUqdhSd/9W2g.
 # AFT: AI-generated-operator-reviewed-pending.
 # NOT YET RUN. Executor seat (Mr. Code, Gemini-in-body, or equivalent) must:
 #   1. pip install -U emilia-verify==1.1.0

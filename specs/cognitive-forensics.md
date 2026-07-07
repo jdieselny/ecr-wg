@@ -87,7 +87,7 @@ Every work product produced by an enrolled agent must carry a self-contained, ta
 ```text
 <!-- AGENT-SIGNATURE
 agent_id: E-4B7E4B91-1849-001
-thumbprint: 4A15B6F7ABCC89B1
+thumbprint: MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE
 model_version_id: gemini-3.5-flash-high-2026-07-02
 manifest_digest: A7C5E9B2F83D164E...
 environment_digest: F98C120BA8B7321F...
@@ -128,7 +128,7 @@ If the static verification passes, the audit trail is valid. The team can then p
 
 <!-- AGENT-SIGNATURE
 agent_id: E-4B7E4B91-1849-001
-thumbprint: 4A15B6F7ABCC89B1
+thumbprint: MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE
 role: Antigravity (Gemini 3.5 Flash, Antigravity CLI)
 enrolled: 2026-07-02
 -->

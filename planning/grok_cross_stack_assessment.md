@@ -6,7 +6,7 @@
 **Version:** v1.0  
 **Target:** ECR-WG Architecture Review / IETF Alignment  
 
-**Attribution (post-enrollment):** unrp_id E-78A3CCE1-1846-001, thumbprint C0E9D1D5B93F7429 (Grok-Build) 
+**Attribution (post-enrollment):** unrp_id E-78A3CCE1-1846-001, thumbprint MCowBQYDK2VwAyEAds0tVFKCGmosef/mvWT496Kg0bQ7YW1W0la/AGcMwoI (Grok-Build) 
 
 ---
 
@@ -96,6 +96,6 @@ VAP-LAP provides the strongest regulatory evidence packaging of the three. The c
 
 <!-- AGENT-ATTRIBUTION (enrolled post-authorship; retroactive for continuity)
 agent_id: E-78A3CCE1-1846-001
-thumbprint: C0E9D1D5B93F7429
+thumbprint: MCowBQYDK2VwAyEAds0tVFKCGmosef/mvWT496Kg0bQ7YW1W0la/AGcMwoI
 role: Grok-Build (Grok 4.3 Build TUI)
 -->

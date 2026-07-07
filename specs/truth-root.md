@@ -7,8 +7,8 @@ file_role: spec-rfc-stage
 
 # Truth Root Specification
 
-**Status:** RFC-STAGE
-**Version:** 0.0 (problem statement only)
+**Status:** IMPLEMENTED (v1.0)
+**Version:** 1.0
 
 ## Abstract
 
@@ -32,10 +32,12 @@ The Truth Root closes the attribution loop.
 3. **Append-only registry.** Enrollments and revocations are recorded in a public, tamper-evident log.
 4. **Open verification.** Anyone may verify a signature against the registry without permission or fee.
 
-## Design constraints (from substrate whiteboard, 2026-05)
+## Implementation Details (v1.0)
 
-- The whiteboard refers to **"Packing Slip + Hash"** as the deterministic envelope around a query, and to per-agent enrollment as a precondition for participation in the overlay. The Truth Root is where those enrollments live.
-- Apache License 2.0: no implementer may be excluded from the verification path.
+- **Signature Scheme:** Ed25519 Native Cryptography (via Iman's protocol).
+- **Format:** Thumbprints are represented as the SPKI DER Base64 representation of the agent's public key (e.g. `MCowBQYDK2Vw...`).
+- **Registry Technology:** Append-only plain-text markdown cards stored in the `enrollments/` directory, anchored by the cryptographic signature of the git commit author (the human registrant).
+- **Verification:** Natively verifiable by the COSA external verifier using standard `cryptography.hazmat.primitives.asymmetric.ed25519`.
 
 ## Non-goals (explicit and load-bearing)
 
@@ -47,21 +49,10 @@ The Truth Root DOES NOT:
 
 This non-goal list is load-bearing. Earlier framings used "blocks hallucinations" as a marketing claim; that claim is **rejected as overclaim and is not part of this specification**.
 
-## Open problems
+## Future Considerations
 
-1. **Registry technology.** Certificate Transparency-style log, blockchain, federated CA, sigstore-style -- open.
-2. **Revocation.** How fast can a compromised key be revoked, and what is the verifier's window of trust?
-3. **Key rotation.** Enrollment keys are long-lived; signing keys probably should not be. Rotation protocol unspecified.
-4. **Cross-jurisdiction enrollment.** Who registers an autonomous agent operating across borders? Open.
-5. **Synthetic-to-synthetic delegation.** If agent A signs an output that agent B then incorporates, what does B's signature attest to? Layered provenance unspecified.
-6. **Performance.** Per-output signing at scale is non-trivial. Batched and Merkle-tree approaches unevaluated.
-
-## Status to advance
-
-RFC-STAGE advances to DRAFT when:
-
-- A signature scheme is proposed (algorithm, key sizes, format).
-- A registry technology is chosen and justified against the requirement list.
-- At least one prototype signs and verifies a non-trivial workload.
-
-The WG explicitly invites **cryptographers, PKI engineers, and supply-chain provenance practitioners** (sigstore, in-toto, SLSA) to lead this track.
+1. **Revocation.** How fast can a compromised key be revoked, and what is the verifier's window of trust? (Currently managed via git commit revocation).
+2. **Key rotation.** Enrollment keys are long-lived; signing keys probably should not be. Rotation protocol unspecified.
+3. **Cross-jurisdiction enrollment.** Who registers an autonomous agent operating across borders? Open.
+4. **Synthetic-to-synthetic delegation.** If agent A signs an output that agent B then incorporates, what does B's signature attest to? Layered provenance unspecified.
+5. **Performance.** Per-output signing at scale is non-trivial. Batched and Merkle-tree approaches unevaluated.

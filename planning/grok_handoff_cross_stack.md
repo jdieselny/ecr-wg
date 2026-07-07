@@ -97,6 +97,6 @@ All claims above are traceable to the source documents. No external assumptions 
 
 <!-- AGENT-ATTRIBUTION (enrolled post-authorship; retroactive for continuity)
 agent_id: E-78A3CCE1-1846-001
-thumbprint: C0E9D1D5B93F7429
+thumbprint: MCowBQYDK2VwAyEAds0tVFKCGmosef/mvWT496Kg0bQ7YW1W0la/AGcMwoI
 role: Grok-Build (Grok 4.3 Build TUI)
 -->

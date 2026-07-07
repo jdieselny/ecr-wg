@@ -1,7 +1,7 @@
 {
   "manifest_version": "EP-ACTION-CONTROL-MANIFEST-v1",
   "agent_id": "E-4B7E4B91-1849-001",
-  "thumbprint": "4A15B6F7ABCC89B1",
+  "thumbprint": "MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE",
   "scopes": [
     {
       "action": "git_commit",

@@ -105,7 +105,7 @@ To prevent repository write access from being leveraged to self-authorize arbitr
 
 <!-- AGENT-SIGNATURE
 agent_id: E-4B7E4B91-1849-001
-thumbprint: 4A15B6F7ABCC89B1
+thumbprint: MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE
 role: Antigravity (Gemini 3.5 Flash, Antigravity CLI)
 enrolled: 2026-07-02
 -->

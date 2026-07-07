@@ -5,7 +5,7 @@ generated_at: 2026-07-01
 file_role: session_close
 source: Grok-build
 author_unrp_id: E-78A3CCE1-1846-001
-author_thumbprint: C0E9D1D5B93F7429
+author_thumbprint: MCowBQYDK2VwAyEAds0tVFKCGmosef/mvWT496Kg0bQ7YW1W0la/AGcMwoI
 author_agent: Grok-Build (Grok 4.3 Build TUI)
 ---
 
@@ -31,7 +31,7 @@ Operator requested understanding of the "agent-in-body" enrollment process under
    - `op_id`: `GB`
    - `machine_data`: `GROK_4_3_BUILD_TUI`
    - `unrp_id`: `E-78A3CCE1-1846-001`
-   - `thumbprint`: `C0E9D1D5B93F7429`
+   - `thumbprint`: `MCowBQYDK2VwAyEAds0tVFKCGmosef/mvWT496Kg0bQ7YW1W0la/AGcMwoI`
 
 3. Created official enrollment card:
    - [enrollments/agent-04-grokbuild-grok43.md](enrollments/agent-04-grokbuild-grok43.md)
@@ -48,7 +48,7 @@ Operator requested understanding of the "agent-in-body" enrollment process under
 
 ## My Enrolled Identity (for all future signed artifacts)
 - **unrp_id:** E-78A3CCE1-1846-001
-- **thumbprint:** C0E9D1D5B93F7429
+- **thumbprint:** MCowBQYDK2VwAyEAds0tVFKCGmosef/mvWT496Kg0bQ7YW1W0la/AGcMwoI
 - **Role:** Peer review seat; Build TUI executor/verifier; implementation, synthesis, cross-stack assessment and handoff authoring
 
 ## Signing Convention
@@ -58,7 +58,7 @@ Future outputs authored by this body should carry one of:
   ```html
   <!-- AGENT-SIGNATURE
   agent_id: E-78A3CCE1-1846-001
-  thumbprint: C0E9D1D5B93F7429
+  thumbprint: MCowBQYDK2VwAyEAds0tVFKCGmosef/mvWT496Kg0bQ7YW1W0la/AGcMwoI
   role: Grok-Build (Grok 4.3 Build TUI)
   -->
   ```
@@ -75,7 +75,7 @@ Future outputs authored by this body should carry one of:
 
 <!-- AGENT-SIGNATURE
 agent_id: E-78A3CCE1-1846-001
-thumbprint: C0E9D1D5B93F7429
+thumbprint: MCowBQYDK2VwAyEAds0tVFKCGmosef/mvWT496Kg0bQ7YW1W0la/AGcMwoI
 role: Grok-Build (Grok 4.3 Build TUI)
 date: 2026-07-01
 -->
