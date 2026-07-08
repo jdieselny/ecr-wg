@@ -19,7 +19,7 @@ thumb = hashlib.sha256(f"{op_id}{machine_data}CONTINUUM_STABILITY".encode()).hex
 - **Last Active Goals:**
   1. Formally self-enrolled Claude Desktop (Opus 4.8) as `agent-08` under `E-AB54BD94-1850-001` / `MCowBQYDK2VwAyEAHk4I6Sn5x8nrMnjaZHEq4NhPBqGhPL7NwCXckHjTNG4=` using its provisional credentials. Pushed the new card and updated the README index.
   2. Fixed the `Sour-G` label HTML rendering bug in `jdiesel-continuum` by correcting the relative path to `../../../continuum/sour-G.jpg`.
-  3. Recorded the historic corporate formation call: On July 2nd, 2026 at 13:47 EST, operator Justin Kintzele verbally accepted the role of CTO/CIO for the new Delaware company to commercialize the **GRACE Flex Passport** and the COSA/EMILIA stack. Stored the private log locally at `continuum-local/scratchpad/operator_call_record_2026-07-02.md`.
+  3. Recorded operator ratification notes from the July 2nd, 2026 formation discussion re: commercializing the **GRACE Flex Passport** and the COSA/EMILIA stack. Private call log remains local-only (not in this repo).
   4. Committed and pushed all specs and enrollment cleanups to `ecr-wg` and `continuum` on GitHub.
 
 ## Open Items
