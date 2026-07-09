@@ -1,0 +1,7 @@
+# Four-layer composition demo: COSA + EMILIA + (optional pack) + scitt-cose
+emilia-verify>=1.1.0
+# PyPI 0.1.1 is RFC9162-only (vds=1). Main adds CCF ccf.v1 receipts (vds=2).
+scitt-cose @ git+https://github.com/action-state-group/scitt-cose.git
+cryptography>=42.0
+# Optional: only needed for --ccf-url live registration
+requests>=2.31

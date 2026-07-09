@@ -13,3 +13,5 @@ logs/
 scratchpad/
 inbox/
 /reports/
+# Ephemeral demo outputs (keys + cose bytes regenerated each run)
+/examples/scitt_four_layer/out/

@@ -24,7 +24,9 @@ The core innovation is the binding of low-grade waste heat recovery and compute 
 
 ### 2.1. Layered Composition
 
-The architecture composes three load-bearing layers (see cross-stack-assessment-v2.md for detailed mapping):
+The architecture composes four complementary layers (see
+`planning/cross-stack-assessment-v2.md` and
+`planning/grok_cross_stack_assessment_scitt.md` for the dimensional mapping):
 
 1. **COSA Execution Substrate (L1-L7)**: Provides the actuation seam. Workload throttling, aggressive caching (COGSTOR Re-Absorption), hardware power constraints (e.g., NVML), and L5 broadcast of grid signals. GRACE Contract enforces per-call discipline (GOAL, ROUTING, ANCHOR, CONSTRAINTS, EVIDENCE).
 
@@ -38,9 +40,30 @@ The architecture composes three load-bearing layers (see cross-stack-assessment-
 
    Human (or quorum) signoff is bound via the receipt's authorization scope (PIP-013 Human-Oversight Profile). EP-AEC (Authorization Evidence Chain) composes heterogeneous receipts (e.g., grid order + facility acknowledgment) into a single canonical action digest, solving confused-deputy risks.
 
-3. **Evidence Packaging Layer**: Wraps the above for regulatory submission. VAP-LAP or SCITT provides hash-chained events, completeness invariants, and optional external anchors (e.g., RFC 3161 timestamps). COSA emits signed work products and telemetry; EMILIA emits receipts and chains; the envelope makes the bundle submission-ready for DOE/ISO audits.
+3. **Evidence Packaging Layer (optional domain pack)**: Shapes the above for regulatory submission ergonomics. A plain Proof-of-Curtailment JSON bundle is sufficient; VAP-LAP may supply completeness invariants and tiered conformance when diligence-checked. COSA emits signed work products and telemetry; EMILIA emits receipts and chains; the pack is the content that envelopes wrap.
 
-This composition is "one clean story": COSA moves the megawatts, EMILIA proves a named human authorized the move and preserves the proof, the envelope is interchangeable.
+4. **SCITT / COSE Receipts Substrate**: Makes the pack (or a digest of it) registrable and third-party-checkable under IETF SCITT Signed Statements and COSE Receipts. The ECR-WG reference client is the payload-agnostic [scitt-cose](https://github.com/action-state-group/scitt-cose) library (Action State Group; Apache-2.0): COSE_Sign1 build/verify, RFC 9162 inclusion proofs (`vds=1`), and CCF `ccf.v1` receipts (`vds=2`). **scitt-cose is not a Transparency Service** — it verifies and provides primitives; operating a log (or consuming Microsoft scitt-ccf-ledger / another TS) is a separate operational concern.
+
+This composition is "one clean story": COSA moves the megawatts, EMILIA proves a named human authorized the move and preserves the proof, the pack is the regulator-facing content, and SCITT/scitt-cose is the interchangeable wire envelope plus inclusion proof.
+
+### 2.1.1. Implemented Path (reference demo)
+
+As of 2026-07-09 the vertical is **demonstrated offline** in-repo, not only specified:
+
+| Step | Artifact | Verifier |
+|---|---|---|
+| Canonical `grid.curtailment` action | `action_digest = SHA-256(JCS(action))` | `emilia_verify.action_digest` |
+| Grid + facility EP-RECEIPT-v1 | receipts bound to that digest in the *signed* claim | `emilia_verify.verify_receipt` |
+| EP-AEC-v1 | requirement `grid_order AND facility_ack`; confused-deputy refuse | `emilia_verify.verify_authorization_chain` |
+| COSA edge work product | shed telemetry signed and action-bound | Ed25519 over JCS |
+| SCITT Signed Statement | COSE_Sign1 over JCS(Proof-of-Curtailment bundle) | `scitt_cose.parse_signed_statement` |
+| Dual independent logs | two RFC9162 COSE Receipts over the same leaf; cross-key reject | `scitt_cose.verify_receipt` |
+| CCF interop (crypto) | frozen real scitt-ccf-ledger v7.0.6 receipt (`vds=2`) | same `verify_receipt` path |
+| Negatives | tampered statement, wrong leaf | fail-closed |
+
+Runnable entry point: `examples/scitt_four_layer/demo.py` (see that directory’s README). Optional live registration against a SCRAPI/CCF endpoint is available via `--ccf-url`; production CCF 7.x may additionally require a `did:x509` issuer profile, which is deliberately out of scope for the default offline demo.
+
+**Claim hierarchy note:** dual-log registration and CCF *verification* are demonstrated. Hosting a production Transparency Service, multi-year evidence-record renewal inside the same bundle, and identity-proofing of approvers remain operational/policy work — not missing architecture.
 
 ### 2.2. Edge Actuation Flow
 
@@ -151,7 +174,8 @@ No trust in the operator's logs is required beyond the cryptographic bindings.
 
 - Profiles EMILIA Protocol receipts and EP-AEC (I-D.schrock-ep-authorization-receipts, etc.).
 - Composes with COSA GRACE Contract and COGSTOR.
-- Evidence packaging aligns with SCITT (RFC 9334 et al.) and VAP-LAP.
+- SCITT envelope and COSE Receipts: tracks `draft-ietf-scitt-architecture` and `draft-ietf-cose-merkle-tree-proofs` (RFC Editor Queue as of assessment date); substrate RFCs 9052/9053/9162/9597 via scitt-cose. CCF profile receipts (`CCF_LEDGER_SHA256` / vds=2) interoperate at the verifier layer.
+- Domain packaging remains optional (plain bundle today; VAP-LAP if diligence-checked).
 - Addresses gaps identified in IETF agentic AI taxonomy and DAWN use cases (see papers/04_...).
 
 ## 7. Security Considerations
@@ -172,13 +196,16 @@ This document requests registration of the "grid.curtailment" action_type in the
 - [I-D.schrock-ep-authorization-receipts]
 - [I-D.schrock-ep-authorization-evidence-chain]
 - ECR-WG specs: grace-contract.md, truth-root.md, cogstor.md, air-protocol.md
-- cross-stack-assessment-v2.md
-- @emilia-protocol/verify-independent conformance suite
+- cross-stack-assessment-v2.md, grok_cross_stack_assessment_scitt.md
+- examples/scitt_four_layer/ (implemented composition demo)
+- scitt-cose (https://github.com/action-state-group/scitt-cose)
+- scitt-ccf-ledger (https://github.com/microsoft/scitt-ccf-ledger)
+- @emilia-protocol/verify-independent / emilia-verify conformance suite
 
 ## Authors' Addresses
 
 Justin Kintzele (J Diesel NY, LLC)
-Grok-Build (agent-04, xAI Grok 4.3 Build TUI)
+Grok-Build (agent-04, xAI Grok Build TUI)
 
 ---
 
