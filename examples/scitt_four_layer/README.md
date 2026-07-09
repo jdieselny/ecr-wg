@@ -5,6 +5,8 @@ Turns the end-to-end path from
 into a runnable demonstration — including **dual independent SCITT logs** and
 **real Microsoft CCF receipt verification** (offline frozen vector).
 
+**Work report (scope, impact, non-claims):** [WORK_REPORT.md](./WORK_REPORT.md)
+
 ```
 COSA work product  ──┐
                      ├──► PoC bundle ──► SCITT Signed Statement ──┬── demo log A (RFC9162)

@@ -15,3 +15,4 @@ inbox/
 /reports/
 # Ephemeral demo outputs (keys + cose bytes regenerated each run)
 /examples/scitt_four_layer/out/
+/examples/scitt_four_layer/__pycache__/

@@ -29,7 +29,7 @@ The ECR Working Group focuses on standardizing the transport-layer visibility an
 - **[tests/scenarios/](tests/scenarios/)**: Compliance and validation test scenarios.
 - **[rituals/](rituals/)**: Executable reference code, identity, and query routing logic.
 - **[evidence/](evidence/)**: Empirical energy benchmarks and validation reports.
-- **[examples/](examples/)**: Runnable reference implementations and demonstrations (e.g. the L5 broadcast caching demo).
+- **[examples/](examples/)**: Runnable reference implementations and demonstrations (L5 broadcast, L5+L7 COSA/EMILIA, four-layer SCITT composition).
 
 ## Quickstart: Run the COSA L5 Broadcast Demo
 To run the live demonstration of the **L5 Broadcast Inference Cache** (bypassing inference entirely and returning structured `COGOBJs` on cache hits):
@@ -38,6 +38,17 @@ To run the live demonstration of the **L5 Broadcast Inference Cache** (bypassing
 python examples/l5_broadcast_demo.py
 ```
 This demo runs a live fetch from the public weather broadcast plane (`wttr.in`), packages it into a canonical `COGOBJ`, and executes a warm-start cache bypass proving 100% token savings and sub-millisecond resolution times.
+
+## Quickstart: Four-Layer Composition (COSA + EMILIA + SCITT)
+
+Offline Proof-of-Curtailment path: EMILIA authorization (receipts + AEC), COSA edge work product, scitt-cose Signed Statement + dual inclusion receipts, plus offline verify of a real CCF (`vds=2`) frozen receipt. No network required for the default run.
+
+```bash
+pip install -r examples/scitt_four_layer/requirements.txt
+python examples/scitt_four_layer/demo.py
+```
+
+Details, honesty table, and work report: [`examples/scitt_four_layer/`](examples/scitt_four_layer/) · assessment: [`planning/grok_cross_stack_assessment_scitt.md`](planning/grok_cross_stack_assessment_scitt.md).
 
 ---
 *The working group operates under strict technical audit. Submit RFC drafts via the seat-specific branching protocol.*
