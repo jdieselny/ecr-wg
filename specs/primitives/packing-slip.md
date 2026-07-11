@@ -53,6 +53,33 @@ A conformant Packing Slip MUST contain:
 3. **Context contamination.** A synth handling multiple users in one process must not leak one user's context into another's Packing Slip. Isolation mechanism unspecified.
 4. **Privacy boundary.** A Packing Slip contains raw human input -- the most sensitive payload in the system. Encryption-at-construction (vs. at-Bill-of-Lading-wrap) is open.
 
+## Prototype wire format (v0.1 demo)
+
+Not yet STABLE, but exercised end-to-end in the grid-curtailment PoC:
+
+```json
+{
+  "@version": "ECR-PACKING-SLIP-v0.1",
+  "raw_input": "…",
+  "synth_id": "agent:facility-synth-1",
+  "short_term_context": { "session": "…", "facility": "…" },
+  "long_term_context_refs": ["cogstor:…"],
+  "grace_fields": {
+    "GOAL": "…",
+    "CONSTRAINTS": ["…"],
+    "ROUTING": "cosa-overlay:facility-edge",
+    "ANCHOR": "<action_digest hex>",
+    "EVIDENCE": "…"
+  },
+  "timestamp": "2026-07-11T00:00:00Z",
+  "hash": "sha256:<hex of JCS(body without hash)>"
+}
+```
+
+- **Hash algorithm (prototype):** SHA-256 over RFC 8785 JCS of the body excluding `hash`.
+- **Where it rides:** nested under `bundle.ingress.packing_slip` and `cogobj.ingress.bill_of_lading.packing_slip` when a `grid.curtailment` packet is written (`examples/scitt_four_layer/demo.py`).
+- **Still open:** multi-impl interop, privacy (encryption-at-construction), context-inclusion policy.
+
 ## Status to advance
 
 DRAFT advances to STABLE when:
@@ -67,3 +94,4 @@ DRAFT advances to STABLE when:
 - Resolved against: [COGSTOR](../cogstor.md)
 - Constrained by: [GRACE Contract](../grace-contract.md)
 - Routed by: [AIR Protocol](../air-protocol.md)
+- Packet example: [COGOBJ schema](../../thesis/COGOBJ_SCHEMA.md), [grid curtailment profile](../../papers/05_ietf_cryptographic_grid_curtailment.md)

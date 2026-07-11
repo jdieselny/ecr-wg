@@ -48,10 +48,12 @@ This composition is "one clean story": COSA moves the megawatts, EMILIA proves a
 
 ### 2.1.1. Implemented Path (reference demo)
 
-As of 2026-07-09 the vertical is **demonstrated offline** in-repo, not only specified:
+As of 2026-07-11 the vertical is **demonstrated offline** in-repo, not only specified:
 
 | Step | Artifact | Verifier |
 |---|---|---|
+| Continuum ingress | Packing Slip (hash-sealed) + Bill of Lading (Ed25519) | recompute slip hash; verify BoL signature |
+| COGOBJ packet | same ingress + `authorization.action_digest` on the cognitive object | structural + hash equality |
 | Canonical `grid.curtailment` action | `action_digest = SHA-256(JCS(action))` | `emilia_verify.action_digest` |
 | Grid + facility EP-RECEIPT-v1 | receipts bound to that digest in the *signed* claim | `emilia_verify.verify_receipt` |
 | EP-AEC-v1 | requirement `grid_order AND facility_ack`; confused-deputy refuse | `emilia_verify.verify_authorization_chain` |
@@ -120,19 +122,25 @@ L3 priority_marker = sha256(JCS(canonical_receipt))
 ### 3.2. Bundle Construction
 
 The Proof-of-Curtailment Bundle is an EP evidence-record or SCITT statement containing:
-- The authorizing receipt(s).
+- **Ingress envelope (Continuum):** Packing Slip + Hash and Bill of Lading — how the order entered the overlay (see `specs/primitives/packing-slip.md`, `bill-of-lading.md`). Prototype versions `ECR-PACKING-SLIP-v0.1` / `ECR-BILL-OF-LADING-v0.1`.
+- **COGOBJ packet:** the same ingress hashes plus `authorization.action_digest`, so the cognitive object and the audit pack answer the same questions (see `thesis/COGOBJ_SCHEMA.md` v2.1).
+- The authorizing receipt(s) and EP-AEC chain.
 - Facility posture acknowledgment (signed, binding baseline_method_hash).
 - Attested telemetry (meter or COGSTOR-derived, Ed25519-signed).
 - Computed delivered curtailment (baseline - actual, against pinned method).
 
+**Separation of concerns:** Packing Slip / BoL do **not** live inside the EMILIA action object. Mutating ingress must not rewrite `action_digest`. Authorization answers *who approved the irreversible effect*; ingress answers *how the cargo was sealed and routed*.
+
 Verification requires:
+- Packing Slip hash recomputes; BoL `sender_signature` verifies; `packing_slip_hash` matches.
+- COGOBJ `ingress.packing_slip_hash` and `authorization.action_digest` match the pack.
 - Order verifies against authority key.
 - Ack verifies against facility key.
 - Telemetry verifies against meter key.
 - baseline_method_hash matches across elements.
 - Recomputed delivered kW·h equals claimed value.
 
-All offline, using the @emilia-protocol/verify-independent clean-room suite.
+All offline, using the @emilia-protocol/verify-independent clean-room suite (authorization) plus the demo's BoL/COGOBJ checks (ingress).
 
 ## 4. Identity and Authorization
 

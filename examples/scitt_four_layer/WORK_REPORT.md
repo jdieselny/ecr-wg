@@ -49,15 +49,18 @@ examples/scitt_four_layer/
 
 | # | Property | Mechanism |
 |---|---|---|
+| 0 | Continuum ingress | Packing Slip (JCS/SHA-256) + Bill of Lading (Ed25519); COGOBJ carries both |
 | 1 | Canonical curtailment action | `action_digest = SHA-256(JCS(action))` |
 | 2 | Dual human authorization | Grid + facility EP-RECEIPT-v1, digest in *signed* claim |
 | 3 | Compound authorization | EP-AEC `grid_order AND facility_ack` |
 | 4 | Confused-deputy refuse | Cross-bound facility receipt → AEC fail-closed |
 | 5 | Edge evidence | COSA work product, action-bound |
-| 6 | SCITT envelope | COSE_Sign1 Signed Statement over JCS(bundle) |
+| 6 | SCITT envelope | COSE_Sign1 Signed Statement over JCS(bundle) incl. ingress |
 | 7 | Multi-log inclusion | Two independent RFC9162 receipts; cross-key reject |
-| 8 | Dual offline verify | `emilia_verify` + `scitt_cose` + COSA |
+| 8 | Dual offline verify | `emilia_verify` + `scitt_cose` + COSA + BoL |
 | 9 | CCF verifier interop | Real `vds=2` frozen receipt verifies |
+
+**Ingress note (2026-07-11):** Packing Slip / BoL are attached when the curtailment pack is written (`ECR-POC-BUNDLE-v0.2`). They do not mutate `action_digest`. See `out/packing_slip.json`, `out/bill_of_lading.json`, `out/cogobj.json`.
 | 10 | Live TS | Optional `--ccf-url` (skipped without a running log) |
 | 11–12 | Negatives | Tampered statement / wrong leaf refuse |
 

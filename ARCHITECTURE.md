@@ -56,7 +56,7 @@ The COSA architecture asserts that cognitive workloads need a *stack*, not a mod
 
 **The Zero Match gate is where the savings come from.** Every query the overlay can answer is a query that does not hit prefill capacity. Every query that *does* hit the datacenter writes its result back into COGSTOR on return (see [specs/cogstor.md](specs/cogstor.md) §Re-Absorption), so the same query never costs full prefill twice.
 
-*The Bill of Lading, Packing Slip + Hash, and Zero Match gate are design-phase constraints. Their wire formats are intentionally unspecified at this revision; see the AIR Protocol and Truth Root specs for the open problems they pose.*
+*The Bill of Lading, Packing Slip + Hash, and Zero Match gate remain DRAFT primitives (`specs/primitives/`). A prototype wire format is exercised when a `grid.curtailment` packet is written: Packing Slip + BoL attach to the Proof-of-Curtailment bundle and COGOBJ (`examples/scitt_four_layer/`). Full STABLE wire formats and multi-impl hash interop remain open; see the AIR Protocol and Truth Root specs for the remaining problems.*
 
 ## Layer roles
 

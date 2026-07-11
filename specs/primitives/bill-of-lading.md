@@ -55,6 +55,33 @@ A conformant Bill of Lading MUST contain:
 5. **Multi-hop attestation.** If a BoL is forwarded between overlay nodes, does each hop add an attestation, or only the originator and the responder? Open.
 6. **Replay protection.** A captured BoL with a valid signature could be replayed. Nonce, sequence, or timestamp-window mechanism unspecified.
 
+## Prototype wire format (v0.1 demo)
+
+Not yet STABLE, but exercised end-to-end in the grid-curtailment PoC:
+
+```json
+{
+  "@version": "ECR-BILL-OF-LADING-v0.1",
+  "packing_slip_hash": "sha256:…",
+  "packing_slip": { "@version": "ECR-PACKING-SLIP-v0.1", "hash": "sha256:…" },
+  "grace_attestation": {
+    "constraints_checked": true,
+    "grace_fields_populated": true,
+    "action_digest_anchor": "<hex>"
+  },
+  "routing_intent": "cosa-overlay:facility-edge",
+  "return_path": { "kind": "queue", "ref": "facility:…:curtailment-acks" },
+  "bol_timestamp": "2026-07-11T00:00:00Z",
+  "sender": "agent:facility-synth-1",
+  "sender_public_key": "<b64u DER SPKI>",
+  "sender_signature": { "algorithm": "Ed25519", "value": "<b64u>" }
+}
+```
+
+- **Signature (prototype):** Ed25519 over JCS of the object excluding `sender_signature`.
+- **Where it rides:** `bundle.ingress.bill_of_lading` and (summary + full slip) under `cogobj.ingress` when curtailment is written.
+- **Does not replace EP receipts.** BoL proves *who shipped the packing slip into the overlay*; EP-AEC proves *who authorized the irreversible effect*.
+
 ## Status to advance
 
 DRAFT advances to STABLE when:
@@ -70,3 +97,4 @@ DRAFT advances to STABLE when:
 - Signed against: [Truth Root](../truth-root.md)
 - Routed by: [AIR Protocol](../air-protocol.md)
 - Binds: [GRACE Contract](../grace-contract.md)
+- Packet example: [COGOBJ schema](../../thesis/COGOBJ_SCHEMA.md), [four-layer demo](../../examples/scitt_four_layer/)

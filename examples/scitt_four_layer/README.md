@@ -8,13 +8,16 @@ into a runnable demonstration — including **dual independent SCITT logs** and
 **Work report (scope, impact, non-claims):** [WORK_REPORT.md](./WORK_REPORT.md)
 
 ```
-COSA work product  ──┐
-                     ├──► PoC bundle ──► SCITT Signed Statement ──┬── demo log A (RFC9162)
+Packing Slip + BoL ──┐
+COGOBJ (ingress)   ──┤
+COSA work product  ──┼──► PoC bundle ──► SCITT Signed Statement ──┬── demo log A (RFC9162)
 EMILIA receipts/AEC ─┘                         │                  ├── demo log B (RFC9162)
                                                │                  └── optional live TS / CCF
                                                │
                      fixtures/ccf-vds2 ─────────┴── real CCF vds=2 receipt (offline crypto proof)
 ```
+
+**Ingress (Continuum remnants):** when the curtailment order is written into the pack, the demo seals a [Packing Slip](../../specs/primitives/packing-slip.md) and wraps it in a [Bill of Lading](../../specs/primitives/bill-of-lading.md), then attaches both to `bundle.ingress` and to a [COGOBJ](../../thesis/COGOBJ_SCHEMA.md). Artifacts: `out/packing_slip.json`, `out/bill_of_lading.json`, `out/cogobj.json`.
 
 ## Install
 
@@ -72,12 +75,13 @@ accepts a **real** CCF-issued receipt captured from scitt-ccf-ledger v7.0.6.
 
 | # | What |
 |---|---|
-| 1–3 | Canonical `grid.curtailment` action; EMILIA receipts; EP-AEC allow |
-| 4 | Confused-deputy refuse (cross-bound facility receipt) |
-| 5–6 | COSA work product; SCITT Signed Statement over JCS bundle |
-| 7 | **Dual independent RFC9162 logs** + cross-key reject |
-| 8 | Dual verify: `emilia_verify` + `scitt_cose` + COSA |
-| 9 | **Real CCF vds=2 frozen receipt** verifies offline |
+| 1–2 | Canonical `grid.curtailment` action; **Packing Slip + Bill of Lading** ingress |
+| 3–4 | EMILIA receipts; EP-AEC allow |
+| 5 | Confused-deputy refuse (cross-bound facility receipt) |
+| 6–7 | COSA work product + **COGOBJ**; SCITT Signed Statement over JCS bundle (w/ ingress) |
+| 8 | **Dual independent RFC9162 logs** + cross-key reject |
+| 9 | Dual verify: `emilia_verify` + `scitt_cose` + COSA + BoL |
+| 10 | **Real CCF vds=2 frozen receipt** verifies offline |
 | 10 | Optional live `--ccf-url` register of *our* statement |
 | 11–12 | Tamper + wrong-leaf negatives |
 
