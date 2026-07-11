@@ -42,7 +42,9 @@ The EMILIA Cleanroom Rust Verifier is a pure, zero-reference-read implementation
 | 3 | Advanced Time & Proofs | Implement RFC 3161 DER/CMS parsing and signature verification, Time Attestation check, and Evidence Record validation. | M2 | PLANNED |
 | 4 | Quorum, Trust Receipts & Provenance | Implement Multi-party ordered quorum validation, Trust Receipts (signoff + checkpoint), and Provenance Delegation chain verification. | M3 | PLANNED |
 | 5 | Profile Predicates | Implement Currency status evaluation, SMT consumption proof, and Initiator Attestation text-neutralization checks. | M4 | PLANNED |
-| 6 | Integration & Conformance Run | Finalize CLI conformance runner, integrate with `conformance/run.mjs`, and verify all 161 conformance vectors. | M5 | ✅ DONE (161/161) |
+| 6 | Integration & Conformance Run | Finalize CLI conformance runner, integrate with `conformance/run.mjs`, and verify full public pack. | M5 | ✅ DONE (**163/163** as of 2026-07-11; was 161→162→163 as pack grew) |
+| 7 | Hostility fail-closed | Typed refuse on malformed suite files; suite runners no-panic on type confusion | M6 | ✅ DONE (issue #4; hostility lab 0 findings) |
+| 8 | Hygiene | Path discovery, statement re-issue for current pack, track hostility-lab | M7 | ✅ DONE (2026-07-11) |
 
 ## Interface Contracts
 The Rust library exposes a clean, fail-closed verification API:

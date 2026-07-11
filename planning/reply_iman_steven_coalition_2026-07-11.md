@@ -18,7 +18,7 @@ Iman, Steven —
 
 I’m in. The coalition framing is right, the five-leg digest is right, and the roles as you restated them are the ones we should protect in every room this month: **EMILIA owns the WHO, COSA/ECR owns the vertical and the substrate that moves the megawatts, Actionstate owns the WHAT — metered outcome and record as checkable claims, not the power controller.** Earlier sketches that put Steven on the controller stay dead.
 
-You named the crisis correctly. “We will curtail in an emergency” is still treated as firm load because nobody can verify the promise at the table where interconnection is decided. GRACE, the flex passport shape, proof-of-curtailment, and fail-closed `grid.curtailment` governance are the answer I have been building toward. I’m fine carrying author on the profile draft that comes out of this. Framing of what runs live stays with me; I will not blur your layers.
+You named the crisis correctly. “We will curtail in an emergency” is still treated as firm load because nobody can verify the promise at the table where interconnection is decided. GRACE, the flex passport shape, proof-of-curtailment, and fail-closed `grid.curtailment` governance are the answer I have been building toward. I’m fine carrying author on the profile draft that comes out of this. How the vertical is framed and what gets pointed at as the runnable stack stays with me; I will not blur your layers.
 
 ### What is already runnable (link straight to the repo)
 
@@ -69,19 +69,31 @@ That is intentional. Three of five legs in code is not a marketing line here —
 
 ### Steven — the design question is yours
 
-I agree with Iman’s restatement of your leg. For HotRFC / agentproto I want your read on the open question, in your words:
+I agree with Iman’s restatement of your leg. Whenever you are ready to take the open question, I want your read in your words:
 
 > Does metered interval data fit bilateral attestation as it stands, or does the meter need its own attestor role?
 
 When you have a preferred shape, we bind it to the same `action_digest` and SCITT leaf so the composed packet does not fork. I will not invent a parallel meter schema on the COSA side that pretends to be your work.
 
-### Rooms
+### Rooms / HotRFC — honest logistics
 
-HotRFC on the 19th and agentproto BoF on the 23rd: I will frame the live vertical and keep the claim hierarchy tight (demonstrated vs cited vs not claimed). Iman — if you want the WHO slide and the Tamarin/TLA+/vector story in your register, I will not step on it. Steven — if you want the outcome/record slide, same. One digest, three speakers, no role confusion.
+I want to be clear so we do not plan around me being in the room.
+
+I will **not** be on-site for HotRFC (or the adjacent sessions). I will be upstate New York — garden, not hotel hallway. My understanding is the HotRFC slot is on the order of **four minutes**, and that **Steven** is the one who currently has that slot awarded. I do not have a slot of my own yet; if one opens later, great — I am not counting on it this cycle. I also do not know yet whether remote participation is even possible for that format, and I have never done an IETF-style HotRFC or BoF in person. So I am going to under-promise on presence and over-deliver on the **runnable packet**.
+
+What I *can* do from here, without pretending to be the mic:
+
+1. Keep **https://github.com/jdieselny/ecr-wg** and the on-prem installer as the thing anyone can clone and run in those four minutes (or in the hallway after).  
+2. Keep the claim hierarchy tight in writing (demonstrated vs cited vs not claimed) so whoever is at the table does not have to invent the vertical on the fly.  
+3. Support **Steven** if he wants a one-pager / link line / “point at this repo” sentence for his slot — his mic, his WHAT leg, no role blur.  
+4. Support **Iman** the same way on the WHO / proof stack if useful.  
+5. Stay reachable async (email / whatever channel you prefer) while the meetings run.
+
+If remote dial-in turns out to be real and useful, I will try. If not, the coalition still has a public stack and a clear role map — that is more important than me being in the chair for four minutes.
 
 Curtailment is the flagship, not the ceiling. Same five-leg shape for robot experiment authorization, payment clear, prescription release — we plant the flag on curtailment first because it has a paying relying party and a running stack.
 
-I’m ready to name the coalition publicly in those rooms: **EMILIA + COSA + Actionstate**. Send any corrections to the packet or the role language before we lock slides.
+I’m ready to name the coalition: **EMILIA + COSA + Actionstate**. Send any corrections to the packet or the role language. I will keep the repo and installer pointed at the truth whether or not I am in the room.
 
 — Justin
 
@@ -93,3 +105,5 @@ I’m ready to name the coalition publicly in those rooms: **EMILIA + COSA + Act
 - Do **not** re-open “Steven = power controller.”
 - Private agent keys currently live in-repo as enrollment demo material — for external optics, treat as disposable demo keys; rotate if any were ever reused off-demo.
 - Prefer linking GitHub + on-prem installer over promising a hosted demo until budget exists.
+- **Rooms:** J is NOT on-site; HotRFC ~4 min; Steven has the slot for now; remote unknown; first-time IETF nerves are real — email should sound steady, not performative about “I’ll frame the live vertical in the room.”
+- Strength is the cloneable stack, not physical presence. That is actually on-brand for offline-verifiable evidence.

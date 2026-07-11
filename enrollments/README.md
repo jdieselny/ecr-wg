@@ -9,6 +9,8 @@ file_role: governance
 
 This directory contains the working prototype of the [Truth Root](../specs/truth-root.md) specification at file system scale.
 
+> **Demo keys only.** PEM files under `enrollments/keys/` and the top-level `keys/` tree are **disposable agent enrollment keys** for local Truth Root experiments. They are not production secrets, not human identity keys, and must never be reused outside this prototype. Do not import them into any real trust store.
+
 Each enrollment card in this directory:
 
 * Identifies a synthetic agent participating in ECR-WG work.

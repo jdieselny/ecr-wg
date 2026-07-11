@@ -97,7 +97,9 @@ Continuing to drive on request.
 
 # FINAL — 2026-07-07 Composer 2.5 Completion
 
-**161/161 — the cleanroom Rust verifier is fully green.**
+**Historical note (hygiene 2026-07-11):** pack has since grown to **163/163**. The run below recorded **161/161** at the time of first green.
+
+**161/161 — the cleanroom Rust verifier is fully green (as of 2026-07-07 pack).**
 
 The last 7 failing vectors are covered by three new suites:
 

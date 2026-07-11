@@ -1,0 +1,33 @@
+{
+  "@version": "EP-EXTERNAL-IMPLEMENTATION-PIN-v1",
+  "implementation": {
+    "implementation_id": "jdieselny-rust-cleanroom",
+    "organization": "J Diesel NY",
+    "language": "Rust",
+    "version": "0.1.0",
+    "license_spdx": "Apache-2.0"
+  },
+  "source": {
+    "repository": "https://github.com/jdieselny/ecr-wg",
+    "tree_path": "rust/ep-cleanroom-verifier",
+    "note": "Pin commit is set on the hygiene landing that tracks hostility-lab and re-issues the 163-vector external statement. Prefer git describe on main after pull."
+  },
+  "build": {
+    "cargo_locked": true,
+    "binary": "target/release/conformance"
+  },
+  "construction_evidence": {
+    "status": "implementation_organization_signed",
+    "statement": "rust/ep-cleanroom-verifier/EP-EXTERNAL-VERIFICATION-STATEMENT-2026-07-11.json",
+    "statement_sha256": "f4b5ae65e132bda174b35e1c7f0616c89679dc60e831c303b46385974e404e91",
+    "historical_statement": "rust/ep-cleanroom-verifier/archive/EP-EXTERNAL-VERIFICATION-STATEMENT-2026-07-07.json",
+    "public_key": "rust/ep-cleanroom-verifier/keys/public.key",
+    "verifier_id": "ext:verifier:emilia-cleanroom-rust",
+    "key_id": "ep:external-verifier-key:sha256:87c8c5029475f53a",
+    "third_party_attestation": true,
+    "strict_clean_room_acceptance": true,
+    "conformance": "163/163",
+    "hostility_cleared": true,
+    "hostility_note": "hostility-rust-only.mjs FINDINGS 0 (structured type-confusion + raw parser refusals); fail-closed load path issue #4"
+  }
+}

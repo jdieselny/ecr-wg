@@ -168,7 +168,7 @@ All artifacts are designed for offline verification:
 
 - Receipts and bundles use Ed25519 signatures over JCS-canonicalized objects (RFC 8785).
 - No network calls required for core verification.
-- The clean-room verifier suite (`@emilia-protocol/verify-independent`) implements the full stack (receipts, quorum, AEC, consumption proofs, telemetry) using only native Node.js crypto. It passes 161/161 conformance vectors and produces settlement-grade statements.
+- The clean-room verifier suite (`@emilia-protocol/verify-independent` and the independent Rust verifier in `rust/ep-cleanroom-verifier`) implements the full stack (receipts, quorum, AEC, consumption proofs, telemetry). The Rust cleanroom currently reports **163/163** on the public pack and produces settlement-grade external statements.
 
 Auditors years later can:
 1. Fetch public enrollment registry and pinned keys.

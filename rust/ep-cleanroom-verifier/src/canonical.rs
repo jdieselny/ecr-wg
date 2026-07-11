@@ -261,3 +261,51 @@ pub fn canonicalize(val: &serde_json::Value) -> Result<String, Error> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn strict_parse_rejects_duplicate_members() {
+        let raw = r#"{"suite":"EP-RECEIPT-v1","vectors":[],"vectors":[]}"#;
+        let err = strict_parse_gate(raw).unwrap_err();
+        match err {
+            Error::DuplicateKey(_) => {}
+            other => panic!("expected DuplicateKey, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn strict_parse_rejects_depth_exceeded() {
+        // build nested object depth 70 (> 64 gate)
+        let mut deep = String::from("1");
+        for _ in 0..70 {
+            deep = format!(r#"{{"n":{deep}}}"#);
+        }
+        let raw = format!(
+            r#"{{"suite":"EP-RECEIPT-v1","vectors":[{{"id":"d","document":{deep}}}]}}"#
+        );
+        let err = strict_parse_gate(&raw).unwrap_err();
+        match err {
+            Error::DepthExceeded(_) => {}
+            other => panic!("expected DepthExceeded, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn strict_parse_rejects_unpaired_surrogate() {
+        let raw = r#"{"suite":"EP-RECEIPT-v1","vectors":[{"id":"\ud800"}]}"#;
+        let err = strict_parse_gate(raw).unwrap_err();
+        match err {
+            Error::UnpairedSurrogate(_) => {}
+            other => panic!("expected UnpairedSurrogate, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn strict_parse_accepts_minimal_suite() {
+        let raw = r#"{"suite":"EP-RECEIPT-v1","vectors":[]}"#;
+        strict_parse_gate(raw).expect("minimal suite should pass gate");
+    }
+}

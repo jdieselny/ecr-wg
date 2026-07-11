@@ -96,10 +96,12 @@ Artifacts after flagship run: `examples/scitt_four_layer/out/`
 
 ## Room path (HotRFC / agentproto)
 
+**Logistics (honest):** HotRFC slots are on the order of ~4 minutes. Steven currently holds an awarded slot; J is **not** on-site (upstate NY) and remote attendance is not assumed. The public asset is the **cloneable stack**, not a physical mic.
+
 1. **Name the coalition** — EMILIA + COSA + Actionstate.  
-2. **Show the packet** — open `bundle.json` / COGOBJ; flip one field; show refuse.  
+2. **Show the packet** — point at the repo + on-prem installer; open `bundle.json` / COGOBJ; flip one field; show refuse.  
 3. **Assign the open socket** — Steven: interval data in bilateral attestation as-is, or dedicated meter attestor role?  
-4. **Do not blur roles** — J frames live vertical; Iman owns WHO; Steven owns WHAT.
+4. **Do not blur roles** — J owns vertical framing *in writing / repo*; Iman owns WHO at the table; Steven owns WHAT (and the short mic if that is the slot that exists).
 
 ---
 

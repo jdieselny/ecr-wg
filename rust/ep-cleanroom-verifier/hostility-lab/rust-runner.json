@@ -1,0 +1,11 @@
+{
+  "runners": [
+    {
+      "cwd": ".",
+      "name": "guvnor-rust",
+      "command": "C:\\Users\\jkintzele\\Documents\\ecr-wg\\rust\\ep-cleanroom-verifier\\target\\release\\conformance.exe",
+      "args": [],
+      "dispatch": "suite"
+    }
+  ]
+}

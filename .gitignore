@@ -17,5 +17,8 @@ inbox/
 /examples/scitt_four_layer/out/
 /examples/scitt_four_layer/__pycache__/
 
-rust/ep-cleanroom-verifier/hostility-lab/
+# Cleanroom private keys never leave the machine (public.key is tracked)
+rust/ep-cleanroom-verifier/keys/private-key.pem
+rust/ep-cleanroom-verifier/keys/*.pem
+!rust/ep-cleanroom-verifier/keys/public.key
 
