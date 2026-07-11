@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // EP-CURRENCY-v1 — receipt currency-at-T evaluation.
 
+use crate::suites::{vector_id, vectors_array};
 use serde_json::Value;
 
 pub fn run(vectors: &Value) -> Vec<(String, bool)> {
-    let vecs = vectors["vectors"].as_array().unwrap();
     let mut results = Vec::new();
 
-    for v in vecs {
-        let id = v["id"].as_str().unwrap().to_string();
+    for v in vectors_array(vectors) {
+        let id = vector_id(v);
         let args = &v["currency"]["args"];
         let expect_status = v["currency"]["expect_status"]
             .as_str()

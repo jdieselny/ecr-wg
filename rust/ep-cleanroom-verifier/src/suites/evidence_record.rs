@@ -3,6 +3,7 @@
 
 use crate::canonical::canonicalize;
 use crate::suites::time_attestation;
+use crate::suites::{vector_id, vectors_array};
 use serde_json::Value;
 use sha2::{Digest, Sha256, Sha384, Sha512};
 
@@ -10,11 +11,10 @@ const EVIDENCE_RECORD_VERSION: &str = "EP-EVIDENCE-RECORD-v1";
 const SUPPORTED_HASH: [&str; 3] = ["sha256", "sha384", "sha512"];
 
 pub fn run(vectors: &Value) -> Vec<(String, bool)> {
-    let vecs = vectors["vectors"].as_array().unwrap();
     let mut results = Vec::new();
 
-    for v in vecs {
-        let id = v["id"].as_str().unwrap().to_string();
+    for v in vectors_array(vectors) {
+        let id = vector_id(v);
         let valid = verify_evidence_record(
             v.get("evidence_record").unwrap_or(&Value::Null),
             v.get("tsa_keys"),

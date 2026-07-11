@@ -3,17 +3,17 @@
 
 use crate::canonical::canonicalize;
 use crate::crypto;
+use crate::suites::{vector_id, vectors_array};
 use serde_json::{json, Value};
 
 const REVOCATION_VERSION: &str = "EP-REVOCATION-v1";
 const TARGET_TYPES: &[&str] = &["receipt", "commit", "delegation"];
 
 pub fn run(vectors: &Value) -> Vec<(String, bool)> {
-    let vecs = vectors["vectors"].as_array().unwrap();
     let mut results = Vec::new();
 
-    for v in vecs {
-        let id = v["id"].as_str().unwrap().to_string();
+    for v in vectors_array(vectors) {
+        let id = vector_id(v);
         let valid = verify_revocation(
             v.get("target").unwrap_or(&Value::Null),
             v.get("revocation").unwrap_or(&Value::Null),

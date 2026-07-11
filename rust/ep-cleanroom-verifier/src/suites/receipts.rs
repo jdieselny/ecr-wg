@@ -4,17 +4,21 @@
 use crate::crypto;
 use crate::jcs;
 use crate::merkle;
+use crate::suites::{vector_id, vectors_array};
 use serde_json::Value;
 
 pub fn run(vectors: &Value) -> Vec<(String, bool)> {
-    let vecs = vectors["vectors"].as_array().unwrap();
     let mut results = Vec::new();
 
-    for v in vecs {
-        let id = v["id"].as_str().unwrap().to_string();
-        let public_key = v["public_key"].as_str().unwrap();
-        let doc = &v["document"];
-        let valid = verify_receipt(doc, public_key);
+    for v in vectors_array(vectors) {
+        let id = vector_id(v);
+        let valid = match v.get("public_key").and_then(|p| p.as_str()) {
+            Some(public_key) => {
+                let doc = v.get("document").unwrap_or(&Value::Null);
+                verify_receipt(doc, public_key)
+            }
+            None => false,
+        };
         results.push((id, valid));
     }
     results

@@ -2,9 +2,13 @@
 //
 // Canonicalization conformance suite (EP-CANONICALIZATION-v1).
 // 35 vectors testing RFC 8785 JCS canonicalization, strict parse gates, and EP I-JSON profile.
+//
+// Fail-closed: type-confused or missing `canonicalization` primary fields must
+// yield valid=false, never panic (hostility campaign / external intake).
 
 use crate::crypto::sha256_hex;
 use crate::jcs;
+use crate::suites::{vector_id, vectors_array};
 use serde_json::Value;
 
 /// Result for a single canonicalization vector.
@@ -15,31 +19,46 @@ pub struct CanonicalizationResult {
 
 /// Run the canonicalization suite.
 pub fn run(vectors: &Value) -> Vec<CanonicalizationResult> {
-    let vecs = vectors["vectors"].as_array().unwrap();
+    let vecs = vectors_array(vectors);
     let mut results = Vec::new();
 
     for v in vecs {
-        let id = v["id"].as_str().unwrap().to_string();
-        let expected_valid = v["expect"]["valid"].as_bool().unwrap();
-        let input_json = v["canonicalization"]["input_json"].as_str().unwrap();
+        let id = vector_id(v);
+        // Hostility may replace `canonicalization` with null/{}/[]/""/bool/number.
+        // Contract matches one-team runners: typeof input_json !== 'string' → valid false.
+        let input_json = v
+            .get("canonicalization")
+            .and_then(|c| c.get("input_json"))
+            .and_then(|s| s.as_str());
 
-        let valid = match process_canonicalization(input_json) {
-            Ok(digest) => {
-                if let Some(expected) = v["canonicalization"]["expected_digest"].as_str() {
-                    digest == expected
-                } else {
-                    // Accept vector with no expected_digest - shouldn't happen
-                    true
+        let valid = match input_json {
+            Some(input) => match process_canonicalization(input) {
+                Ok(digest) => {
+                    if let Some(expected) = v
+                        .get("canonicalization")
+                        .and_then(|c| c.get("expected_digest"))
+                        .and_then(|d| d.as_str())
+                    {
+                        digest == expected
+                    } else {
+                        // Accept vectors with no expected_digest only when processing succeeded
+                        // and the suite profile treats digest check as optional (should not
+                        // happen on well-formed suite files).
+                        true
+                    }
                 }
-            }
-            Err(_) => false,
+                Err(_) => false,
+            },
+            None => false,
         };
 
-        if valid != expected_valid {
-            eprintln!(
-                "  MISMATCH {}: got={}, expected={}",
-                id, valid, expected_valid
-            );
+        if let Some(expected_valid) = v.get("expect").and_then(|e| e.get("valid")).and_then(|b| b.as_bool()) {
+            if valid != expected_valid {
+                eprintln!(
+                    "  MISMATCH {}: got={}, expected={}",
+                    id, valid, expected_valid
+                );
+            }
         }
 
         results.push(CanonicalizationResult { id, valid });
@@ -381,7 +400,10 @@ fn measure_depth(value: &Value) -> usize {
 fn check_ep_profile(value: &Value) -> Result<(), String> {
     match value {
         Value::Number(n) => {
-            let f = n.as_f64().unwrap();
+            let f = match n.as_f64() {
+                Some(f) => f,
+                None => return Err("non-finite number".to_string()),
+            };
             // Must be integer-valued
             if f.fract() != 0.0 {
                 return Err(format!("non-integer real: {}", f));

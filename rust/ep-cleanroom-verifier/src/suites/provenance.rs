@@ -8,6 +8,7 @@ use crate::suites::trust_receipt::VerifyOpts;
 use crate::suites::trust_receipt;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
+use crate::suites::{vector_id, vectors_array};
 use serde_json::{json, Value};
 
 const PROVENANCE_VERSION: &str = "EP-PROVENANCE-CHAIN-v1";
@@ -22,11 +23,10 @@ const DELEGATION_PROOF_FIELDS: [&str; 7] = [
 ];
 
 pub fn run(vectors: &Value) -> Vec<(String, bool)> {
-    let vecs = vectors["vectors"].as_array().unwrap();
     let mut results = Vec::new();
 
-    for v in vecs {
-        let id = v["id"].as_str().unwrap().to_string();
+    for v in vectors_array(vectors) {
+        let id = vector_id(v);
         let now_ms = v
             .get("now_ms")
             .and_then(|x| x.as_f64())

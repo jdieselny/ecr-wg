@@ -16,3 +16,6 @@ inbox/
 # Ephemeral demo outputs (keys + cose bytes regenerated each run)
 /examples/scitt_four_layer/out/
 /examples/scitt_four_layer/__pycache__/
+
+rust/ep-cleanroom-verifier/hostility-lab/
+

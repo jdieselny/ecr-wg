@@ -3,16 +3,16 @@
 
 use crate::canonical::canonicalize;
 use crate::crypto;
+use crate::suites::{vector_id, vectors_array};
 use serde_json::{json, Value};
 
 const TIME_ATTESTATION_VERSION: &str = "EP-TIME-ATTESTATION-v1";
 
 pub fn run(vectors: &Value) -> Vec<(String, bool)> {
-    let vecs = vectors["vectors"].as_array().unwrap();
     let mut results = Vec::new();
 
-    for v in vecs {
-        let id = v["id"].as_str().unwrap().to_string();
+    for v in vectors_array(vectors) {
+        let id = vector_id(v);
         let valid = verify_time_attestation(
             v.get("time_attestation").unwrap_or(&Value::Null),
             v.get("tsa_keys"),

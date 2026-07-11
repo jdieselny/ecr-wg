@@ -1,9 +1,10 @@
-use emilia_rust_verifier::canonical::{canonicalize, is_canonicalizable};
+use emilia_rust_verifier::canonical::{canonicalize, is_canonicalizable, strict_parse_gate};
 use emilia_rust_verifier::external_statement::{self, sha256_hex, sign_statement, StatementArgs, SuiteEntry};
 use emilia_rust_verifier::suites;
+use emilia_rust_verifier::Error;
 use serde_json::{json, Value};
 use std::env;
-use std::fs::{self, File};
+use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -317,29 +318,14 @@ fn run_statement_mode(args: &[String]) {
             continue;
         }
 
-        let raw_bytes = match fs::read(&filepath) {
-            Ok(b) => b,
-            Err(e) => {
-                eprintln!("Failed to read {}: {}", filename, e);
+        let (content, root) = match load_suite_file(filepath.to_str().unwrap_or("")) {
+            Ok((c, r)) => (c, r),
+            Err(reason) => {
+                eprintln!("Failed to load {}: {}", filename, reason);
                 std::process::exit(1);
             }
         };
-        let suite_digest = sha256_hex(&raw_bytes);
-
-        let content = match String::from_utf8(raw_bytes) {
-            Ok(s) => s,
-            Err(e) => {
-                eprintln!("Invalid UTF-8 in {}: {}", filename, e);
-                std::process::exit(1);
-            }
-        };
-        let root: Value = match serde_json::from_str(&content) {
-            Ok(v) => v,
-            Err(e) => {
-                eprintln!("Failed to parse {}: {}", filename, e);
-                std::process::exit(1);
-            }
-        };
+        let suite_digest = sha256_hex(content.as_bytes());
 
         let suite = root.get("suite").and_then(|s| s.as_str()).unwrap_or("");
         let results = run_suite(suite, &root);
@@ -443,33 +429,72 @@ fn git_commit(vectors_path: &Path) -> String {
     "unknown".to_string()
 }
 
-fn run_vectors_file_mode(path: &str) {
-    let mut file = match File::open(path) {
-        Ok(f) => f,
-        Err(e) => {
-            eprintln!("Failed to open file {}: {}", path, e);
-            std::process::exit(1);
-        }
-    };
+/// Fail-closed suite-file load for the external runner contract.
+///
+/// Order (matches EP strict-parse profile used by the one-team runners):
+/// 1. read bytes
+/// 2. strict UTF-8
+/// 3. standard JSON syntax parse
+/// 4. strict_parse_gate (duplicate members, unpaired surrogates, depth > 64)
+///
+/// Malformed input → non-zero exit + typed reason on stderr. Never panic. Never exit 0.
+fn load_suite_file(path: &str) -> Result<(String, Value), String> {
+    let bytes = fs::read(path).map_err(|e| format!("read_error: {}", e))?;
+    let content = String::from_utf8(bytes).map_err(|e| format!("invalid_utf8: {}", e))?;
 
-    let mut content = String::new();
-    if let Err(e) = file.read_to_string(&mut content) {
-        eprintln!("Failed to read file: {}", e);
-        std::process::exit(1);
+    let root: Value = serde_json::from_str(&content)
+        .map_err(|e| format!("json_syntax: {}", e))?;
+
+    if let Err(e) = strict_parse_gate(&content) {
+        return Err(match e {
+            Error::DuplicateKey(s) => format!("duplicate_member: {}", s),
+            Error::DepthExceeded(s) => format!("depth_exceeded: {}", s),
+            Error::UnpairedSurrogate(s) => format!("unpaired_surrogate: {}", s),
+            other => format!("strict_parse: {}", other),
+        });
     }
 
-    let root: Value = match serde_json::from_str(&content) {
-        Ok(v) => v,
-        Err(e) => {
-            eprintln!("Failed to parse JSON: {}", e);
-            std::process::exit(1);
+    if !root.is_object() {
+        return Err("suite_root_not_object".to_string());
+    }
+
+    // vectors, when present, must be an array (not null/object/string).
+    if let Some(v) = root.get("vectors") {
+        if !v.is_array() {
+            return Err("vectors_not_array".to_string());
         }
+    }
+
+    Ok((content, root))
+}
+
+fn refuse_suite_file(reason: &str) -> ! {
+    // Typed refusal: machine-scannable prefix, no panic, exit 1.
+    eprintln!("REFUSE: {}", reason);
+    let out = json!({
+        "valid": false,
+        "reason": reason,
+        "refused": true
+    });
+    // Hostility corpus expects non-zero exit on malformed raw input; stdout may be empty or a refuse object.
+    // Prefer empty stdout so callers that require a result array only see success paths.
+    let _ = out;
+    std::process::exit(1);
+}
+
+fn run_vectors_file_mode(path: &str) {
+    let root = match load_suite_file(path) {
+        Ok((_raw, v)) => v,
+        Err(reason) => refuse_suite_file(&reason),
     };
 
     let suite = root.get("suite").and_then(|s| s.as_str()).unwrap_or("");
     let results = run_suite(suite, &root);
 
-    print!("{}", serde_json::to_string(&results).unwrap());
+    match serde_json::to_string(&results) {
+        Ok(s) => print!("{}", s),
+        Err(e) => refuse_suite_file(&format!("result_serialize: {}", e)),
+    }
 }
 
 fn run_suite(suite: &str, root: &Value) -> Vec<Value> {

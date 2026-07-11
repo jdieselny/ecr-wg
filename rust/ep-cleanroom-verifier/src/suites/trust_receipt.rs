@@ -6,6 +6,7 @@ use crate::crypto;
 use crate::merkle;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
+use crate::suites::{vector_id, vectors_array};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
@@ -16,11 +17,10 @@ pub struct VerifyOpts {
 }
 
 pub fn run(vectors: &Value) -> Vec<(String, bool)> {
-    let vecs = vectors["vectors"].as_array().unwrap();
     let mut results = Vec::new();
 
-    for v in vecs {
-        let id = v["id"].as_str().unwrap().to_string();
+    for v in vectors_array(vectors) {
+        let id = vector_id(v);
         let receipt = &v["trust_receipt"];
         let verification = &v["verification"];
         let opts = VerifyOpts {

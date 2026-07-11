@@ -2,17 +2,17 @@
 // EP-SMT-CONSUME-v1 — sparse-Merkle nonce consumption transition proofs.
 
 use crate::crypto::sha256_bytes;
+use crate::suites::{vector_id, vectors_array};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 const SMT_DEPTH: usize = 32;
 
 pub fn run(vectors: &Value) -> Vec<(String, bool)> {
-    let vecs = vectors["vectors"].as_array().unwrap();
     let mut results = Vec::new();
 
-    for v in vecs {
-        let id = v["id"].as_str().unwrap().to_string();
+    for v in vectors_array(vectors) {
+        let id = vector_id(v);
         let valid = verify_consumption_proof(&v["consumption_proof"]);
         results.push((id, valid));
     }

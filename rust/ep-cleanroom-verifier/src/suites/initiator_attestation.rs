@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // EP-INITIATOR-ATTESTATION-v1 — initiator software attestation validation.
 
+use crate::suites::{vector_id, vectors_array};
 use serde_json::Value;
 
 const INITIATOR_ATTESTATION_VERSION: &str = "EP-INITIATOR-ATTESTATION-v1";
@@ -15,11 +16,10 @@ const ALLOWED_MEMBERS: &[&str] = &[
 ];
 
 pub fn run(vectors: &Value) -> Vec<(String, bool)> {
-    let vecs = vectors["vectors"].as_array().unwrap();
     let mut results = Vec::new();
 
-    for v in vecs {
-        let id = v["id"].as_str().unwrap().to_string();
+    for v in vectors_array(vectors) {
+        let id = vector_id(v);
         let valid = validate_initiator_attestation(&v["initiator_attestation"]);
         results.push((id, valid));
     }

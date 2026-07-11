@@ -5,6 +5,7 @@ use crate::crypto;
 use base64::engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD};
 use base64::Engine;
 use rsa::RsaPublicKey;
+use crate::suites::{vector_id, vectors_array};
 use serde_json::Value;
 use sha2::{Digest, Sha256, Sha384, Sha512};
 
@@ -18,11 +19,10 @@ const OID_SHA512: &str = "2.16.840.1.101.3.4.2.3";
 const OID_RSA_ENCRYPTION: &str = "1.2.840.113549.1.1.1";
 
 pub fn run(vectors: &Value) -> Vec<(String, bool)> {
-    let vecs = vectors["vectors"].as_array().unwrap();
     let mut results = Vec::new();
 
-    for v in vecs {
-        let id = v["id"].as_str().unwrap().to_string();
+    for v in vectors_array(vectors) {
+        let id = vector_id(v);
         let valid = verify_timestamp_proof(
             v.get("timestamp_proof"),
             v.get("expected_digest"),

@@ -3,6 +3,7 @@
 
 use crate::canonical::canonicalize;
 use crate::crypto;
+use crate::suites::{vector_id, vectors_array};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet};
@@ -11,11 +12,10 @@ const WITNESS_VERSION: &str = "EP-WITNESS-v1";
 const WITNESS_DOMAIN_TAG: &[u8] = b"EP-WITNESS-COSIGN-v1\0";
 
 pub fn run(vectors: &Value) -> Vec<(String, bool)> {
-    let vecs = vectors["vectors"].as_array().unwrap();
     let mut results = Vec::new();
 
-    for v in vecs {
-        let id = v["id"].as_str().unwrap().to_string();
+    for v in vectors_array(vectors) {
+        let id = vector_id(v);
         let wq = &v["witness_quorum"];
         let k = match coerce_k(wq.get("k")) {
             Some(k) => k,
