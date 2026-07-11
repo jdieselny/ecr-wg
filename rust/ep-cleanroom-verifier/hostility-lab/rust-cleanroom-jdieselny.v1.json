@@ -9,8 +9,9 @@
   },
   "source": {
     "repository": "https://github.com/jdieselny/ecr-wg",
+    "commit": "59251ce",
     "tree_path": "rust/ep-cleanroom-verifier",
-    "note": "Pin commit is set on the hygiene landing that tracks hostility-lab and re-issues the 163-vector external statement. Prefer git describe on main after pull."
+    "note": "Hygiene landing: 163/163 statement re-issue + hostility-lab tracked. Prefer main tip after pull if later commits only touch docs."
   },
   "build": {
     "cargo_locked": true,
