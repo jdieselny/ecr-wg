@@ -1,8 +1,22 @@
-# Demo enrollment keys (NOT production secrets)
+# Local enrollment keys (private — never committed)
 
-Files in this directory and `enrollments/keys/` are **disposable Ed25519 keys** for Truth Root agent enrollment prototypes.
+Private Ed25519 PEM files for Truth Root agent enrollment prototypes are **generated on your machine only**. They are not stored in this repository.
 
-- Safe for public demo / local experimentation only
-- Must not be imported into any production trust store
-- Must not be reused as human identity or facility keys
-- Real operator keys stay off this repository
+## Generate locally
+
+```bash
+python scripts/enroll-ed25519.py
+```
+
+Output lands in `keys/` (gitignored). Enrollment cards on `main` carry **public** thumbprints only.
+
+## Rules
+
+- Never `git add` any `*_private_key.pem` or `private-key.pem`
+- Not production secrets; not human identity keys
+- If a private key was ever pushed, **rotate** — generate a new pair and update the enrollment card thumbprint
+
+## Public material in repo
+
+- Enrollment thumbprints in `enrollments/agent-*.md`
+- `rust/ep-cleanroom-verifier/keys/public.key` (cleanroom demo public key only)

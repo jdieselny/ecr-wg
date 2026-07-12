@@ -9,7 +9,7 @@ file_role: governance
 
 This directory contains the working prototype of the [Truth Root](../specs/truth-root.md) specification at file system scale.
 
-> **Demo keys only.** PEM files under `enrollments/keys/` and the top-level `keys/` tree are **disposable agent enrollment keys** for local Truth Root experiments. They are not production secrets, not human identity keys, and must never be reused outside this prototype. Do not import them into any real trust store.
+> **Private keys stay local.** `*_private_key.pem` files are **never committed** — generate on your machine (`python scripts/enroll-ed25519.py` → `keys/`, gitignored). Enrollment cards on `main` carry public thumbprints only. Rotate any key that was ever pushed to a remote.
 
 Each enrollment card in this directory:
 

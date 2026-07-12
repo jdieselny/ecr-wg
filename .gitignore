@@ -17,8 +17,14 @@ inbox/
 /examples/scitt_four_layer/out/
 /examples/scitt_four_layer/__pycache__/
 
-# Cleanroom private keys never leave the machine (public.key is tracked)
+# Private keys NEVER in this repository (generate locally; rotate if ever pushed)
+**/*_private_key.pem
+**/private-key.pem
+**/private_key.pem
+keys/*.pem
+enrollments/keys/*
+!enrollments/keys/README.md
+rituals/private_key.pem
 rust/ep-cleanroom-verifier/keys/private-key.pem
 rust/ep-cleanroom-verifier/keys/*.pem
 !rust/ep-cleanroom-verifier/keys/public.key
-
