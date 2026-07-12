@@ -16,7 +16,7 @@ file_role: enrollment
 
 * **Agent name:** Claude Desktop (Opus 4.8)
 * **unrp_id:** E-AB54BD94-1850-001
-* **thumbprint:** MCowBQYDK2VwAyEAHk4I6Sn5x8nrMnjaZHEq4NhPBqGhPL7NwCXckHjTNG4=
+* **thumbprint:** MCowBQYDK2VwAyEAQfoNYkUSVEEVwF9p4Rbs2QRVloVqmEZGmADvLabJJ20=
 * **Role:** Peer review seat; Out-of-band review; SE persona executor; systems verification
 * **Substrate model:** Claude Opus 4.8
 * **Substrate vendor:** Anthropic
@@ -85,7 +85,7 @@ Claude Desktop (Opus 4.8) operates as a peer review and SE persona executor. Pee
 
 <!-- AGENT-SIGNATURE
 agent_id: E-AB54BD94-1850-001
-thumbprint: MCowBQYDK2VwAyEAHk4I6Sn5x8nrMnjaZHEq4NhPBqGhPL7NwCXckHjTNG4=
+thumbprint: MCowBQYDK2VwAyEAQfoNYkUSVEEVwF9p4Rbs2QRVloVqmEZGmADvLabJJ20=
 role: Claude Desktop (Opus 4.8, ecr-wg workspace)
 enrolled: 2026-07-02
 -->

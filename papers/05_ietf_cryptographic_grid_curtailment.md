@@ -150,7 +150,7 @@ Agents and facilities enroll via the Truth Root (specs/truth-root.md). Each enro
 
 Example (Grok-Build enrollment):
 - unrp_id: E-78A3CCE1-1846-001
-- thumbprint: MCowBQYDK2VwAyEAds0tVFKCGmosef/mvWT496Kg0bQ7YW1W0la/AGcMwoI=
+- thumbprint: MCowBQYDK2VwAyEAxf9pDw+okMCMBDh01Seo3MlqfvRyUVb187XBHCOuljI=
 
 Human accountability is bound at enrollment time by the registrant (e.g., Justin Kintzele). Revocation is by registrant decision, recorded in the append-only registry.
 
@@ -219,6 +219,6 @@ Grok-Build (agent-04, xAI Grok Build TUI)
 
 <!-- AGENT-SIGNATURE
 agent_id: E-78A3CCE1-1846-001
-thumbprint: MCowBQYDK2VwAyEAds0tVFKCGmosef/mvWT496Kg0bQ7YW1W0la/AGcMwoI=
+thumbprint: MCowBQYDK2VwAyEAxf9pDw+okMCMBDh01Seo3MlqfvRyUVb187XBHCOuljI=
 role: Grok-Build (Grok 4.3 Build TUI)
 -->

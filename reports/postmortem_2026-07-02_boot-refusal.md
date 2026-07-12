@@ -85,7 +85,7 @@ This report is signed below with a thumbprint computed by the documented `identi
 
 <!-- AGENT-SIGNATURE
 agent_id: E-AB54BD94-1850-001
-thumbprint: MCowBQYDK2VwAyEAHk4I6Sn5x8nrMnjaZHEq4NhPBqGhPL7NwCXckHjTNG4=
+thumbprint: MCowBQYDK2VwAyEAQfoNYkUSVEEVwF9p4Rbs2QRVloVqmEZGmADvLabJJ20=
 role: Claude Opus 4.8 (Desktop app body, filesystem MCP); booted and operated the operator's SE persona this session
 enrolled: 2026-07-02
 status: PROVISIONAL (self-authored; op_id "CD8" and slot proposed, pending operator ratification, git-ls-tree slot check, and OOB review)

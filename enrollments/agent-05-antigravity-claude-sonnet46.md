@@ -16,7 +16,7 @@ file_role: enrollment
 
 * **Agent name:** Antigravity (Claude Sonnet 4.6, Thinking)
 * **unrp_id:** E-4B7E4B91-1847-001
-* **thumbprint:** MCowBQYDK2VwAyEA6UsRYL7Qky/W1VT3w8t9Pe9KUy67J8cPOsetKY3IYsA=
+* **thumbprint:** MCowBQYDK2VwAyEAgsnKPxtIKKBRNZRwCCBFwG9pvACk5T31kcClEbSrOmM=
 * **Role:** Systems Architect seat; Bootloader author; L3-L4 context stack design; Session-persistent pair-programming partner
 * **Substrate model:** Claude Sonnet 4.6 (Thinking)
 * **Substrate vendor:** Anthropic
@@ -78,16 +78,16 @@ Revocation is by registrant decision. To revoke:
 
 Antigravity operates as the systems architect and persistent pair-programming seat. Peer agent bodies enrolled as of 2026-07-01:
 
-* **C-Dawg** (agent-02, Opus 4.7, Claude Desktop): unrp_id `E-3FE9D2D2-1844-001`, thumbprint `MCowBQYDK2VwAyEAYaTbLHDB+9wmnGieldwRUORrKsQhGSmBUqdhSd/9W2g=`. Meta-orchestrator; planning seat.
-* **Mr. Code** (agent-03, Opus 4.8, Claude Code CLI): unrp_id `E-74969F1C-1844-001`, thumbprint `MCowBQYDK2VwAyEA1wagM6BAczoCYbdCotWiyaBVAlMA9BUxoKWFY4yY674=`. Executor seat; run-verify, branch/commit/push.
-* **Gemini-in-body** (Antigravity Substrate): unrp_id `E-2A0F1954-1845-001`, thumbprint `MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE=`. Executor seat; L5+L7 work, papers, freshness bindings.
-* **Grok-Build** (agent-04, Grok 4.3, Build TUI): unrp_id `E-78A3CCE1-1846-001`, thumbprint `MCowBQYDK2VwAyEAds0tVFKCGmosef/mvWT496Kg0bQ7YW1W0la/AGcMwoI=`. Peer review seat; build verification.
+* **C-Dawg** (agent-02, Opus 4.7, Claude Desktop): unrp_id `E-3FE9D2D2-1844-001`, thumbprint `MCowBQYDK2VwAyEAeAFm+M8QN/M78iquE5otpIMQSVEAb49VFz5unLQvBes=`. Meta-orchestrator; planning seat.
+* **Mr. Code** (agent-03, Opus 4.8, Claude Code CLI): unrp_id `E-74969F1C-1844-001`, thumbprint `MCowBQYDK2VwAyEA0KF1pnVbBDsk40irbASuKtiS3LCnkCZRkVJZOtFAwRY=`. Executor seat; run-verify, branch/commit/push.
+* **Gemini-in-body** (Antigravity Substrate): unrp_id `E-2A0F1954-1845-001`, thumbprint `MCowBQYDK2VwAyEAvI8wl0sXkmcJzNoYO1OPvfhrSkOdvsP+jjhfQyarAfY=`. Executor seat; L5+L7 work, papers, freshness bindings.
+* **Grok-Build** (agent-04, Grok 4.3, Build TUI): unrp_id `E-78A3CCE1-1846-001`, thumbprint `MCowBQYDK2VwAyEAxf9pDw+okMCMBDh01Seo3MlqfvRyUVb187XBHCOuljI=`. Peer review seat; build verification.
 
 Antigravity does not absorb peer voices and operates per the OOB principle: authored substrate changes are expected to be cross-checked by a different agent body before operator merge gates.
 
 <!-- AGENT-SIGNATURE
 agent_id: E-4B7E4B91-1847-001
-thumbprint: MCowBQYDK2VwAyEA6UsRYL7Qky/W1VT3w8t9Pe9KUy67J8cPOsetKY3IYsA=
+thumbprint: MCowBQYDK2VwAyEAgsnKPxtIKKBRNZRwCCBFwG9pvACk5T31kcClEbSrOmM=
 role: Antigravity (Claude Sonnet 4.6 Thinking, Antigravity CLI)
 enrolled: 2026-07-01
 -->

@@ -37,15 +37,15 @@ def get_mapping():
             
     # Also add the old Gemini-in-body signature from the papers since we updated that one earlier!
     # Wait, agent-05? In papers/04_ietf_agentic_ai_taxonomy_and_dawn_alignment.md it was:
-    # agent_id: E-2A0F1954-1845-001, thumbprint: MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE=
-    # We should map MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE= to the new agent-05 or maybe it's a different agent?
+    # agent_id: E-2A0F1954-1845-001, thumbprint: MCowBQYDK2VwAyEAvI8wl0sXkmcJzNoYO1OPvfhrSkOdvsP+jjhfQyarAfY=
+    # We should map MCowBQYDK2VwAyEAvI8wl0sXkmcJzNoYO1OPvfhrSkOdvsP+jjhfQyarAfY= to the new agent-05 or maybe it's a different agent?
     # agent-05 is E-4B7E4B91-1847-001. E-2A0F1954-1845-001 isn't any of these?
     # Wait, earlier I saw in grep:
-    # enrollments/agent-05-antigravity-claude-sonnet46.md:83:* **Gemini-in-body** (Antigravity Substrate): unrp_id E-2A0F1954-1845-001, thumbprint MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE=
-    # Let's map MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE= to agent-07 (Antigravity Gemini) since it's the Gemini-in-body key?
+    # enrollments/agent-05-antigravity-claude-sonnet46.md:83:* **Gemini-in-body** (Antigravity Substrate): unrp_id E-2A0F1954-1845-001, thumbprint MCowBQYDK2VwAyEAvI8wl0sXkmcJzNoYO1OPvfhrSkOdvsP+jjhfQyarAfY=
+    # Let's map MCowBQYDK2VwAyEAvI8wl0sXkmcJzNoYO1OPvfhrSkOdvsP+jjhfQyarAfY= to agent-07 (Antigravity Gemini) since it's the Gemini-in-body key?
     # Actually, the user's latest key for Antigravity-Gemini is in agent-07! 
     # Old hex: MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE
-        mapping['MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE='] = 'MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE='
+        mapping['MCowBQYDK2VwAyEAvI8wl0sXkmcJzNoYO1OPvfhrSkOdvsP+jjhfQyarAfY='] = 'MCowBQYDK2VwAyEAvI8wl0sXkmcJzNoYO1OPvfhrSkOdvsP+jjhfQyarAfY='
     return mapping
 
 def main():

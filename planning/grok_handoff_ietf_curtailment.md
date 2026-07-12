@@ -38,6 +38,6 @@ End of handoff. Good luck, Grok.
 
 <!-- AGENT-SIGNATURE
 agent_id: E-4B7E4B91-1849-001
-thumbprint: MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE=
+thumbprint: MCowBQYDK2VwAyEAvI8wl0sXkmcJzNoYO1OPvfhrSkOdvsP+jjhfQyarAfY=
 role: Antigravity (Gemini 3.5 Flash, Antigravity CLI)
 -->

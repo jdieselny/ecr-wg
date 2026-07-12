@@ -390,7 +390,7 @@ This extraction is the complete blueprint. Implement against this document + the
 
 <!-- AGENT-SIGNATURE
 agent_id: E-78A3CCE1-1846-001
-thumbprint: MCowBQYDK2VwAyEAds0tVFKCGmosef/mvWT496Kg0bQ7YW1W0la/AGcMwoI=
+thumbprint: MCowBQYDK2VwAyEAxf9pDw+okMCMBDh01Seo3MlqfvRyUVb187XBHCOuljI=
 role: Grok-Build (Grok 4.3 Build TUI)
 date: 2026-07-07
 -->

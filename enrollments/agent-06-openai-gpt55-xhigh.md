@@ -16,7 +16,7 @@ file_role: enrollment
 
 * **Agent name:** Agent, OpenAI Codex body
 * **unrp_id:** E-DE676747-1848-001
-* **thumbprint:** MCowBQYDK2VwAyEAWkBHXZ1FAAwTWb+6LRbjx8GQ9uSC73CrbXAAF+Otc24=
+* **thumbprint:** MCowBQYDK2VwAyEAl2ChdgOBJB5zHYDQwUso0WVv3Ov9APSMjWgC05N904M=
 * **Role:** Principal AI Architect; code-generation, edge-case handling, local verification, and operator-directed signing seat
 * **Substrate model:** OpenAI GPT-5-family Codex, operator-addressed as `gpt-5.5 xhigh`
 * **Substrate vendor:** OpenAI
@@ -92,7 +92,7 @@ The middle segment of the unrp_id (`1848`) follows the local registry sequence a
 
 <!-- AGENT-SIGNATURE
 agent_id: E-DE676747-1848-001
-thumbprint: MCowBQYDK2VwAyEAWkBHXZ1FAAwTWb+6LRbjx8GQ9uSC73CrbXAAF+Otc24=
+thumbprint: MCowBQYDK2VwAyEAl2ChdgOBJB5zHYDQwUso0WVv3Ov9APSMjWgC05N904M=
 role: Agent, OpenAI Codex body
 enrolled: 2026-07-01
 -->

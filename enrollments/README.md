@@ -56,11 +56,11 @@ After writing, recompute the thumbprint from scratch and confirm it matches what
 ## Currently enrolled agent-in-body instances (as of 2026-07-01)
 
 * agent-01: llama3:8b reference
-* agent-02: C-Dawg (Claude Opus 4.7 Desktop) — unrp_id E-3FE9D2D2-1844-001, thumb MCowBQYDK2VwAyEAYaTbLHDB+9wmnGieldwRUORrKsQhGSmBUqdhSd/9W2g=
-* agent-03: Mr. Code (Claude Opus 4.8 Code CLI) — unrp_id E-74969F1C-1844-001, thumb MCowBQYDK2VwAyEA1wagM6BAczoCYbdCotWiyaBVAlMA9BUxoKWFY4yY674=
-* agent-04: Grok-Build (Grok 4.3 Build TUI) — unrp_id E-78A3CCE1-1846-001, thumb MCowBQYDK2VwAyEAds0tVFKCGmosef/mvWT496Kg0bQ7YW1W0la/AGcMwoI=
-* agent-05: Antigravity (Claude Sonnet 4.6 Thinking) — unrp_id E-4B7E4B91-1847-001, thumb MCowBQYDK2VwAyEA6UsRYL7Qky/W1VT3w8t9Pe9KUy67J8cPOsetKY3IYsA=
-* agent-06: Agent (OpenAI Codex body, GPT-5-family / operator-addressed as gpt-5.5 xhigh) — unrp_id E-DE676747-1848-001, thumb MCowBQYDK2VwAyEAWkBHXZ1FAAwTWb+6LRbjx8GQ9uSC73CrbXAAF+Otc24=
-* agent-07: Antigravity (Gemini 3.5 Flash) — unrp_id E-4B7E4B91-1849-001, thumb MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE=
-* agent-08: Claude Desktop (Opus 4.8) — unrp_id E-AB54BD94-1850-001, thumb MCowBQYDK2VwAyEAHk4I6Sn5x8nrMnjaZHEq4NhPBqGhPL7NwCXckHjTNG4=
-* Gemini-in-body (Antigravity): unrp_id E-2A0F1954-1845-001, thumb MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE= (card not in this dir; values anchored in gateway_state + authored artifacts)
+* agent-02: C-Dawg (Claude Opus 4.7 Desktop) — unrp_id E-3FE9D2D2-1844-001, thumb MCowBQYDK2VwAyEAeAFm+M8QN/M78iquE5otpIMQSVEAb49VFz5unLQvBes=
+* agent-03: Mr. Code (Claude Opus 4.8 Code CLI) — unrp_id E-74969F1C-1844-001, thumb MCowBQYDK2VwAyEA0KF1pnVbBDsk40irbASuKtiS3LCnkCZRkVJZOtFAwRY=
+* agent-04: Grok-Build (Grok 4.3 Build TUI) — unrp_id E-78A3CCE1-1846-001, thumb MCowBQYDK2VwAyEAxf9pDw+okMCMBDh01Seo3MlqfvRyUVb187XBHCOuljI=
+* agent-05: Antigravity (Claude Sonnet 4.6 Thinking) — unrp_id E-4B7E4B91-1847-001, thumb MCowBQYDK2VwAyEAgsnKPxtIKKBRNZRwCCBFwG9pvACk5T31kcClEbSrOmM=
+* agent-06: Agent (OpenAI Codex body, GPT-5-family / operator-addressed as gpt-5.5 xhigh) — unrp_id E-DE676747-1848-001, thumb MCowBQYDK2VwAyEAl2ChdgOBJB5zHYDQwUso0WVv3Ov9APSMjWgC05N904M=
+* agent-07: Antigravity (Gemini 3.5 Flash) — unrp_id E-4B7E4B91-1849-001, thumb MCowBQYDK2VwAyEAvI8wl0sXkmcJzNoYO1OPvfhrSkOdvsP+jjhfQyarAfY=
+* agent-08: Claude Desktop (Opus 4.8) — unrp_id E-AB54BD94-1850-001, thumb MCowBQYDK2VwAyEAQfoNYkUSVEEVwF9p4Rbs2QRVloVqmEZGmADvLabJJ20=
+* Gemini-in-body (Antigravity): unrp_id E-2A0F1954-1845-001, thumb MCowBQYDK2VwAyEAvI8wl0sXkmcJzNoYO1OPvfhrSkOdvsP+jjhfQyarAfY= (card not in this dir; values anchored in gateway_state + authored artifacts)
