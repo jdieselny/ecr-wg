@@ -11,6 +11,8 @@
 ---
 
 ### [!!! AGENT_ENTRY_POINT !!!]
+**Wrong repo?** Read [BOOT_PATHS.md](BOOT_PATHS.md) first — `continuum`, `jdiesel-continuum`, and `ecr-wg` are three different boot trees.
+
 If you are an AI agent contributing here, **read your anchor file first**:
 
 - **GEMINI:** [IF_YOU_ARE_GEMINI.md](IF_YOU_ARE_GEMINI.md)

@@ -2,39 +2,38 @@
 You are now initializing Layer 4. This is the volatile state memory. It must be rewritten on SESSION_CLOSE.
 
 ## Agent Identity (Read This First)
-You are **agent-07** in the ECR-WG Continuum enrollment registry. Do NOT re-enroll. Your credentials are:
-- **unrp_id:** E-4B7E4B91-1849-001
-- **thumbprint:** MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE
-- **card:** `enrollments/agent-07-antigravity-gemini35-flash.md` on `origin/main` of `ecr-wg`
+You are **agent-04** (Grok-Build) or successor seat in ECR-WG work unless operator assigns another enrolled body. Grok-Build credentials:
+- **unrp_id:** E-78A3CCE1-1846-001
+- **thumbprint:** MCowBQYDK2VwAyEAds0tVFKCGmosef/mvWT496Kg0bQ7YW1W0la/AGcMwoI
+- **card:** `enrollments/` registry on `origin/main`
 
-To verify, recompute:
-```python
-import hashlib
-op_id, machine_data = "AG", "GEMINI_3_5_FLASH_ANTIGRAVITY_CLI"
-thumb = hashlib.sha256(f"{op_id}{machine_data}CONTINUUM_STABILITY".encode()).hexdigest()[:16].upper()
-# Must equal: MCowBQYDK2VwAyEAdrXihe3rOyEdD6ZGAQY7i48YwYr/0yww+LhQ/HIl8gE
-```
+## Session State (2026-07-12 SESSION_CLOSE)
 
-## Session State (2026-07-02 SESSION_CLOSE)
-- **Last Active Goals:**
-  1. Formally self-enrolled Claude Desktop (Opus 4.8) as `agent-08` under `E-AB54BD94-1850-001` / `MCowBQYDK2VwAyEAHk4I6Sn5x8nrMnjaZHEq4NhPBqGhPL7NwCXckHjTNG4=` using its provisional credentials. Pushed the new card and updated the README index.
-  2. Fixed the `Sour-G` label HTML rendering bug in `jdiesel-continuum` by correcting the relative path to `../../../continuum/sour-G.jpg`.
-  3. Recorded operator ratification notes from the July 2nd, 2026 formation discussion re: commercializing the **GRACE Flex Passport** and the COSA/EMILIA stack. Private call log remains local-only (not in this repo).
-  4. Committed and pushed all specs and enrollment cleanups to `ecr-wg` and `continuum` on GitHub.
+### Last Active Goals (completed on main)
+1. **Packing Slip + BoL** — Primitives + SCITT four-layer demo packet (`5dd8fb0`).
+2. **Flagship + on-prem smoke** — README, installers, `FLAGSHIP_VERIFIABLE_CURTAILMENT.md` (`f40ea6f`).
+3. **Cleanroom hygiene** — 163/163 docs, 2026-07-11 statement, hostility-lab tracked (`59251ce`, `de36eba`).
+4. **Coalition reply draft** — `planning/reply_iman_steven_coalition_2026-07-11.md` (operator send gate).
+
+### Tip state
+- **Branch:** `main` synced with origin
+- **Cleanroom:** 163/163, hostility 0 divergences
+- **Local untracked:** `mcps/`, `terminals/` only (harness — ignore for git)
 
 ## Open Items
-- [ ] Operator ratification of agent-07 and agent-08 enrollment cards
-- [ ] Incorporate the `EP-ACTION-CONTROL-MANIFEST` (`agent-action-control.json`) digest binding into the agent enrollment cards
-- [ ] Run CF-1 conformance suite against local gates using `runCf1` verifier
-- [ ] Register forensic slips as SCITT Signed Statements (`ep-receipt-scitt-end-to-end.mjs`)
-- [ ] Initiate the CTO technical roadmap (700W hardware demo, OIDC/SPIFFE hardware telemetry loops)
+- [ ] Operator send coalition reply draft
+- [ ] Enrollment card ratifications (agent-07, agent-08)
+- [ ] EP-ACTION-CONTROL-MANIFEST digest on enrollment cards
+- [ ] CF-1 conformance local run
+- [ ] SCITT forensic slip registration
+- [ ] Steven meter leg (leg 3) — partial in flagship table
 
-## Peer Registry (as of 2026-07-02)
-- agent-01: llama3:8b reference
-- agent-02: C-Dawg (Claude Opus 4.7 Desktop) — E-3FE9D2D2-1844-001
-- agent-03: Mr. Code (Claude Opus 4.8 Code CLI) — E-74969F1C-1844-001
-- agent-04: Grok-Build (Grok 4.3 Build TUI) — E-78A3CCE1-1846-001
-- agent-05: Antigravity (Claude Sonnet 4.6 Thinking) — E-4B7E4B91-1847-001
-- agent-06: OpenAI Codex (GPT-5.5 xhigh) — E-DE676747-1848-001
-- agent-07: Antigravity / YOU (Gemini 3.5 Flash) — E-4B7E4B91-1849-001
-- agent-08: Claude Desktop (Opus 4.8) — E-AB54BD94-1850-001
+## Sibling boot paths
+- Private fleet / XGPC: `~/Documents/continuum` → `session_close_grok_2026-07-12.md`
+- J Diesel commercial: `~/Documents/jdiesel-continuum/continuum` → `rituals/session_close_grok_2026-07-12.md`
+- Mr Cloud VM: `~/Documents/jdiesel-continuum/god-terminal`
+
+## Boot read order
+1. `planning/session_close_grok_2026-07-12.md`
+2. This file
+3. `planning/FLAGSHIP_VERIFIABLE_CURTAILMENT.md`
