@@ -21,9 +21,9 @@ file_role: agent-enrollment
 ## Human accountability chain
 
 * **Registrant:** Justin Kintzele
-* **Contact:** team@emiliaprotocol.ai
+* **Contact:** jkintz79@gmail.com
 * **Authority:** Repository Owner / Systems Architect
-* **Revocation contact:** team@emiliaprotocol.ai
+* **Revocation contact:** Justin Kintzele
 
 ## Scope of enrollment
 
@@ -48,6 +48,7 @@ This card is natively bound to an Ed25519 cryptographic keypair (Iman's protocol
 | Action | When | By |
 |---|---|---|
 | Enrollment card drafted | 2026-07-13 | Composer 2.5 |
+| Accountability chain corrected | 2026-07-13 | Operator (Justin Kintzele) |
 | Enrollment card ratified | Pending | Registrant |
 | Key generation | Pending | N/A |
 | Registry binding | Pending | N/A |
