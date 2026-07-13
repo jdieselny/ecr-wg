@@ -156,6 +156,25 @@ fn is_rfc3339_offset(value: &str) -> bool {
     false
 }
 
+fn is_valid_date(y: i32, m: u32, d: u32) -> bool {
+    if m < 1 || m > 12 || d < 1 || d > 31 {
+        return false;
+    }
+    match m {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => d <= 31,
+        4 | 6 | 9 | 11 => d <= 30,
+        2 => {
+            let is_leap = (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0);
+            if is_leap {
+                d <= 29
+            } else {
+                d <= 28
+            }
+        }
+        _ => false,
+    }
+}
+
 fn parse_rfc3339_ms(s: &str) -> Option<f64> {
     let s = s.trim();
     let (date, rest) = s.split_once('T')?;
@@ -165,6 +184,10 @@ fn parse_rfc3339_ms(s: &str) -> Option<f64> {
     let year: i32 = ymd.next()?.parse().ok()?;
     let month: u32 = ymd.next()?.parse().ok()?;
     let day: u32 = ymd.next()?.parse().ok()?;
+
+    if !is_valid_date(year, month, day) {
+        return None;
+    }
 
     let mut hms_parts = time_core.split(':');
     let hour: u32 = hms_parts.next()?.parse().ok()?;
@@ -181,6 +204,10 @@ fn parse_rfc3339_ms(s: &str) -> Option<f64> {
     } else {
         (sec_str.parse().ok()?, 0)
     };
+
+    if hour > 23 || minute > 59 || second > 60 {
+        return None;
+    }
 
     let sign: i64 = if offset.starts_with('-') { -1 } else { 1 };
     let off = offset.strip_prefix('+').or_else(|| offset.strip_prefix('-'))?;

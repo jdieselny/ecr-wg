@@ -11,12 +11,12 @@ A historical sibling copy may exist under `emilia-protocol/cleanroom-rust-verifi
 
 | Milestone | Status |
 |-----------|--------|
-| Conformance vectors | **163/163** pass |
+| Conformance vectors | **193/193** pass |
 | Canonicalization suite | **35/35** pass |
 | Boundary vector `same_party_evidence_presented_as_independent` | **REJECTED** (as required) |
 | Hostility lab (type-confusion + raw parser) | **0 findings** (see `hostility-lab/`) |
 | Signed external statement (current pack) | `EP-EXTERNAL-VERIFICATION-STATEMENT-2026-07-13.json` |
-| Historical statements (archive) | `archive/EP-EXTERNAL-VERIFICATION-STATEMENT-2026-07-11.json`, `archive/EP-EXTERNAL-VERIFICATION-STATEMENT-2026-07-07.json` |
+| Historical statements (archive) | `archive/EP-EXTERNAL-VERIFICATION-STATEMENT-2026-07-13-d4fff94.json`, `archive/EP-EXTERNAL-VERIFICATION-STATEMENT-2026-07-11.json`, `archive/EP-EXTERNAL-VERIFICATION-STATEMENT-2026-07-07.json` |
 | Procedure | `EP-CONFORMANCE-RUN-OWN-IMPLEMENTATION-v1` |
 | Verifier identity | `ext:verifier:emilia-cleanroom-rust` |
 | Pinned public key | `keys/public.key` |
@@ -30,7 +30,7 @@ cd rust/ep-cleanroom-verifier
 cargo build --release --bin conformance
 ```
 
-## Run conformance (163 vectors)
+## Run conformance (193 vectors)
 
 Point at the public vector pack (clone `emilia-protocol` beside `ecr-wg`, or set `EP_CONFORMANCE_VECTORS`):
 
@@ -47,7 +47,7 @@ python run_tests.py
 .\target\release\conformance.exe C:\path\to\conformance\vectors\boundary.v1.json
 ```
 
-Expected: `E2E Conformance Summary: 163/163 vectors passed.`
+Expected: `E2E Conformance Summary: 193/193 vectors passed.`
 
 ## Hostility lab
 
@@ -107,9 +107,9 @@ src/
   crypto.rs         # Ed25519, P-256, RSA
   external_statement.rs
   merkle.rs
-  suites/           # per-suite runners (16 suites)
+  suites/           # per-suite runners (17 suites)
   bin/conformance.rs
-run_tests.py        # E2E harness (163 vectors; path auto-discovery)
+run_tests.py        # E2E harness (193 vectors; path auto-discovery)
 hostility-lab/      # differential hostility + pin
 archive/            # historical external statements
 keys/public.key     # pinned verifier public key (private key gitignored)

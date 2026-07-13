@@ -18,11 +18,12 @@ const SUITE_FILES: &[&str] = &[
     "revocation.exec.v1.json",
     "time-attestation.v1.json",
     "trust-receipt.exec.v1.json",
-    "trust-receipt.timestamp-forms.v1.json",
+    "trust-receipt.timestamp-forms.v2.json",
     "provenance.exec.v1.json",
     "evidence-record.v1.json",
     "canonicalization.v1.json",
     "boundary.v1.json",
+    "aec-role.v1.json",
     "currency.v1.json",
     "initiator-attestation.v1.json",
     "consumption-proof.v1.json",
@@ -577,6 +578,13 @@ fn run_suite(suite: &str, root: &Value) -> Vec<Value> {
 
     if suite == "EP-BOUNDARY-v1" {
         return suites::receipts::run(root)
+            .into_iter()
+            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
+            .collect();
+    }
+
+    if suite == "EP-AEC-ROLE-v1" {
+        return suites::aec_role::run(root)
             .into_iter()
             .map(|(id, valid)| json!({ "id": id, "valid": valid }))
             .collect();

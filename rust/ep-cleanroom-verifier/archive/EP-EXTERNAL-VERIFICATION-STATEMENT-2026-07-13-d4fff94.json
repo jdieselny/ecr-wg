@@ -1,6 +1,6 @@
 {
   "@version": "EP-EXTERNAL-VERIFICATION-STATEMENT-v1",
-  "generated_at": "2026-07-11T22:06:09.009Z",
+  "generated_at": "2026-07-13T21:20:56.793Z",
   "verifier": {
     "id": "ext:verifier:emilia-cleanroom-rust",
     "name": "EMILIA Cleanroom Rust Verifier",
@@ -151,7 +151,7 @@
     "algorithm": "Ed25519",
     "key_id": "ep:external-verifier-key:sha256:87c8c5029475f53a",
     "public_key": "MCowBQYDK2VwAyEABIJEI__HmD5lnHsY1hPPHHUUaHHqdxxXJ6OKcjE9Imk",
-    "statement_digest": "sha256:f4b5ae65e132bda174b35e1c7f0616c89679dc60e831c303b46385974e404e91",
-    "signature_b64u": "_7v6dyvb2IgkUUpNJHqMqzmWa0l82jTnXBBbw-vjSfFetAR_AB_9HVAMWRB4cDNJidqXs3B1ty8iNd3Y2wiFDA"
+    "statement_digest": "sha256:c8054cea9d32533bfdf007619b99347f910ca655281ed2bc82c362fb94e30760",
+    "signature_b64u": "oisPx-N2GiIpN9w3LdwuESrZXmqOQZozMAQ3-G7BP_zfb1l40A5X5WKv27XPPk79qITCpE8pmtEnl3H2F-EBDw"
   }
 }

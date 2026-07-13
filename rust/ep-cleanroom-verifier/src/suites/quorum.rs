@@ -72,7 +72,7 @@ fn is_eligible_slot(policy: &Value, role: &str, approver: &str) -> bool {
         .unwrap_or(false)
 }
 
-fn verify_quorum(quorum: &Value) -> bool {
+pub fn verify_quorum(quorum: &Value) -> bool {
     let action_hash = match quorum["action_hash"].as_str() {
         Some(h) => h,
         None => return false,
