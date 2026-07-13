@@ -214,18 +214,18 @@ def main() -> None:
 
     print(f"E2E Conformance Summary: {passed_vectors}/{total_vectors} vectors passed.")
     if missing_suites:
-        print(f"⚠️  Missing suite files: {', '.join(missing_suites)}")
+        print(f"[WARN] Missing suite files: {', '.join(missing_suites)}")
     if mismatches:
-        print(f"❌ Verification failed with {len(mismatches)} mismatch(es):")
+        print(f"[FAIL] Verification failed with {len(mismatches)} mismatch(es):")
         for m in mismatches:
             print(f"  - {m}")
         sys.exit(1)
 
     if total_vectors == 0:
-        print("❌ No vectors executed.", file=sys.stderr)
+        print("[FAIL] No vectors executed.", file=sys.stderr)
         sys.exit(1)
 
-    print("✅ All conformance vectors verified successfully!")
+    print("[PASS] All conformance vectors verified successfully!")
     sys.exit(0)
 
 

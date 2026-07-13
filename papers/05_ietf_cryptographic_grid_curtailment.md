@@ -1,4 +1,4 @@
-# Cryptographic Grid Curtailment for Agentic AI Workloads
+# Authorization and Evidence Profile for Bounded Grid Curtailment
 
 ## Abstract
 
@@ -85,6 +85,52 @@ A Consumption Proof is a signed attestation that a specific compute workload was
 - Link to the authorizing EP receipt via canonical digest.
 
 These proofs are emitted at the edge (L5/L7) without phoning home, enabling settlement-grade audit while preserving privacy (selective disclosure via the packaging layer).
+
+### 2.4. Independent Attested Meter Role
+
+To prevent schema inflation and preserve clean architectural boundaries, this profile handles physical metered outcomes as an independent third-party claim joined at the composition layer.
+- **Bilateral Attestation (WHO vs WHAT):** The bilateral exchange between the facility and the grid operator remains a lean two-party attestation of the controller-reported execution.
+- **Physical Verification (The Meter Leg):** The physical billing meter operates as a separate attestor, generating its own signed statement (`meter_statement`) over the shared `action_digest`.
+- **Divergence as Evidence:** The verifier composes the controller attestation and the meter statement. Any divergence between controller-reported and physically-measured load changes is treated as settlement evidence rather than a failure of the core authorization protocol.
+
+### 2.5. Normative Lifecycle and Bounded Execution (FlexBound)
+
+This profile codifies a strict, sequential safety lifecycle to bridge the gap between abstract cryptographic authorization and physical megawatt reduction:
+
+```
+                  [Grid Order] 
+                       │
+         [Facility Plan Commitment] (plan_digest)
+                       │
+              [Once-Only Execution]
+                       │
+            [Plan-Bound Measurement]
+                       │
+             [Settlement Evidence]
+```
+
+This lifecycle enforces nine specific safety stages between authorization and execution:
+1. **Verified Facility Inventory:** Active validation of available compute capacities and load parameters.
+2. **Deterministic Compilation:** Consistent compilation of model scheduling proposals prior to load shedding.
+3. **Protected-Workload Enforcement:** Hard constraints preventing the eviction or ramp down of protected workloads or life-safety systems.
+4. **Plan-Digest Binding:** Authorization receipts must bind directly to the compiled facility plan digest (`plan_digest`), rather than abstract targets.
+5. **Durable Consumption:** One-time cryptographic receipt consumption recorded prior to actuator invocation.
+6. **Executor Acknowledgment:** Signed confirmation from the edge execution scheduler bound to the same `plan_digest`.
+7. **Meter Evidence Binding:** Signed meter statements bound directly to the executed plan and event window.
+8. **Freeze-and-Reconcile:** Safe, fail-closed state suspension on ambiguous execution errors or network cuts.
+9. **Honest Metric Separation:** Clear accounting distinction between active MW reduction, total scarcity MWh, shifted workload energy, and lifetime carbon/efficiency savings.
+
+### 2.6. Standardized Joins and Objects
+
+To maintain interoperability without standardizing proprietary scheduler details (e.g., internal optimization algorithms or LLM choices), this profile standardizes only the cross-party joins and objects:
+- **Curtailment Request:** The initial demand object specifying time window, location, and desired delta.
+- **Envelope Commitment:** The facility's seasonal constraints and bounding capacities.
+- **Compiled-Plan Commitment:** The cryptographic commitment to the compiled plan (represented by `plan_digest`), leaving the internal scheduling implementation as a private concern.
+- **Stable Execution Key:** A stable `{facility_id, event_id}` key ensuring execution-consumption traceability.
+- **Binds:** 
+  - Executor acknowledgment must bind to `plan_digest`.
+  - Meter statement must bind to `plan_digest` and the event window.
+  - Refusal receipts must carry explicit refusal codes and original action details.
 
 ## 3. Proof-of-Curtailment
 

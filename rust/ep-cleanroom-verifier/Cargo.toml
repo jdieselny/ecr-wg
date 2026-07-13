@@ -15,3 +15,6 @@ spki = "0.7"
 sha3 = "0.10"
 rsa = { version = "0.9", features = ["sha2"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+tokio = { version = "1", features = ["full"] }
+axum = "0.7"
+tower-http = { version = "0.5", features = ["cors"] }
