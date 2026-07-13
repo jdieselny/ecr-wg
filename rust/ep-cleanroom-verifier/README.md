@@ -7,7 +7,7 @@ Written strictly from the IETF drafts (`draft-schrock-ep-authorization-receipts`
 **Canonical tree for this implementation:** `https://github.com/jdieselny/ecr-wg/tree/main/rust/ep-cleanroom-verifier`  
 A historical sibling copy may exist under `emilia-protocol/cleanroom-rust-verifier` or God Terminal bridges that still discover that path — **prefer this ecr-wg tree** to avoid dual-location drift.
 
-## Results (2026-07-11)
+## Results (2026-07-13)
 
 | Milestone | Status |
 |-----------|--------|
@@ -15,8 +15,8 @@ A historical sibling copy may exist under `emilia-protocol/cleanroom-rust-verifi
 | Canonicalization suite | **35/35** pass |
 | Boundary vector `same_party_evidence_presented_as_independent` | **REJECTED** (as required) |
 | Hostility lab (type-confusion + raw parser) | **0 findings** (see `hostility-lab/`) |
-| Signed external statement (current pack) | `EP-EXTERNAL-VERIFICATION-STATEMENT-2026-07-11.json` |
-| Historical statement (162-pack era) | `archive/EP-EXTERNAL-VERIFICATION-STATEMENT-2026-07-07.json` |
+| Signed external statement (current pack) | `EP-EXTERNAL-VERIFICATION-STATEMENT-2026-07-13.json` |
+| Historical statements (archive) | `archive/EP-EXTERNAL-VERIFICATION-STATEMENT-2026-07-11.json`, `archive/EP-EXTERNAL-VERIFICATION-STATEMENT-2026-07-07.json` |
 | Procedure | `EP-CONFORMANCE-RUN-OWN-IMPLEMENTATION-v1` |
 | Verifier identity | `ext:verifier:emilia-cleanroom-rust` |
 | Pinned public key | `keys/public.key` |
