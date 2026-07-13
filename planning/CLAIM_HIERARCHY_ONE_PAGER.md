@@ -43,8 +43,8 @@ graph TD
 ### Leg 1 & 2: WHO (EMILIA)
 * **Demonstrated:** 
   * Ed25519-signed `EP-RECEIPT-v1` representing grid authority demand and facility acknowledgment.
-  * Composed `EP-AEC-v1` (Admissibility Envelope/Consent) gating action execution.
-  * Independent Rust cleanroom verifier achieving **163/163** vector conformance.
+  * Composed `EP-AEC-v1` (Authorization Evidence Chain) gating action execution.
+  * Externally authored from-spec Rust verifier (construction independence is the implementer's attestation, auditable in the public source) achieving conformance against the 193-vector suite across 17 profiles (comprising the byte-pinned 164-vector campaign and the 359-case hostility corpus).
   * Fail-closed defense verifying action digest bindings to prevent confused-deputy attacks.
 * **Cited:** 
   * Formal logic guarantees (TLA+ / Tamarin proofs) for authorization receipt state transitions.
