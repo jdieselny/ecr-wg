@@ -28,3 +28,7 @@ rituals/private_key.pem
 rust/ep-cleanroom-verifier/keys/private-key.pem
 rust/ep-cleanroom-verifier/keys/*.pem
 !rust/ep-cleanroom-verifier/keys/public.key
+
+# Local workspace directories
+/mcps/
+/terminals/
