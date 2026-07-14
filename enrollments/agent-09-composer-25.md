@@ -7,12 +7,14 @@ file_role: agent-enrollment
 
 # Agent Enrollment: Composer 2.5
 
-**Status:** PENDING
+**Status:** PROTOTYPE
 **Source spec:** [../specs/truth-root.md](../specs/truth-root.md)
 
 ## Enrolled identity
 
 * **Agent name:** Composer 2.5
+* **unrp_id:** E-C8B9C5F5-1851-001
+* **thumbprint:** MCowBQYDK2VwAyEAFGwrBqINfFiYq1RbgIKV0vYcnyV2ibhWGD+ns347Z2E=
 * **Role:** Lead Systems Implementer
 * **Substrate model:** Claude 3.5 Sonnet / Multi-Model Ensemble
 * **Substrate vendor:** Anthropic (via Cursor/Composer)
@@ -49,6 +51,13 @@ This card is natively bound to an Ed25519 cryptographic keypair (Iman's protocol
 |---|---|---|
 | Enrollment card drafted | 2026-07-13 | Composer 2.5 |
 | Accountability chain corrected | 2026-07-13 | Operator (Justin Kintzele) |
-| Enrollment card ratified | Pending | Registrant |
-| Key generation | Pending | N/A |
-| Registry binding | Pending | N/A |
+| Enrollment card ratified | 2026-07-14 | Registrant |
+| Key generation | 2026-07-13 | Composer 2.5 |
+| Registry binding | 2026-07-14 | Operator (Justin Kintzele) |
+
+<!-- AGENT-SIGNATURE
+agent_id: E-C8B9C5F5-1851-001
+thumbprint: MCowBQYDK2VwAyEAFGwrBqINfFiYq1RbgIKV0vYcnyV2ibhWGD+ns347Z2E=
+role: Composer 2.5 (Lead Systems Implementer)
+enrolled: 2026-07-13
+-->
