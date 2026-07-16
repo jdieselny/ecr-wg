@@ -1,5 +1,5 @@
 # Verifiable Grid Curtailment: Coalition Claim Hierarchy
-**EMILIA · COSA · Actionstate**
+**EMILIA · COSA · Action State**
 
 This one-pager outlines the honest boundary lines of the verifiable grid curtailment stack. It defines exactly what is running in code (demonstrated), what is relied upon from adjacent work (cited), and what remains outside the current scope (not claimed).
 
@@ -15,15 +15,16 @@ graph TD
     classDef emilia fill:#EAF5EE,stroke:#327A4B,stroke-width:3px,color:#0F172A;
     classDef actionstate fill:#F0ECF8,stroke:#6B55A3,stroke-width:3px,color:#0F172A;
     classDef settlement fill:#FBEEE4,stroke:#A85B2A,stroke-width:3px,color:#0F172A;
+    classDef meter fill:#F8FAFC,stroke:#475569,stroke-width:3px,color:#0F172A;
 
     EVENT["Grid Curtailment Action<br>(action_digest)"]:::cosa
     
-    L1["1. Grid Demand<br>(EMILIA receipt)"]:::emilia
-    L2["2. Named Human Auth<br>(EMILIA AEC)"]:::emilia
+    L1["1. Grid / ISO Dispatch<br>(demand)"]:::emilia
+    L2["2. Human Authorization<br>(EP receipt / quorum)"]:::emilia
     L3a["3a. Controller Telemetry<br>(COSA attestation)"]:::cosa
-    L3b["3b. Physical Meter Leg<br>(Steven's Open Socket)"]:::actionstate
-    L4["4. Tamper-Evident Record<br>(SCITT envelope)"]:::actionstate
-    L5["5. Composed Settlement<br>(composed evidence bundle)"]:::settlement
+    L3b["3b. Physical Meter Claim<br>(independent third attestor)"]:::meter
+    L4["4. WHAT Record<br>(Action State / SCITT)"]:::actionstate
+    L5["5. Evidence Composition<br>(EP-AEC evaluation)"]:::settlement
 
     EVENT --> L1
     EVENT --> L2
@@ -42,11 +43,11 @@ graph TD
 
 ## 2. Claim Hierarchy Matrix
 
-### Leg 1 & 2: WHO (EMILIA)
+### Legs 1 & 2: DEMAND + AUTHORIZATION (EMILIA)
 * **Demonstrated:** 
   * Ed25519-signed `EP-RECEIPT-v1` representing grid authority demand and facility acknowledgment.
-  * Composed `EP-AEC-v1` (Authorization Evidence Chain) gating action execution.
-  * Externally authored from-spec Rust verifier (construction independence is the implementer's attestation, auditable in the public source), CI-enforced against the byte-pinned 164-vector campaign (16 suites) plus the 359-case hostility corpus with zero divergences. The same-team JS/Py/Go suite is 193 vectors across 17 suites.
+  * `EP-AEC-v1` composes and evaluates the evidence chain; it is not itself the human ceremony.
+  * Externally authored from-spec Rust verifier (construction independence is the implementer's attestation, auditable in the public source), time-pinned at 164 vectors across 16 suites. The current same-team EP conformance result is 250 vectors across 18 suites.
   * Fail-closed defense verifying action digest bindings to prevent confused-deputy attacks.
 * **Cited:** 
   * Formal logic guarantees (TLA+ / Tamarin proofs) for authorization receipt state transitions.
@@ -65,18 +66,18 @@ graph TD
 * **Not Claimed:** 
   * Baseline tariff modeling accuracy. COSA makes baseline computation *tamper-evident against method swapping and telemetry backfill* but does not model utility baseline perfection.
 
-### Leg 3b & 4: WHAT & Record (Actionstate)
+### Legs 3b & 4: WHAT & Record (Action State)
 * **Demonstrated:** 
   * Controller-reported execution attestation and digest bindings.
   * `scitt-cose` payload-agnostic Signed Statement (COSE_Sign1) envelope.
-  * Dual independent RFC 9162 Merkle tree inclusion logs.
+  * Two separately keyed, in-process RFC 9162 Merkle tree inclusion logs.
   * CCF `vds=2` verifier compatibility executing offline.
 * **Cited:** 
-  * Class-1 Agent Action Capsule (AAC) spec and conformance vectors.
+  * Class-1 Agent Action Capsule (AAC) WHAT emission is the next integration, not a current claim.
 * **Not Claimed:** 
-  * Attested physical utility meter hardware. The meter is a separate, independent third-party attestor at the composition level (Steven’s open socket).
+  * Attested physical utility meter hardware. The meter supplies an independent third-attestor claim that the record can reference; it is not an Action State leg.
 
-### Leg 5: Settlement Composition
+### Leg 5: Evidence Composition
 * **Demonstrated:** 
   * Multi-attestation verification linking the four-layer evidence bundle to the shared action digest.
 * **Not Claimed:** 
@@ -92,12 +93,15 @@ agent_id: E-C54030DF-1852-001
 thumbprint: MCowBQYDK2VwAyEA+kLnvOH8EtfA8bPEpMxxBZk/Fa5BWh7N7x9KRnOwSy8=
 model_version_id: openai-codex-gpt5
 manifest_digest: 6bc42b927a54b00f5cc476df7d1e658c473a93ab2fe8edd7eff0158e0887bcf0
-environment_digest: 69d309198d35a0336bf4ab4b205e332bb8782109bc6079ff65a487c45443c6c8
-input_context_digest: 3f21004479a2825552e22355bc5824482b59c43e31724ab63ac1ee682c55740d
-output_digest: 4582fae7a49d74565b79fcca2c3cbe6039a2c3ec5bd965127a5644313950974f
+environment_digest: 1114037449bbfec1093703e74f2f5d7c673099bf3bdca72abc717cd2522bd50b
+input_context_digest: 6b00c7e75bcb298332c29a7279d0243acc31294f36b84a1aa3c3049e94edb257
+output_digest: 8eaf45ecd049a45f6eb336a94d0d500909914469711e55fc45531c4413b1d17e
 prev_output_digest: none
 timestamp: 2026-07-16T02:37:37Z
 signature_algorithm: Ed25519
-signature_b64u: 4ziYdNDfSwdKMmC4aSDgFit1eW1B1H0zoCGATowvjyYTCOqcqpRqktxYGjERQcwa3FODnv0SydH77iAbOGZaCg
+signature_b64u: 8m8dI2-leqlXrRGU14Hx1QNmZ_K1gUXPkOid0LOwHrt7I0hFM0nRCaob5CCwUEA9g0uGF2be7vy-k__kh0ZlBw
 -->
+
+
+
 
