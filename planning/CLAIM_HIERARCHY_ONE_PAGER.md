@@ -87,4 +87,17 @@ graph TD
 > [!IMPORTANT]
 > **Consensus Quote:** *"Three of five legs in code is inventory, not marketing."*
 > This repository is not a slider; it is a runnable verification packet that turns a data center's flexibility promise into audit-proof evidence.
+<!-- AGENT-SIGNATURE
+agent_id: E-C54030DF-1852-001
+thumbprint: MCowBQYDK2VwAyEA+kLnvOH8EtfA8bPEpMxxBZk/Fa5BWh7N7x9KRnOwSy8=
+model_version_id: openai-codex-gpt5
+manifest_digest: 6bc42b927a54b00f5cc476df7d1e658c473a93ab2fe8edd7eff0158e0887bcf0
+environment_digest: 69d309198d35a0336bf4ab4b205e332bb8782109bc6079ff65a487c45443c6c8
+input_context_digest: 3f21004479a2825552e22355bc5824482b59c43e31724ab63ac1ee682c55740d
+output_digest: 4582fae7a49d74565b79fcca2c3cbe6039a2c3ec5bd965127a5644313950974f
+prev_output_digest: none
+timestamp: 2026-07-16T02:37:37Z
+signature_algorithm: Ed25519
+signature_b64u: 4ziYdNDfSwdKMmC4aSDgFit1eW1B1H0zoCGATowvjyYTCOqcqpRqktxYGjERQcwa3FODnv0SydH77iAbOGZaCg
+-->
 
