@@ -9,10 +9,12 @@ This one-pager outlines the honest boundary lines of the verifiable grid curtail
 
 ```mermaid
 graph TD
-    classDef cosa fill:#e0f2fe,stroke:#0284c7,stroke-width:2px;
-    classDef emilia fill:#f0fdf4,stroke:#16a34a,stroke-width:2px;
-    classDef actionstate fill:#faf5ff,stroke:#7e22ce,stroke-width:2px;
-    classDef settlement fill:#fff7ed,stroke:#ea580c,stroke-width:2px;
+    %% ECR-WG palette: high-contrast strokes and restrained fills for projection and print.
+    linkStyle default stroke:#475569,stroke-width:2px;
+    classDef cosa fill:#E8F4F8,stroke:#247A96,stroke-width:3px,color:#0F172A;
+    classDef emilia fill:#EAF5EE,stroke:#327A4B,stroke-width:3px,color:#0F172A;
+    classDef actionstate fill:#F0ECF8,stroke:#6B55A3,stroke-width:3px,color:#0F172A;
+    classDef settlement fill:#FBEEE4,stroke:#A85B2A,stroke-width:3px,color:#0F172A;
 
     EVENT["Grid Curtailment Action<br>(action_digest)"]:::cosa
     
@@ -85,3 +87,4 @@ graph TD
 > [!IMPORTANT]
 > **Consensus Quote:** *"Three of five legs in code is inventory, not marketing."*
 > This repository is not a slider; it is a runnable verification packet that turns a data center's flexibility promise into audit-proof evidence.
+
