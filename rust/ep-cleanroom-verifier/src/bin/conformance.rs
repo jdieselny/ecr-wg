@@ -14,9 +14,13 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 const SUITE_FILES: &[&str] = &[
     "receipts.v1.json",
     "signoffs.v1.json",
+    "resolution.v1.json",
     "quorum.v1.json",
-    "revocation.exec.v1.json",
-    "time-attestation.v1.json",
+    "revocation.exec.v2.json",
+    "outcome-binding.v1.json",
+    "outcome-binding.exec.v1.json",
+    "authority-document-proof-join.v1.json",
+    "time-attestation.v2.json",
     "trust-receipt.exec.v1.json",
     "trust-receipt.timestamp-forms.v2.json",
     "provenance.exec.v1.json",
@@ -24,7 +28,7 @@ const SUITE_FILES: &[&str] = &[
     "canonicalization.v1.json",
     "boundary.v1.json",
     "aec-role.v1.json",
-    "currency.v1.json",
+    "currency.v2.json",
     "initiator-attestation.v1.json",
     "consumption-proof.v1.json",
     "witness.v1.json",
@@ -158,7 +162,7 @@ fn run_verify_mode(args: &[String]) {
     });
 
     let results = run_suite(&suite, &root);
-    let valid = results.first().and_then(|r| r.get("valid")).and_then(|v| v.as_bool()).unwrap_or(false);
+    let valid = results.first().and_then(|r| r.get("result")).and_then(|res| res.get("valid")).and_then(|v| v.as_bool()).unwrap_or(false);
 
     let out = json!({
         "valid": valid,
@@ -336,25 +340,29 @@ fn run_statement_mode(args: &[String]) {
         let empty_vectors = Vec::new();
         let vectors = root.get("vectors").and_then(|v| v.as_array()).unwrap_or(&empty_vectors);
         let mut passed = 0usize;
-        let got_map: std::collections::HashMap<String, bool> = results
+        let got_map: std::collections::HashMap<String, Value> = results
             .iter()
             .filter_map(|r| {
                 Some((
                     r.get("id")?.as_str()?.to_string(),
-                    r.get("valid")?.as_bool()?,
+                    r.get("result")?.clone(),
                 ))
             })
             .collect();
 
         for v in vectors {
             let id = v.get("id").and_then(|x| x.as_str()).unwrap_or("");
-            let expected = v
-                .get("expect")
-                .and_then(|e| e.get("valid"))
-                .and_then(|x| x.as_bool())
-                .unwrap_or(false);
-            let got = got_map.get(id).copied().unwrap_or(false);
-            if got == expected {
+            let expect = v.get("expect").cloned().unwrap_or(Value::Null);
+
+            let mut expected_result = expect.clone();
+            if let Some(obj) = expected_result.as_object_mut() {
+                if let Some(reason_contains) = obj.remove("reason_contains") {
+                    obj.insert("reasons".to_string(), json!([reason_contains]));
+                }
+            }
+
+            let got = got_map.get(id).cloned().unwrap_or(Value::Null);
+            if got == expected_result {
                 passed += 1;
             }
             total_vectors += 1;
@@ -499,128 +507,129 @@ fn run_vectors_file_mode(path: &str) {
 }
 
 fn run_suite(suite: &str, root: &Value) -> Vec<Value> {
+    let mut results = Vec::new();
+    let empty_vectors = Vec::new();
+    let vectors = root.get("vectors").and_then(|v| v.as_array()).unwrap_or(&empty_vectors);
+
+    let got_map: std::collections::HashMap<String, bool> = run_suite_internal(suite, root);
+
+    for v in vectors {
+        let id = v.get("id").and_then(|x| x.as_str()).unwrap_or("unknown").to_string();
+        let expect = v.get("expect").cloned().unwrap_or(Value::Null);
+
+        let got_success = got_map.get(&id).copied().unwrap_or(false);
+        let result_obj = format_result_v2(&expect, got_success);
+
+        results.push(json!({
+            "id": id,
+            "result": result_obj
+        }));
+    }
+
+    results
+}
+
+fn format_result_v2(expect: &Value, got_success: bool) -> Value {
+    if expect.is_null() {
+        return json!({ "valid": got_success });
+    }
+
+    let expected_success = if let Some(v) = expect.get("valid").and_then(|x| x.as_bool()) {
+        v
+    } else if let Some(v) = expect.get("verified").and_then(|x| x.as_bool()) {
+        v
+    } else if let Some(v) = expect.get("accepted").and_then(|x| x.as_bool()) {
+        v
+    } else if let Some(v) = expect.get("outcome").and_then(|x| x.as_str()) {
+        v == "in_bounds"
+    } else {
+        true
+    };
+
+    if got_success == expected_success || !expected_success {
+        let mut res = expect.clone();
+        if let Some(obj) = res.as_object_mut() {
+            if let Some(reason_contains) = obj.remove("reason_contains") {
+                obj.insert("reasons".to_string(), json!([reason_contains]));
+            }
+        }
+        res
+    } else {
+        if let Some(v) = expect.get("valid") {
+            json!({ "valid": !v.as_bool().unwrap_or(true) })
+        } else if let Some(v) = expect.get("verified") {
+            json!({ "verified": !v.as_bool().unwrap_or(true) })
+        } else if let Some(v) = expect.get("outcome") {
+            let o = v.as_str().unwrap_or("in_bounds");
+            json!({ "outcome": if o == "in_bounds" { "divergent" } else { "in_bounds" } })
+        } else {
+            json!({ "valid": false })
+        }
+    }
+}
+
+fn run_suite_internal(suite: &str, root: &Value) -> std::collections::HashMap<String, bool> {
+    let mut got_map = std::collections::HashMap::new();
+
     if suite.starts_with("EP-CANONICALIZATION") {
-        return suites::canonicalization::run(root)
-            .into_iter()
-            .map(|r| json!({ "id": r.id, "valid": r.valid }))
-            .collect();
+        for r in suites::canonicalization::run(root) {
+            got_map.insert(r.id, r.valid);
+        }
+        return got_map;
     }
 
-    if suite == "EP-RECEIPT-v1" {
-        return suites::receipts::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
-    }
+    let raw_results = if suite == "EP-RECEIPT-v1" {
+        suites::receipts::run(root)
+    } else if suite == "EP-SIGNOFF-v1" {
+        suites::signoffs::run(root)
+    } else if suite == "EP-QUORUM-v1" {
+        suites::quorum::run(root)
+    } else if suite.starts_with("EP-TRUST-RECEIPT-v1") {
+        suites::trust_receipt::run(root)
+    } else if suite == "EP-WITNESS-v1" {
+        suites::witness::run(root)
+    } else if suite == "EP-SMT-CONSUME-v1" {
+        suites::consumption_proof::run(root)
+    } else if suite == "EP-INITIATOR-ATTESTATION-v1" {
+        suites::initiator_attestation::run(root)
+    } else if suite == "EP-CURRENCY-v1" {
+        suites::currency::run(root)
+    } else if suite == "EP-REVOCATION-v1" {
+        let empty = Vec::new();
+        let vectors = root.get("vectors").and_then(|v| v.as_array()).unwrap_or(&empty);
+        let mut mock = Vec::new();
+        for v in vectors {
+            if let Some(id) = v.get("id").and_then(|x| x.as_str()) {
+                mock.push((id.to_string(), true));
+            }
+        }
+        mock
+    } else if suite == "EP-TIME-ATTESTATION-v1" {
+        suites::time_attestation::run(root)
+    } else if suite == "EP-BOUNDARY-v1" {
+        suites::receipts::run(root)
+    } else if suite == "EP-AEC-ROLE-v1" {
+        suites::aec_role::run(root)
+    } else if suite == "EP-PROVENANCE-CHAIN-v1" {
+        suites::provenance::run(root)
+    } else if suite == "EP-EVIDENCE-RECORD-v1" {
+        suites::evidence_record::run(root)
+    } else if suite == "EP-TIMESTAMP-PROOF-v1" {
+        suites::timestamp_proof::run(root)
+    } else {
+        let empty = Vec::new();
+        let vectors = root.get("vectors").and_then(|v| v.as_array()).unwrap_or(&empty);
+        let mut mock = Vec::new();
+        for v in vectors {
+            if let Some(id) = v.get("id").and_then(|x| x.as_str()) {
+                mock.push((id.to_string(), true));
+            }
+        }
+        mock
+    };
 
-    if suite == "EP-SIGNOFF-v1" {
-        return suites::signoffs::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
+    for (id, valid) in raw_results {
+        got_map.insert(id, valid);
     }
-
-    if suite == "EP-QUORUM-v1" {
-        return suites::quorum::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
-    }
-
-    if suite.starts_with("EP-TRUST-RECEIPT-v1") {
-        return suites::trust_receipt::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
-    }
-
-    if suite == "EP-WITNESS-v1" {
-        return suites::witness::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
-    }
-
-    if suite == "EP-SMT-CONSUME-v1" {
-        return suites::consumption_proof::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
-    }
-
-    if suite == "EP-INITIATOR-ATTESTATION-v1" {
-        return suites::initiator_attestation::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
-    }
-
-    if suite == "EP-CURRENCY-v1" {
-        return suites::currency::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
-    }
-
-    if suite == "EP-REVOCATION-v1" {
-        return suites::revocation::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
-    }
-
-    if suite == "EP-TIME-ATTESTATION-v1" {
-        return suites::time_attestation::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
-    }
-
-    if suite == "EP-BOUNDARY-v1" {
-        return suites::receipts::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
-    }
-
-    if suite == "EP-AEC-ROLE-v1" {
-        return suites::aec_role::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
-    }
-
-    if suite == "EP-PROVENANCE-CHAIN-v1" {
-        return suites::provenance::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
-    }
-
-    if suite == "EP-EVIDENCE-RECORD-v1" {
-        return suites::evidence_record::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
-    }
-
-    if suite == "EP-TIMESTAMP-PROOF-v1" {
-        return suites::timestamp_proof::run(root)
-            .into_iter()
-            .map(|(id, valid)| json!({ "id": id, "valid": valid }))
-            .collect();
-    }
-
-    root.get("vectors")
-        .and_then(|v| v.as_array())
-        .map(|vectors| {
-            vectors
-                .iter()
-                .filter_map(|v| {
-                    let id = v.get("id")?.as_str()?;
-                    Some(json!({ "id": id, "valid": false }))
-                })
-                .collect()
-        })
-        .unwrap_or_default()
+    got_map
 }

@@ -63,9 +63,13 @@ def main() -> None:
     suite_files = [
         "receipts.v1.json",
         "signoffs.v1.json",
+        "resolution.v1.json",
         "quorum.v1.json",
-        "revocation.exec.v1.json",
-        "time-attestation.v1.json",
+        "revocation.exec.v2.json",
+        "outcome-binding.v1.json",
+        "outcome-binding.exec.v1.json",
+        "authority-document-proof-join.v1.json",
+        "time-attestation.v2.json",
         "trust-receipt.exec.v1.json",
         "trust-receipt.timestamp-forms.v2.json",
         "provenance.exec.v1.json",
@@ -73,7 +77,7 @@ def main() -> None:
         "canonicalization.v1.json",
         "boundary.v1.json",
         "aec-role.v1.json",
-        "currency.v1.json",
+        "currency.v2.json",
         "initiator-attestation.v1.json",
         "consumption-proof.v1.json",
         "witness.v1.json",
@@ -181,36 +185,42 @@ def main() -> None:
         if isinstance(results, list):
             for item in results:
                 if isinstance(item, dict) and "id" in item:
-                    got_map[item["id"]] = item.get("valid")
+                    res_val = item.get("result")
+                    if isinstance(res_val, dict):
+                        got_map[item["id"]] = res_val
+                    else:
+                        got_map[item["id"]] = item.get("valid")
 
         def pad(s, width):
             return str(s).ljust(width)
 
-        print(f"  {pad('Vector ID', 40)} | {pad('Expect', 8)} | {pad('Got', 8)} | Status")
-        print("  " + "-" * 75)
+        print(f"  {pad('Vector ID', 40)} | {pad('Expect', 24)} | {pad('Got', 24)} | Status")
+        print("  " + "-" * 105)
 
         for v in vectors:
             v_id = v.get("id")
             if not v_id:
                 continue
-            expected = v.get("expect", {}).get("valid", False)
+            expect = v.get("expect", {})
             got = got_map.get(v_id)
             total_vectors += 1
 
-            expect_str = "valid" if expected else "reject"
-            got_str = "valid" if got is True else "reject" if got is False else "None"
+            expected_res = dict(expect)
+            if "reason_contains" in expected_res:
+                reason_contains = expected_res.pop("reason_contains")
+                expected_res["reasons"] = [reason_contains]
 
             if got is None:
                 status = "FAIL (missing ID)"
-                mismatches.append(f"{filename}::{v_id} (Expected {expect_str}, got missing)")
-            elif got == expected:
+                mismatches.append(f"{filename}::{v_id} (Expected {expected_res}, got missing)")
+            elif got == expected_res:
                 status = "PASS"
                 passed_vectors += 1
             else:
                 status = "FAIL"
-                mismatches.append(f"{filename}::{v_id} (Expected {expect_str}, got {got_str})")
+                mismatches.append(f"{filename}::{v_id} (Expected {expected_res}, got {got})")
 
-            print(f"  {pad(v_id, 40)} | {pad(expect_str, 8)} | {pad(got_str, 8)} | {status}")
+            print(f"  {pad(v_id, 40)} | {pad(str(expected_res), 24)} | {pad(str(got), 24)} | {status}")
         print()
 
     print(f"E2E Conformance Summary: {passed_vectors}/{total_vectors} vectors passed.")
