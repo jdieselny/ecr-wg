@@ -33,8 +33,8 @@
   },
   "kit": {
     "vector_bundle_sha256": "426e12da7f592d116bf231d69925603e0eccffca1d85800224c0a9bf1719dbb7",
-    "conformance_manifest_sha256": "d1b045f9f4f7633330e0e029973df0d9fe6c37aaaf79f5c25563fa8248a25591",
-    "conformance_manifest_claim_sha256": "17fabd094e0fe63d291b68de5f0190da150e74557995a342aff3f27994b163db",
+    "conformance_manifest_sha256": "17fabd094e0fe63d291b68de5f0190da150e74557995a342aff3f27994b163db",
+    "conformance_manifest_claim_sha256": "d1b045f9f4f7633330e0e029973df0d9fe6c37aaaf79f5c25563fa8248a25591",
     "authority_document_execution_companion_sha256": "121a358459ffed223a41a79570cc5307693eaa89a59b3ad330710c5e2f286959"
   },
   "construction": {
