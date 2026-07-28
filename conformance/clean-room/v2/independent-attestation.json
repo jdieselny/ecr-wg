@@ -1,19 +1,19 @@
 {
   "@version": "EP-CLEAN-ROOM-INDEPENDENT-ATTESTATION-v2",
   "claim": {
-    "submission_sha256": "ea82d8cb63c7843f57c7e70559d57fa673bb57fe758778417320c2fa644993f9",
+    "submission_sha256": "44c9797d92bbe221f4ebd0fbfd4e458ae4606657f57f434666c51419f01e01c5",
     "implementation_id": "guvnor-ep-cleanroom-rust",
     "implementation_organization": "J Diesel NY / Continuum",
     "implementation_team_id": "continuum",
-    "source_commit": "11bff6dee6ce56a082921c1c169c3e0707913711",
-    "runner_artifact_sha256": "e2d702f138c4a041460cca8ccfed922313b80143475ad1653fe41ea4ec5d62f2",
+    "source_commit": "676dfa1a685248949b42a617c75107e7c84af6c2",
+    "runner_artifact_sha256": "4a05e5c99086185279313ff03092cbb544d54a2b3fb3e592b5cfe3796c0af2fd",
     "vector_bundle_sha256": "426e12da7f592d116bf231d69925603e0eccffca1d85800224c0a9bf1719dbb7",
     "conformance_manifest_sha256": "17fabd094e0fe63d291b68de5f0190da150e74557995a342aff3f27994b163db",
     "authority_document_execution_companion_sha256": "121a358459ffed223a41a79570cc5307693eaa89a59b3ad330710c5e2f286959",
     "reference_source_access": "none",
     "emilia_affiliation": "none",
-    "reviewed_at": "2026-07-27T17:07:55.530673Z",
-    "statement": "The GUV'NOR cleanroom verifier (emilia-rust-verifier / ep-cleanroom-verifier, Rust) was implemented from EMILIA specifications and the published conformance vectors without consulting EMILIA Protocol reference source (packages/verify, packages/python-verify, packages/go-verify, or equivalent). One-team JS/Python/Go ports were not used as implementation guides. God Terminal and Continuum integration call this binary as an external process; that wiring does not change the verifier's clean-room status. Conformance v2 clean-room verification complete as of public ecr-wg commit 11bff6dee6ce56a082921c1c169c3e0707913711 (tree rust/ep-cleanroom-verifier @ c30ed51178f167c99d5214c5f8581172c1641af0)."
+    "reviewed_at": "2026-07-28T16:08:38.578785Z",
+    "statement": "The GUV'NOR cleanroom verifier (emilia-rust-verifier / ep-cleanroom-verifier, Rust) was implemented from EMILIA specifications and the published conformance vectors without consulting EMILIA Protocol reference source (packages/verify, packages/python-verify, packages/go-verify, or equivalent). One-team JS/Python/Go ports were not used as implementation guides. God Terminal and Continuum integration call this binary as an external process; that wiring does not change the verifier's clean-room status. Conformance v2 clean-room verification complete as of public ecr-wg commit 676dfa1a685248949b42a617c75107e7c84af6c2 (tree rust/ep-cleanroom-verifier @ de4aaa3f202685436d1d03a405cbb48ccb5c5cc4)."
   },
   "attestor": {
     "key_id": "ep:external-verifier-key:sha256:87c8c5029475f53a",
@@ -22,6 +22,6 @@
   },
   "signature": {
     "algorithm": "Ed25519",
-    "value_base64url": "yTrRyycUOSqpAWjdarKQUVFMXPkIoFRIJax6KoSZNe3XpR3GD1VaZkVrSycEZXn9ITHOVIgqVP5oxONDxW6lCA"
+    "value_base64url": "n-xCnikACsqiRorpRuQOeLaOw7ePzKnkAZVsxFtKi_LDX7GDLgQyn7OosOSemgCEExV-VkhprD_gN15y2kl8BQ"
   }
 }

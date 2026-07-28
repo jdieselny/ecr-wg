@@ -7,8 +7,8 @@
     "language": "Rust",
     "version": "0.1.0",
     "source_repository": "https://github.com/jdieselny/ecr-wg",
-    "source_commit": "11bff6dee6ce56a082921c1c169c3e0707913711",
-    "source_tree_oid": "c30ed51178f167c99d5214c5f8581172c1641af0",
+    "source_commit": "676dfa1a685248949b42a617c75107e7c84af6c2",
+    "source_tree_oid": "de4aaa3f202685436d1d03a405cbb48ccb5c5cc4",
     "source_tree_path": "rust/ep-cleanroom-verifier",
     "license_spdx": "Apache-2.0",
     "build_instructions": "cargo build --bin conformance --release",
@@ -28,7 +28,7 @@
   },
   "runner": {
     "protocol": "EP-CONFORMANCE-FILE-RUNNER-v2",
-    "artifact_sha256": "e2d702f138c4a041460cca8ccfed922313b80143475ad1653fe41ea4ec5d62f2",
+    "artifact_sha256": "4a05e5c99086185279313ff03092cbb544d54a2b3fb3e592b5cfe3796c0af2fd",
     "fixed_arguments": []
   },
   "kit": {
@@ -45,6 +45,6 @@
       "EMILIA conformance vector suites (byte-pinned under conformance/vectors/)",
       "EP clean-room intake kit: conformance/clean-room/v2/bundle.v2.json and submission.schema.json"
     ],
-    "statement": "The GUV'NOR cleanroom verifier (emilia-rust-verifier / ep-cleanroom-verifier, Rust) was implemented from EMILIA specifications and the published conformance vectors without consulting EMILIA Protocol reference source (packages/verify, packages/python-verify, packages/go-verify, or equivalent). One-team JS/Python/Go ports were not used as implementation guides. God Terminal and Continuum integration call this binary as an external process; that wiring does not change the verifier's clean-room status. Conformance v2 clean-room verification complete as of public ecr-wg commit 11bff6dee6ce56a082921c1c169c3e0707913711 (tree rust/ep-cleanroom-verifier @ c30ed51178f167c99d5214c5f8581172c1641af0)."
+    "statement": "The GUV'NOR cleanroom verifier (emilia-rust-verifier / ep-cleanroom-verifier, Rust) was implemented from EMILIA specifications and the published conformance vectors without consulting EMILIA Protocol reference source (packages/verify, packages/python-verify, packages/go-verify, or equivalent). One-team JS/Python/Go ports were not used as implementation guides. God Terminal and Continuum integration call this binary as an external process; that wiring does not change the verifier's clean-room status. Conformance v2 clean-room verification complete as of public ecr-wg commit 676dfa1a685248949b42a617c75107e7c84af6c2 (tree rust/ep-cleanroom-verifier @ de4aaa3f202685436d1d03a405cbb48ccb5c5cc4)."
   }
 }
