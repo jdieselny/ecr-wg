@@ -13,6 +13,7 @@ pub mod evidence_record;
 pub mod provenance;
 pub mod timestamp_proof;
 pub mod aec_role;
+pub mod scitt_statement;
 
 use serde_json::Value;
 

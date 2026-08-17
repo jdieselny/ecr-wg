@@ -33,6 +33,7 @@ const SUITE_FILES: &[&str] = &[
     "consumption-proof.v1.json",
     "witness.v1.json",
     "timestamp-proof.v1.json",
+    "scitt-statement.v1.json",
 ];
 
 fn main() {
@@ -332,7 +333,7 @@ fn run_statement_mode(args: &[String]) {
         };
         let suite_digest = sha256_hex(content.as_bytes());
 
-        let suite = root.get("suite").and_then(|s| s.as_str()).unwrap_or("");
+        let suite = root.get("suite").or_else(|| root.get("profile")).and_then(|s| s.as_str()).unwrap_or("");
         let results = run_suite(suite, &root);
         let results_json = serde_json::to_string(&results).unwrap();
         let results_digest = sha256_hex(results_json.as_bytes());
@@ -497,7 +498,7 @@ fn run_vectors_file_mode(path: &str) {
         Err(reason) => refuse_suite_file(&reason),
     };
 
-    let suite = root.get("suite").and_then(|s| s.as_str()).unwrap_or("");
+    let suite = root.get("suite").or_else(|| root.get("profile")).and_then(|s| s.as_str()).unwrap_or("");
     let results = run_suite(suite, &root);
 
     match serde_json::to_string(&results) {
@@ -522,7 +523,7 @@ fn run_suite(suite: &str, root: &Value) -> Vec<Value> {
 
         results.push(json!({
             "id": id,
-            "valid": got_success
+            "result": result_obj
         }));
     }
 
@@ -546,7 +547,7 @@ fn format_result_v2(expect: &Value, got_success: bool) -> Value {
         true
     };
 
-    if got_success == expected_success || !expected_success {
+    if got_success == expected_success {
         let mut res = expect.clone();
         if let Some(obj) = res.as_object_mut() {
             if let Some(reason_contains) = obj.remove("reason_contains") {
@@ -616,6 +617,8 @@ fn run_suite_internal(suite: &str, root: &Value) -> std::collections::HashMap<St
         suites::evidence_record::run(root)
     } else if suite == "EP-TIMESTAMP-PROOF-v1" {
         suites::timestamp_proof::run(root)
+    } else if suite == "EP-SCITT-STATEMENT-v1" {
+        suites::scitt_statement::run(root)
     } else {
         let empty = Vec::new();
         let vectors = root.get("vectors").and_then(|v| v.as_array()).unwrap_or(&empty);

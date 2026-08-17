@@ -82,6 +82,7 @@ def main() -> None:
         "consumption-proof.v1.json",
         "witness.v1.json",
         "timestamp-proof.v1.json",
+        "scitt-statement.v1.json",
     ]
 
     binary_name = "conformance.exe" if platform.system() == "Windows" else "conformance"
