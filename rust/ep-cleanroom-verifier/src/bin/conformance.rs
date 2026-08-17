@@ -508,6 +508,17 @@ fn run_vectors_file_mode(path: &str) {
 }
 
 fn run_suite(suite: &str, root: &Value) -> Vec<Value> {
+    if suite == "EP-SCITT-STATEMENT-v1" {
+        let mut results = Vec::new();
+        for (id, val) in suites::scitt_statement::run(root) {
+            results.push(json!({
+                "id": id,
+                "result": val
+            }));
+        }
+        return results;
+    }
+
     let mut results = Vec::new();
     let empty_vectors = Vec::new();
     let vectors = root.get("vectors").and_then(|v| v.as_array()).unwrap_or(&empty_vectors);
@@ -618,7 +629,7 @@ fn run_suite_internal(suite: &str, root: &Value) -> std::collections::HashMap<St
     } else if suite == "EP-TIMESTAMP-PROOF-v1" {
         suites::timestamp_proof::run(root)
     } else if suite == "EP-SCITT-STATEMENT-v1" {
-        suites::scitt_statement::run(root)
+        suites::scitt_statement::run(root).into_iter().map(|(id, v)| (id, v.get("valid").and_then(|b| b.as_bool()).unwrap_or(false))).collect()
     } else {
         let empty = Vec::new();
         let vectors = root.get("vectors").and_then(|v| v.as_array()).unwrap_or(&empty);
