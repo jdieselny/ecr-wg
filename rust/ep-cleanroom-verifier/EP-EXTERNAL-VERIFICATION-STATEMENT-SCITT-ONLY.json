@@ -1,0 +1,52 @@
+{
+  "@version": "EP-EXTERNAL-VERIFICATION-STATEMENT-v1",
+  "generated_at": "2026-08-17T19:42:08.402Z",
+  "verifier": {
+    "id": "ep:verifier:rust-cleanroom:antigravity",
+    "name": "Antigravity Rust Cleanroom Verifier",
+    "organization": "J Diesel NY, LLC"
+  },
+  "subject": {
+    "kind": "conformance_vector_pack",
+    "suites": 1,
+    "vectors": 5,
+    "commit": "43c347173009367f6be7cccf5c4076e34174fcae"
+  },
+  "procedure": {
+    "id": "ep-conformance-own-implementation",
+    "version": "EP-CONFORMANCE-RUN-OWN-IMPLEMENTATION-v1"
+  },
+  "inputs": {
+    "commit": "43c347173009367f6be7cccf5c4076e34174fcae",
+    "implementation": "emilia-rust-verifier 0.1.0",
+    "suite_digests": {
+      "scitt-statement.v1.json": "sha256:40a1ddd13c4ff702261cca8c1cb48da4cd555febc4f3ab2d022f66c1881804e6"
+    },
+    "results_digests": {
+      "scitt-statement.v1.json": "sha256:f12e488cb6e22ccc3d25c7f0d8da17bdbafa9453456966c55c2be63405e2169b"
+    }
+  },
+  "result": {
+    "status": "verified",
+    "checks": [
+      {
+        "id": "scitt-statement.v1.json",
+        "ok": true,
+        "detail": "5/5"
+      }
+    ]
+  },
+  "limitations": [
+    "Per-vector results were produced by the named implementation outside this harness and are self-reported; this harness only compared them against each suite vector's expect.valid.",
+    "This statement records the external verifier procedure and result; it does not authorize the action.",
+    "It does not certify business correctness, legal compliance, or human wisdom.",
+    "Acceptance depends on the relying party pinning the verifier key out of band."
+  ],
+  "signature": {
+    "algorithm": "Ed25519",
+    "key_id": "ep:external-verifier-key:sha256:6673b9d68d2cd767",
+    "public_key": "MCowBQYDK2VwAyEASbzREhCQ2diEsg-U-IjRmsfYD_xaq4znLx8aj48mymk",
+    "statement_digest": "sha256:a0dc196ab07031190d847dbfde83779bf9b90ae5e593da13d7ef6479344c1eec",
+    "signature_b64u": "MCbxog3mrr_QIiWtvYYEB-qR2yKCRvqe6HmwIJNCPnByFILQYM3UF3ViIaCnwZ5mKPkUmwbYsZWZirGeYnxzAg"
+  }
+}

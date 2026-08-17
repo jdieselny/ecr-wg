@@ -243,6 +243,7 @@ fn run_statement_mode(args: &[String]) {
     let mut verifier_name: Option<String> = None;
     let mut organization: Option<String> = None;
     let mut implementation: Option<String> = None;
+    let mut single_suite: Option<String> = None;
 
     let mut i = 2;
     while i < args.len() {
@@ -289,6 +290,12 @@ fn run_statement_mode(args: &[String]) {
                     implementation = Some(args[i].clone());
                 }
             }
+            "--single-suite" => {
+                if i + 1 < args.len() {
+                    single_suite = Some(args[i + 1].clone());
+                    i += 1;
+                }
+            }
             _ => {}
         }
         i += 1;
@@ -317,7 +324,13 @@ fn run_statement_mode(args: &[String]) {
     let mut total_passed = 0usize;
     let mut total_vectors = 0usize;
 
-    for filename in SUITE_FILES {
+    let suite_files_vec = if let Some(ref s) = single_suite {
+        vec![s.as_str()]
+    } else {
+        SUITE_FILES.to_vec()
+    };
+
+    for filename in suite_files_vec {
         let filepath = vectors_path.join(filename);
         if !filepath.exists() {
             eprintln!("Suite file not found: {} (skipped)", filename);
