@@ -522,7 +522,7 @@ fn run_suite(suite: &str, root: &Value) -> Vec<Value> {
 
         results.push(json!({
             "id": id,
-            "result": result_obj
+            "valid": got_success
         }));
     }
 
