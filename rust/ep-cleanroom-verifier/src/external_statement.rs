@@ -121,6 +121,7 @@ pub fn sign_statement(args: &StatementArgs, signing_key: &SigningKey, public_key
         "verifier": Value::Object(verifier),
         "subject": {
             "kind": "conformance_vector_pack",
+            "target_file": if sorted.len() == 1 { sorted[0].file.as_str() } else { "all_suites" },
             "suites": sorted.len(),
             "vectors": total_vectors,
             "commit": args.commit,

@@ -1,6 +1,6 @@
 {
   "@version": "EP-EXTERNAL-VERIFICATION-STATEMENT-v1",
-  "generated_at": "2026-08-17T19:42:08.402Z",
+  "generated_at": "2026-08-17T23:27:52.610Z",
   "verifier": {
     "id": "ep:verifier:rust-cleanroom:antigravity",
     "name": "Antigravity Rust Cleanroom Verifier",
@@ -8,6 +8,7 @@
   },
   "subject": {
     "kind": "conformance_vector_pack",
+    "target_file": "scitt-statement.v1.json",
     "suites": 1,
     "vectors": 5,
     "commit": "43c347173009367f6be7cccf5c4076e34174fcae"
@@ -44,9 +45,9 @@
   ],
   "signature": {
     "algorithm": "Ed25519",
-    "key_id": "ep:external-verifier-key:sha256:6673b9d68d2cd767",
-    "public_key": "MCowBQYDK2VwAyEASbzREhCQ2diEsg-U-IjRmsfYD_xaq4znLx8aj48mymk",
-    "statement_digest": "sha256:a0dc196ab07031190d847dbfde83779bf9b90ae5e593da13d7ef6479344c1eec",
-    "signature_b64u": "MCbxog3mrr_QIiWtvYYEB-qR2yKCRvqe6HmwIJNCPnByFILQYM3UF3ViIaCnwZ5mKPkUmwbYsZWZirGeYnxzAg"
+    "key_id": "ep:external-verifier-key:sha256:5d32dfa172533c4d",
+    "public_key": "MCowBQYDK2VwAyEAvI8wl0sXkmcJzNoYO1OPvfhrSkOdvsP-jjhfQyarAfY",
+    "statement_digest": "sha256:cabbe15aa796c502895902fb44017178247e33735662473fdb7d553b0aa43200",
+    "signature_b64u": "sOckMhH2Dt2ZxPE2z3AXWoKZYuMTnDNwRFJxJZL37YKxwxfqvk0Y1L3hzjx-YRNnbtiBPdnnF1b0M7vW1eVkCQ"
   }
 }
