@@ -132,7 +132,7 @@ fn decode_base64url(s: &str) -> Result<Vec<u8>, Error> {
     }
 }
 
-pub fn verify_webauthn_signoff(signoff_json: &str, approver_pk_b64: &str, rp_id: Option<&str>) -> Result<bool, Error> {
+pub fn verify_webauthn_signoff(signoff_json: &str, approver_pk_b64: &str, rp_id: Option<&str>, allowed_origins: Option<&serde_json::Value>) -> Result<bool, Error> {
     let rp_id = match rp_id {
         Some(id) => id,
         None => return Ok(false),
@@ -160,6 +160,8 @@ pub fn verify_webauthn_signoff(signoff_json: &str, approver_pk_b64: &str, rp_id:
         Ok(b) => b,
         Err(_) => return Ok(false),
     };
+    let cdj_str = std::str::from_utf8(&cdj_bytes).unwrap_or("");
+    if crate::strict_parse_gate(cdj_str).is_err() { return Ok(false); }
     let cdj: Value = match serde_json::from_slice(&cdj_bytes) {
         Ok(v) => v,
         Err(_) => return Ok(false),
@@ -171,8 +173,21 @@ pub fn verify_webauthn_signoff(signoff_json: &str, approver_pk_b64: &str, rp_id:
     if cdj.get("challenge").and_then(|v| v.as_str()) != Some(expected_challenge.as_str()) {
         return Ok(false);
     }
-    if cdj.get("origin").and_then(|v| v.as_str()).is_none() {
-        return Ok(false);
+    let origin = match cdj.get("origin").and_then(|v| v.as_str()) {
+        Some(o) => o,
+        None => return Ok(false),
+    };
+    if let Some(origins_val) = allowed_origins {
+        let arr = match origins_val.as_array() {
+            Some(a) => a,
+            None => return Ok(false),
+        };
+        if !arr.iter().any(|x| x.as_str() == Some(origin)) {
+            return Ok(false);
+        }
+    }
+    if let Some(co) = cdj.get("crossOrigin") {
+        if co.as_bool() != Some(false) { return Ok(false); }
     }
 
     let auth_data_b64 = match webauthn.get("authenticator_data").and_then(|v| v.as_str()) {

@@ -7,6 +7,7 @@ pub mod witness;
 pub mod consumption_proof;
 pub mod initiator_attestation;
 pub mod currency;
+pub mod resolution;
 pub mod revocation;
 pub mod time_attestation;
 pub mod evidence_record;
@@ -14,6 +15,8 @@ pub mod provenance;
 pub mod timestamp_proof;
 pub mod aec_role;
 pub mod scitt_statement;
+pub mod outcome_binding;
+pub mod authority_document;
 
 use serde_json::Value;
 
@@ -32,3 +35,5 @@ pub fn vector_id(v: &Value) -> String {
         .unwrap_or("unknown")
         .to_string()
 }
+pub mod outcome_binding_basic;
+pub mod outcome_binding_exec;

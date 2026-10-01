@@ -52,15 +52,6 @@ pub fn run(vectors: &Value) -> Vec<CanonicalizationResult> {
             None => false,
         };
 
-        if let Some(expected_valid) = v.get("expect").and_then(|e| e.get("valid")).and_then(|b| b.as_bool()) {
-            if valid != expected_valid {
-                eprintln!(
-                    "  MISMATCH {}: got={}, expected={}",
-                    id, valid, expected_valid
-                );
-            }
-        }
-
         results.push(CanonicalizationResult { id, valid });
     }
 

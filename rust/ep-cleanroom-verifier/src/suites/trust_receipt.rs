@@ -14,6 +14,7 @@ const MERKLE_V2_ALG: &str = "EP-MERKLE-v2";
 
 pub struct VerifyOpts {
     pub allow_legacy_merkle: bool,
+    pub now: Option<i64>,
 }
 
 pub fn run(vectors: &Value) -> Vec<(String, bool)> {
@@ -29,6 +30,7 @@ pub fn run(vectors: &Value) -> Vec<(String, bool)> {
                 .and_then(|o| o.get("allowLegacyMerkle"))
                 .and_then(|b| b.as_bool())
                 .unwrap_or(false),
+            now: v.get("verify_opts").and_then(|o| o.get("now")).and_then(|s| s.as_str()).and_then(parse_rfc3339_ms),
         };
         let valid = verify_trust_receipt(receipt, verification, &opts);
         results.push((id, valid));
@@ -84,6 +86,19 @@ pub fn verify_trust_receipt(receipt: &Value, verification: &Value, opts: &Verify
     let mut context_by_hash = std::collections::HashMap::new();
     let mut policy_hashes = std::collections::HashSet::new();
     for ctx in contexts {
+        
+        if let Some(decision) = ctx.get("decision").and_then(|v| v.as_str()) {
+            if decision != "approved" {
+                return false;
+            }
+        }
+        if let Some(now_ms) = opts.now {
+            if let Some(issued_at) = ctx.get("issued_at").and_then(|v| v.as_str()).and_then(parse_rfc3339_ms) {
+                if issued_at > now_ms {
+                                        return false;
+                }
+            }
+        }
         if !is_canonicalizable(ctx) {
             return false;
         }
@@ -150,15 +165,27 @@ pub fn verify_trust_receipt(receipt: &Value, verification: &Value, opts: &Verify
             _ => return false,
         };
 
-        let key_class = key_entry
-            .get("key_class")
-            .and_then(|v| v.as_str())
-            .or_else(|| signoff.get("key_class").and_then(|v| v.as_str()))
-            .unwrap_or("B");
+        let committed_at = receipt.get("consumption").and_then(|c| c.get("committed_at")).and_then(|v| v.as_str()).and_then(parse_rfc3339_ms);
+        let compromised_at = key_entry.get("compromised_at").and_then(|v| v.as_str()).and_then(parse_rfc3339_ms);
+        if let (Some(comp), Some(comm)) = (compromised_at, committed_at) {
+            if comp <= comm {
+                return false;
+            }
+        }
+        let pin_class = key_entry.get("key_class").and_then(|v| v.as_str());
+        let key_class = signoff.get("key_class").and_then(|v| v.as_str()).unwrap_or("B");
+        if let Some(p) = pin_class {
+            if p == "A" && key_class != "A" { return false; }
+            if p == "B" && key_class == "A" { return false; }
+        } else {
+            if key_class == "A" { return false; }
+        }
 
         let sig_ok = if key_class == "A" {
             signoff.get("webauthn").map_or(false, |wa| {
-                verify_class_a_over_digest(wa, &digest_bytes, public_key)
+                let rp_id = verification.get("rp_id").and_then(|x| x.as_str());
+                let allowed_origins = verification.get("allowed_origins");
+                verify_class_a_over_digest(wa, &digest_bytes, public_key, rp_id, allowed_origins)
             })
         } else {
             let sig = signoff.get("signature").and_then(|v| v.as_str()).unwrap_or("");
@@ -193,6 +220,19 @@ pub fn verify_trust_receipt(receipt: &Value, verification: &Value, opts: &Verify
 
     let mut required_values: Vec<u64> = Vec::new();
     for ctx in contexts {
+        
+        if let Some(decision) = ctx.get("decision").and_then(|v| v.as_str()) {
+            if decision != "approved" {
+                return false;
+            }
+        }
+        if let Some(now_ms) = opts.now {
+            if let Some(issued_at) = ctx.get("issued_at").and_then(|v| v.as_str()).and_then(parse_rfc3339_ms) {
+                if issued_at > now_ms {
+                                        return false;
+                }
+            }
+        }
         match coerce_required_approvals(ctx.get("required_approvals")) {
             Some(n) => required_values.push(n),
             None => return false,
@@ -440,7 +480,7 @@ fn verify_trust_merkle_anchor(leaf_hex: &str, path: &[Value], root_hex: &str, v2
     merkle::verify_merkle_proof_hex(leaf_hex, &step_refs, root_hex, v2).unwrap_or(false)
 }
 
-fn verify_class_a_over_digest(webauthn: &Value, digest_bytes: &[u8], public_key: &str) -> bool {
+fn verify_class_a_over_digest(webauthn: &Value, digest_bytes: &[u8], public_key: &str, rp_id: Option<&str>, allowed_origins: Option<&serde_json::Value>) -> bool {
     let auth_b64 = match webauthn.get("authenticator_data").and_then(|v| v.as_str()) {
         Some(s) => s,
         None => return false,
@@ -462,6 +502,8 @@ fn verify_class_a_over_digest(webauthn: &Value, digest_bytes: &[u8], public_key:
         Ok(b) => b,
         Err(_) => return false,
     };
+    let cdj_str = std::str::from_utf8(&cdj_bytes).unwrap_or("");
+    if crate::strict_parse_gate(cdj_str).is_err() { return false; }
     let cdj: Value = match serde_json::from_slice(&cdj_bytes) {
         Ok(v) => v,
         Err(_) => return false,
@@ -469,6 +511,23 @@ fn verify_class_a_over_digest(webauthn: &Value, digest_bytes: &[u8], public_key:
 
     if cdj.get("type").and_then(|v| v.as_str()) != Some("webauthn.get") {
         return false;
+    }
+    if let Some(co) = cdj.get("crossOrigin") {
+        if co.as_bool() != Some(false) { return false; }
+    }
+    let origin = cdj.get("origin").and_then(|v| v.as_str()).unwrap_or("");
+    if let Some(origins_val) = allowed_origins {
+        let arr = match origins_val.as_array() {
+            Some(a) => a,
+            None => return false,
+        };
+        if !arr.iter().any(|x| x.as_str() == Some(origin)) {
+            return false;
+        }
+    }
+    if let Some(rp) = rp_id {
+        let rp_hash = crate::crypto::sha256_bytes(rp.as_bytes());
+        if auth_data.len() < 32 || auth_data[..32] != rp_hash { return false; }
     }
 
     let expected_challenge = URL_SAFE_NO_PAD.encode(digest_bytes);

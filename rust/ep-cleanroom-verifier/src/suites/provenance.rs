@@ -41,13 +41,15 @@ pub fn run(vectors: &Value) -> Vec<(String, bool)> {
             v.get("provenance_chain").unwrap_or(&Value::Null),
             v.get("delegation_keys"),
             now_ms,
+            v.get("root_verification"),
+            v.get("action_verification"),
         );
         results.push((id, valid));
     }
     results
 }
 
-pub fn verify_provenance_offline(doc: &Value, delegation_keys: Option<&Value>, now_ms: f64) -> bool {
+pub fn verify_provenance_offline(doc: &Value, delegation_keys: Option<&Value>, now_ms: f64, root_verification_overlay: Option<&Value>, action_verification_overlay: Option<&Value>) -> bool {
     let doc = match doc.as_object() {
         Some(o) => o,
         None => return false,
@@ -63,10 +65,18 @@ pub fn verify_provenance_offline(doc: &Value, delegation_keys: Option<&Value>, n
     };
     let opts = VerifyOpts {
         allow_legacy_merkle: false,
+        now: None,
     };
+    let root_verification = match root_verification_overlay {
+        Some(v) if !v.is_null() => v,
+        _ => return false,
+    };
+    if root_verification.get("rp_id").is_none() || root_verification.get("allowed_origins").is_none() {
+        return false;
+    }
     if !trust_receipt::verify_trust_receipt(
         root.get("receipt").unwrap(),
-        root.get("verification").unwrap(),
+        root_verification,
         &opts,
     ) || !has_human_signoff(root.get("receipt").unwrap(), &["A"])
     {
@@ -82,9 +92,16 @@ pub fn verify_provenance_offline(doc: &Value, delegation_keys: Option<&Value>, n
 
     if let Some(approval) = approval {
         if let Some(receipt) = approval.get("receipt") {
-            let verification = approval.get("verification").unwrap_or(&Value::Null);
+            let verification = match action_verification_overlay {
+                Some(v) if !v.is_null() => v,
+                _ => return false,
+            };
+            if verification.get("rp_id").is_none() || verification.get("allowed_origins").is_none() {
+                return false;
+            }
             let opts = VerifyOpts {
                 allow_legacy_merkle: false,
+                now: None,
             };
             if !trust_receipt::verify_trust_receipt(receipt, verification, &opts) {
                 return false;

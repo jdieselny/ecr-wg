@@ -239,6 +239,7 @@ fn verify_ep_receipt_component(evidence: &Value, profile: &Value, chain_digest: 
 
     let opts = crate::suites::trust_receipt::VerifyOpts {
         allow_legacy_merkle: false,
+        now: None,
     };
 
     let verification_obj = json!({
@@ -415,7 +416,8 @@ fn verify_ep_quorum_component(evidence: &Value, profile: &Value, chain_digest: &
         }
     }
 
-    if !crate::suites::quorum::verify_quorum(evidence) {
+    let rp_id = profile.get("rp_id").and_then(|x| x.as_str());
+    if !crate::suites::quorum::verify_quorum(evidence, rp_id) {
         return false;
     }
 
@@ -504,10 +506,15 @@ fn webauthn_origin(webauthn: &Value) -> String {
         Ok(b) => b,
         Err(_) => return String::new(),
     };
+    let cdj_str = std::str::from_utf8(&cdj_bytes).unwrap_or("");
+    if crate::strict_parse_gate(cdj_str).is_err() { return String::new(); }
     let cdj: Value = match serde_json::from_slice(&cdj_bytes) {
         Ok(v) => v,
         Err(_) => return String::new(),
     };
+    if let Some(co) = cdj.get("crossOrigin") {
+        if co.as_bool() != Some(false) { return String::new(); }
+    }
     cdj.get("origin").and_then(|v| v.as_str()).unwrap_or("").to_string()
 }
 

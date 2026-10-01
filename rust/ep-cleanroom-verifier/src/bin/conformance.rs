@@ -532,6 +532,29 @@ fn run_suite(suite: &str, root: &Value) -> Vec<Value> {
         return results;
     }
 
+    if suite == "EP-REVOCATION-v1" || suite == "EP-REVOCATION-v2" {
+        let mut results = Vec::new();
+        for (id, val) in suites::revocation::run(root) {
+            results.push(json!({ "id": id, "result": val }));
+        }
+        return results;
+    }
+    if suite == "EP-OUTCOME-BINDING-v1" || suite == "EP-OUTCOME-BINDING-v1-real-crypto" {
+        let mut results = Vec::new();
+        for (id, val) in suites::outcome_binding::run(root) {
+            results.push(json!({ "id": id, "result": val }));
+        }
+        return results;
+    }
+    if suite == "EP-AUTHORITY-DOC-PROOF-JOIN-v1" {
+        let mut results = Vec::new();
+        for (id, val) in suites::authority_document::run(root) {
+            results.push(json!({ "id": id, "result": val }));
+        }
+        return results;
+    }
+
+
     let mut results = Vec::new();
     let empty_vectors = Vec::new();
     let vectors = root.get("vectors").and_then(|v| v.as_array()).unwrap_or(&empty_vectors);
@@ -571,14 +594,18 @@ fn format_result_v2(expect: &Value, got_success: bool) -> Value {
         true
     };
 
-    if got_success == expected_success {
-        let mut res = expect.clone();
-        if let Some(obj) = res.as_object_mut() {
-            if let Some(reason_contains) = obj.remove("reason_contains") {
-                obj.insert("reasons".to_string(), json!([reason_contains]));
-            }
+    if true {
+        if let Some(v) = expect.get("valid") {
+            json!({ "valid": got_success })
+        } else if let Some(v) = expect.get("verified") {
+            json!({ "verified": got_success })
+        } else if let Some(v) = expect.get("accepted") {
+            json!({ "accepted": got_success })
+        } else if let Some(v) = expect.get("outcome") {
+            json!({ "outcome": if got_success { "in_bounds" } else { "divergent" } })
+        } else {
+            json!({ "valid": got_success })
         }
-        res
     } else {
         if let Some(v) = expect.get("valid") {
             json!({ "valid": !v.as_bool().unwrap_or(true) })
@@ -619,16 +646,8 @@ fn run_suite_internal(suite: &str, root: &Value) -> std::collections::HashMap<St
         suites::initiator_attestation::run(root)
     } else if suite == "EP-CURRENCY-v1" {
         suites::currency::run(root)
-    } else if suite == "EP-REVOCATION-v1" {
-        let empty = Vec::new();
-        let vectors = root.get("vectors").and_then(|v| v.as_array()).unwrap_or(&empty);
-        let mut mock = Vec::new();
-        for v in vectors {
-            if let Some(id) = v.get("id").and_then(|x| x.as_str()) {
-                mock.push((id.to_string(), true));
-            }
-        }
-        mock
+    } else if suite == "EP-RESOLUTION-v1" {
+        suites::resolution::run(root)
     } else if suite == "EP-TIME-ATTESTATION-v1" {
         suites::time_attestation::run(root)
     } else if suite == "EP-BOUNDARY-v1" {

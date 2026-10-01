@@ -15,7 +15,8 @@ pub fn run(vectors: &Value) -> Vec<(String, bool)> {
 
     for v in vectors_array(vectors) {
         let id = vector_id(v);
-        let valid = verify_quorum(&v["quorum"]);
+        let rp_id = v.get("rp_id").and_then(|x| x.as_str());
+        let valid = verify_quorum(&v["quorum"], rp_id);
         results.push((id, valid));
     }
     results
@@ -72,7 +73,7 @@ fn is_eligible_slot(policy: &Value, role: &str, approver: &str) -> bool {
         .unwrap_or(false)
 }
 
-pub fn verify_quorum(quorum: &Value) -> bool {
+pub fn verify_quorum(quorum: &Value, rp_id_opt: Option<&str>) -> bool {
     let action_hash = match quorum["action_hash"].as_str() {
         Some(h) => h,
         None => return false,
@@ -89,6 +90,17 @@ pub fn verify_quorum(quorum: &Value) -> bool {
     };
 
     let mode = policy["mode"].as_str().unwrap_or("threshold");
+    if mode != "threshold" && mode != "ordered" { return false; }
+    if let Some(req_algs) = policy.get("required_algorithms") {
+        if let Some(arr) = req_algs.as_array() {
+            if arr.is_empty() { return false; }
+            if !arr.iter().any(|v| v.as_str() == Some("ES256")) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
     let is_ordered = mode == "ordered" || policy.get("ordered_chain").and_then(|v| v.as_bool()).unwrap_or(false);
 
     if members.len() < required {
@@ -97,10 +109,10 @@ pub fn verify_quorum(quorum: &Value) -> bool {
 
     let mut seen_keys = HashSet::new();
     let mut seen_approvers = HashSet::new();
-    let mut prev_context_hash: Option<String> = None;
+    let mut prev_signoff_hash: Option<String> = None;
     let mut issued_times: Vec<u64> = Vec::new();
 
-    let rp_id = "emiliaprotocol.ai";
+    let rp_id = rp_id_opt.unwrap_or("emiliaprotocol.ai");
 
     for (i, member) in members.iter().enumerate() {
         let pk = match member["approver_public_key"].as_str() {
@@ -150,19 +162,38 @@ pub fn verify_quorum(quorum: &Value) -> bool {
             return false;
         }
 
-        if is_ordered && i > 0 {
-            if let Some(ref expected_prev) = prev_context_hash {
-                match context["prev_context_hash"].as_str() {
-                    Some(actual_prev) if actual_prev == expected_prev => {}
-                    _ => return false,
+        if is_ordered {
+            let chain_profile = policy["ordered_chain_profile"].as_str().unwrap_or("");
+            if chain_profile != "EP-QUORUM-SIGNOFF-CHAIN-v1" {
+                return false;
+            }
+            if context.get("prev_context_hash").is_some() {
+                return false;
+            }
+            if i == 0 {
+                if context.get("prev_signoff_hash").is_some() {
+                    return false;
+                }
+            } else {
+                if let Some(ref expected_prev) = prev_signoff_hash {
+                    match context["prev_signoff_hash"].as_str() {
+                        Some(actual_prev) if actual_prev == expected_prev => {}
+                        _ => return false,
+                    }
+                } else {
+                    return false;
                 }
             }
         }
 
         let canonical = jcs::canonicalize(context);
         let context_hash_bytes = Sha256::digest(&canonical);
-        let context_hash_hex = hex::encode(context_hash_bytes);
-        prev_context_hash = Some(context_hash_hex.clone());
+        
+        let mut hasher = Sha256::new();
+        hasher.update(b"EP-QUORUM-SIGNOFF-CHAIN-v1\0");
+        hasher.update(&jcs::canonicalize(&member["signoff"]));
+        let signoff_hash_bytes = hasher.finalize();
+        prev_signoff_hash = Some(hex::encode(signoff_hash_bytes));
 
         let expected_challenge = URL_SAFE_NO_PAD.encode(context_hash_bytes);
 
@@ -174,10 +205,18 @@ pub fn verify_quorum(quorum: &Value) -> bool {
             Ok(b) => b,
             Err(_) => return false,
         };
+        if crate::strict_parse_gate(&String::from_utf8_lossy(&cdj_bytes)).is_err() {
+            return false;
+        }
         let cdj: Value = match serde_json::from_slice(&cdj_bytes) {
             Ok(v) => v,
             Err(_) => return false,
         };
+        if let Some(cross_origin) = cdj.get("crossOrigin") {
+            if cross_origin.as_bool() != Some(false) {
+                return false;
+            }
+        }
 
         if cdj["type"].as_str() != Some("webauthn.get") {
             return false;

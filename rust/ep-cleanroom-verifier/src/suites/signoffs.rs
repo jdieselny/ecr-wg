@@ -16,7 +16,7 @@ pub fn run(vectors: &Value) -> Vec<(String, bool)> {
         let valid = match (rp_id, approver_pk) {
             (Some(rp_id), Some(approver_pk)) => {
                 if let Ok(so_str) = serde_json::to_string(signoff) {
-                    verify_webauthn_signoff(&so_str, approver_pk, Some(rp_id)).unwrap_or(false)
+                    verify_webauthn_signoff(&so_str, approver_pk, Some(rp_id), v.get("allowed_origins")).unwrap_or(false)
                 } else {
                     false
                 }
