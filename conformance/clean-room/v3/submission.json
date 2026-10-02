@@ -1,0 +1,50 @@
+{
+  "@version": "EP-CLEAN-ROOM-SUBMISSION-v3",
+  "implementation": {
+    "implementation_id": "guvnor-ep-cleanroom-rust",
+    "organization": "J Diesel NY / Continuum",
+    "team_id": "continuum",
+    "language": "Rust",
+    "version": "0.1.0",
+    "source_repository": "https://github.com/jdieselny/ecr-wg",
+    "source_commit": "e74772c3b502dbf6e7fa8b2fd1085ec649afed47",
+    "source_tree_oid": "3c1e1efd5fdab2e61a37a85947cd1e330d076491",
+    "source_tree_path": "rust/ep-cleanroom-verifier",
+    "license_spdx": "Apache-2.0",
+    "build_instructions": "cargo build --bin conformance --release",
+    "dependencies": [
+      "serde",
+      "serde_json",
+      "sha2",
+      "ed25519-dalek",
+      "base64",
+      "hex",
+      "p256",
+      "spki",
+      "sha3",
+      "rsa",
+      "chrono"
+    ]
+  },
+  "runner": {
+    "protocol": "EP-CONFORMANCE-FILE-RUNNER-v3",
+    "artifact_sha256": "7f414acb77b2bc2d828885faa5164bb1a7213d5ec38920b0cd7b771cfca4e7a5",
+    "fixed_arguments": []
+  },
+  "kit": {
+    "vector_bundle_sha256": "3b618c1b0276dc40bf7622d5ab76c0ef862c5814865219fef992a3b27c3993f2",
+    "conformance_manifest_sha256": "819e5206f0e8ee7cf5f215f04279a1debacfd48e9bc167443c9c2780762e7817",
+    "conformance_manifest_claim_sha256": "2c5fdafd9f5a4045bd7533c2f312ec8dd7e90ebf0072c7d699ef57e896dcda9f",
+    "authority_document_execution_companion_sha256": "121a358459ffed223a41a79570cc5307693eaa89a59b3ad330710c5e2f286959"
+  },
+  "construction": {
+    "reference_source_access": "none",
+    "emilia_affiliation": "none",
+    "specification_inputs": [
+      "Public EMILIA IETF drafts on the datatracker",
+      "EMILIA clean-room v3 protocol: docs/conformance/CLEAN-ROOM-V3.md and conformance/clean-room/v3/",
+      "Pinned v3 vector bundle and the published conformance vector files at emilia-protocol 9f059f49e4ded8e1390df7b0e08b2127c40c74e3"
+    ],
+    "statement": "The Rust ep-cleanroom-verifier file runner implements EP-CONFORMANCE-FILE-RUNNER-v3. It reads an execution suite of opaque handles and returns computed results. It does not receive catalogue ids, expect objects, or currency expect_status. It was implemented from the public EMILIA drafts, the v3 protocol, and the pinned vector bundle at emilia-protocol 9f059f49e4ded8e1390df7b0e08b2127c40c74e3. packages/verify and the one-team JavaScript, Python, and Go ports were not used as implementation guides. The runner artifact is the release binary from cargo build --bin conformance --release with rustc 1.99.0 (b940084d7 2026-09-28) for x86_64-unknown-linux-gnu. keys/public.key in the Rust tree is the construction-statement key. This file-runner submission is not signed by that key."
+  }
+}
