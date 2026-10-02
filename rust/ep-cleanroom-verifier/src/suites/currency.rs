@@ -13,13 +13,15 @@ pub fn run(vectors: &Value) -> Vec<(String, bool)> {
         let expect_status = v["currency"]["expect_status"]
             .as_str()
             .unwrap_or("");
-        let status = evaluate_currency_status(args);
+        let status = currency_status(args);
         results.push((id, status == expect_status));
     }
     results
 }
 
-fn evaluate_currency_status(args: &Value) -> &'static str {
+/// Computed currency-at-T status. The v3 runner returns this string.
+/// It does not read `expect_status`.
+pub fn currency_status(args: &Value) -> &'static str {
     let args = match args.as_object() {
         Some(o) => o,
         None => return "unknown",

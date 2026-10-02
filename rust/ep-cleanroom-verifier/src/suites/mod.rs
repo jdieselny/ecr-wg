@@ -17,6 +17,7 @@ pub mod aec_role;
 pub mod scitt_statement;
 pub mod outcome_binding;
 pub mod authority_document;
+pub mod authority_join;
 
 use serde_json::Value;
 

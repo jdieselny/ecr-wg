@@ -58,7 +58,7 @@ fn main() {
             );
         }
         "--help" | "help" => print_usage(),
-        _ => run_vectors_file_mode(&args[1]),
+        _ => run_vectors_file_mode(&args[1..]),
     }
 }
 
@@ -67,6 +67,7 @@ fn print_usage() {
     eprintln!();
     eprintln!("Usage:");
     eprintln!("  conformance <path_to_vectors_json>");
+    eprintln!("  conformance [fixed arguments...] <execution-suite.v3.json>");
     eprintln!("  conformance verify --suite <SUITE> --document <file|-> [--public-key <b64>] [--verification <file>]");
     eprintln!("  conformance canonicalize --input <file|-> [--hex-digest]");
     eprintln!("  conformance statement --vectors-dir <dir> --private-key <pem> --output <file> --verifier-id <id> [--verifier-name <name>] [--org <org>] [--implementation <name>]");
@@ -505,11 +506,118 @@ fn refuse_suite_file(reason: &str) -> ! {
     std::process::exit(1);
 }
 
-fn run_vectors_file_mode(path: &str) {
+fn contains_key(value: &Value, key: &str) -> bool {
+    match value {
+        Value::Array(items) => items.iter().any(|item| contains_key(item, key)),
+        Value::Object(map) => map.contains_key(key) || map.values().any(|item| contains_key(item, key)),
+        _ => false,
+    }
+}
+
+fn run_v3_file(root: &Value) -> ! {
+    if root.get("runner_protocol").and_then(|v| v.as_str()) != Some("EP-CONFORMANCE-FILE-RUNNER-v3") {
+        refuse_suite_file("runner_protocol");
+    }
+    let suite_meta = match root.get("suite").and_then(|v| v.as_object()) {
+        Some(meta) => meta,
+        None => refuse_suite_file("suite_metadata"),
+    };
+    let suite_id = suite_meta.get("id").and_then(|v| v.as_str()).unwrap_or("");
+    let vectors = match root.get("vectors").and_then(|v| v.as_array()) {
+        Some(vectors) => vectors,
+        None => refuse_suite_file("vectors_not_array"),
+    };
+
+    let mut synthetic_vectors = Vec::new();
+    let mut handles = Vec::new();
+    for entry in vectors {
+        let handle = entry.get("handle").and_then(|v| v.as_str()).unwrap_or("");
+        let input = entry.get("input").cloned().unwrap_or(Value::Null);
+        if handle.is_empty() || !input.is_object() {
+            refuse_suite_file("execution_vector");
+        }
+        if input.get("expect").is_some() || input.get("id").is_some() || contains_key(&input, "expect_status") {
+            refuse_suite_file("expectation_in_runner_input");
+        }
+        handles.push(handle.to_string());
+        let mut vector = input;
+        vector.as_object_mut().unwrap().insert("id".to_string(), json!(handle));
+        synthetic_vectors.push(vector);
+    }
+
+    let mut synthetic = serde_json::Map::new();
+    synthetic.insert("suite".to_string(), json!(suite_id));
+    if let Some(version) = suite_meta.get("vectors_version") {
+        synthetic.insert("vectors_version".to_string(), version.clone());
+    }
+    if let Some(algorithm) = suite_meta.get("algorithm") {
+        synthetic.insert("algorithm".to_string(), algorithm.clone());
+    }
+    if let Some(common) = suite_meta.get("common") {
+        synthetic.insert("common".to_string(), common.clone());
+    }
+    synthetic.insert("vectors".to_string(), Value::Array(synthetic_vectors));
+    let synthetic = Value::Object(synthetic);
+
+    let rows = if suite_id == "EP-CURRENCY-v1" {
+        handles
+            .iter()
+            .enumerate()
+            .map(|(index, handle)| {
+                let args = synthetic
+                    .get("vectors")
+                    .and_then(|v| v.get(index))
+                    .and_then(|v| v.get("currency"))
+                    .and_then(|c| c.get("args"))
+                    .cloned()
+                    .unwrap_or(Value::Null);
+                json!({
+                    "handle": handle,
+                    "result": { "currency_status": suites::currency::currency_status(&args) }
+                })
+            })
+            .collect::<Vec<_>>()
+    } else if suite_id == "EP-AUTHORITY-DOC-PROOF-JOIN-v1" {
+        suites::authority_join::run(&synthetic)
+            .into_iter()
+            .map(|(handle, result)| json!({ "handle": handle, "result": result }))
+            .collect()
+    } else {
+        run_suite(suite_id, &synthetic)
+            .into_iter()
+            .map(|row| {
+                json!({
+                    "handle": row.get("id").and_then(|v| v.as_str()).unwrap_or(""),
+                    "result": row.get("result").cloned().unwrap_or(Value::Null)
+                })
+            })
+            .collect()
+    };
+
+    match serde_json::to_string(&rows) {
+        Ok(text) => {
+            print!("{}", text);
+            std::process::exit(0);
+        }
+        Err(error) => refuse_suite_file(&format!("result_serialize: {}", error)),
+    }
+}
+
+fn run_vectors_file_mode(args: &[String]) {
+    // EP-CONFORMANCE-FILE-RUNNER-v3:
+    //   conformance [fixed arguments...] /absolute/path/to/execution-suite.v3.json
+    // The suite path is the last argument. Fixed arguments are accepted and ignored
+    // so a submission can pin them without changing the entrypoint hash.
+    let path = args.last().map(String::as_str).unwrap_or("");
     let root = match load_suite_file(path) {
         Ok((_raw, v)) => v,
         Err(reason) => refuse_suite_file(&reason),
     };
+
+    if root.get("@version").and_then(|v| v.as_str()) == Some("EP-CLEAN-ROOM-EXECUTION-SUITE-v3") {
+        run_v3_file(&root);
+        return;
+    }
 
     let suite = root.get("suite").or_else(|| root.get("profile")).and_then(|s| s.as_str()).unwrap_or("");
     let results = run_suite(suite, &root);
