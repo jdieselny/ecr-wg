@@ -34,16 +34,15 @@ pub fn run(vectors: &Value) -> Vec<CanonicalizationResult> {
         let valid = match input_json {
             Some(input) => match process_canonicalization(input) {
                 Ok(digest) => {
-                    if let Some(expected) = v
-                        .get("canonicalization")
+                    let canon = v.get("canonicalization");
+                    let expected = canon
                         .and_then(|c| c.get("expected_digest"))
                         .and_then(|d| d.as_str())
-                    {
+                        .or_else(|| canon.and_then(|c| c.get("digest_hex")).and_then(|d| d.as_str()));
+                    if let Some(expected) = expected {
                         digest == expected
                     } else {
-                        // Accept vectors with no expected_digest only when processing succeeded
-                        // and the suite profile treats digest check as optional (should not
-                        // happen on well-formed suite files).
+                        // Accept vectors with no expected digest only when processing succeeded.
                         true
                     }
                 }
@@ -91,6 +90,13 @@ fn check_surrogate_escapes(input: &str) -> Result<(), String> {
     let bytes = input.as_bytes();
     let mut i = 0;
     while i < bytes.len() {
+        // An escaped backslash is two source bytes. The second is payload,
+        // not the start of a \u escape. {"x":"\\ud800"} is the six characters
+        // \, u, d, 8, 0, 0 and contains no surrogate code point.
+        if bytes[i] == b'\\' && i + 1 < bytes.len() && bytes[i + 1] == b'\\' {
+            i += 2;
+            continue;
+        }
         if bytes[i] == b'\\' && i + 1 < bytes.len() && bytes[i + 1] == b'u' {
             if i + 5 < bytes.len() {
                 let hex_str = &input[i + 2..i + 6];
@@ -419,5 +425,27 @@ fn check_ep_profile(value: &Value) -> Result<(), String> {
             Ok(())
         }
         _ => Ok(()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn escaped_backslash_is_not_a_surrogate() {
+        let raw = r#"{"x":"\\ud800"}"#;
+        assert!(check_surrogate_escapes(raw).is_ok());
+        assert_eq!(
+            process_canonicalization(raw).unwrap(),
+            "7f3da293a37ff665f4c0bd464f18ae359bf0bc5c27def8ef510bf0708bfcc03d"
+        );
+    }
+
+    #[test]
+    fn unpaired_surrogate_escape_is_still_rejected() {
+        assert!(check_surrogate_escapes(r#"{"s":"\ud800"}"#).is_err());
+        assert!(check_surrogate_escapes(r#"{"s":"\udc00"}"#).is_err());
+        assert!(check_surrogate_escapes(r#"{"s":"\ud800\udc00"}"#).is_ok());
     }
 }

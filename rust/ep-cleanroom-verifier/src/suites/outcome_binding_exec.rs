@@ -16,16 +16,76 @@ pub fn sha256_jcs(val: &Value) -> String {
     format!("sha256:{}", sha256_hex(jcs.as_bytes()))
 }
 
-pub fn compare_decimal(a: &str, b: &str) -> i32 {
-    if a.len() != b.len() {
-        let af = a.parse::<f64>().unwrap_or(0.0);
-        let bf = b.parse::<f64>().unwrap_or(0.0);
-        if af < bf { return -1; }
-        if af > bf { return 1; }
-        return 0;
+/// Exact decimal order, matching `compareDecimalStrings`.
+///
+/// Equal-length text order is not numeric order: "10.0" and "2.00" have the
+/// same length, and "10.0" < "2.00" as text. Float comparison is not exact
+/// either. None means one side is not a canonical decimal string.
+pub fn compare_decimal(a: &str, b: &str) -> Option<i32> {
+    let (a_neg, a_int, a_frac) = split_decimal(a)?;
+    let (b_neg, b_int, b_frac) = split_decimal(b)?;
+    if a_neg != b_neg {
+        return Some(if a_neg { -1 } else { 1 });
     }
-    if a < b { return -1; }
-    if a > b { return 1; }
+    let mag = if a_int.len() != b_int.len() {
+        if a_int.len() < b_int.len() { -1 } else { 1 }
+    } else if a_int != b_int {
+        if a_int < b_int { -1 } else { 1 }
+    } else {
+        cmp_frac(a_frac, b_frac)
+    };
+    Some(if a_neg { -mag } else { mag })
+}
+
+/// Canonical decimal: optional sign, no leading zeros, optional fraction.
+/// Trailing fraction zeros are ignored. "-0" and "0" are the same value.
+fn split_decimal(s: &str) -> Option<(bool, &str, &str)> {
+    if s.is_empty() {
+        return None;
+    }
+    let (mut neg, rest) = match s.strip_prefix('-') {
+        Some(rest) => (true, rest),
+        None => (false, s),
+    };
+    if rest.is_empty() {
+        return None;
+    }
+    let (int_part, frac_raw) = match rest.split_once('.') {
+        Some((int_part, frac)) => {
+            if frac.is_empty() || !frac.bytes().all(|b| b.is_ascii_digit()) {
+                return None;
+            }
+            (int_part, frac)
+        }
+        None => (rest, ""),
+    };
+    if int_part.is_empty() || !int_part.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    if int_part.len() > 1 && int_part.as_bytes()[0] == b'0' {
+        return None;
+    }
+    let frac = trim_trailing_zeros(frac_raw);
+    if int_part == "0" && frac.is_empty() {
+        neg = false;
+    }
+    Some((neg, int_part, frac))
+}
+
+fn trim_trailing_zeros(s: &str) -> &str {
+    let end = s.bytes().rposition(|b| b != b'0').map(|i| i + 1).unwrap_or(0);
+    &s[..end]
+}
+
+fn cmp_frac(a: &str, b: &str) -> i32 {
+    let len = a.len().max(b.len());
+    for i in 0..len {
+        let ac = a.as_bytes().get(i).copied().unwrap_or(b'0');
+        let bc = b.as_bytes().get(i).copied().unwrap_or(b'0');
+        if ac != bc {
+            return if ac < bc { -1 } else { 1 };
+        }
+    }
     0
 }
 
@@ -48,11 +108,11 @@ pub fn evaluate_entry(entry: &Value, matches: &[&Value]) -> (String, Option<Stri
     if op == "count_lte" {
         let p_val = p.get("value").and_then(|x| x.as_str()).unwrap_or("0");
         let count = matches.len().to_string();
-        if compare_decimal(&count, p_val) <= 0 {
-            return ("in_bounds".to_string(), None);
-        } else {
-            return ("divergent".to_string(), Some(format!("predicted count <= {} for {}, observed {}", p_val, at, count)));
-        }
+        return match compare_decimal(&count, p_val) {
+            Some(cmp) if cmp <= 0 => ("in_bounds".to_string(), None),
+            Some(_) => ("divergent".to_string(), Some(format!("predicted count <= {} for {}, observed {}", p_val, at, count))),
+            None => ("incomparable".to_string(), Some(format!("predicted count value \"{}\" for {} is not a decimal string", p_val, at))),
+        };
     }
 
     if matches.is_empty() {
@@ -94,32 +154,44 @@ pub fn evaluate_entry(entry: &Value, matches: &[&Value]) -> (String, Option<Stri
 
     if op == "lte" {
         let p_val_v = p.get("value"); if let Some(v) = p_val_v { if v.is_number() { return ("incomparable".to_string(), Some("predicted value MUST be strings".to_string())); } } let p_val = p_val_v.and_then(|x| x.as_str()).unwrap_or("");
-        if compare_decimal(o_val, p_val) <= 0 {
-            return ("in_bounds".to_string(), None);
-        } else {
-            return ("divergent".to_string(), Some(format!("predicted <= {} for {}, observed {}", p_val, at, o_val)));
+        if split_decimal(o_val).is_none() {
+            return ("incomparable".to_string(), Some(format!("observed value \"{}\" for {} is not a decimal string", o_val, at)));
         }
+        return match compare_decimal(o_val, p_val) {
+            Some(cmp) if cmp <= 0 => ("in_bounds".to_string(), None),
+            Some(_) => ("divergent".to_string(), Some(format!("predicted <= {} for {}, observed {}", p_val, at, o_val))),
+            None => ("incomparable".to_string(), Some(format!("predicted value \"{}\" for {} is not a decimal string", p_val, at))),
+        };
     }
 
     if op == "gte" {
         let p_val_v = p.get("value"); if let Some(v) = p_val_v { if v.is_number() { return ("incomparable".to_string(), Some("predicted value MUST be strings".to_string())); } } let p_val = p_val_v.and_then(|x| x.as_str()).unwrap_or("");
-        if compare_decimal(o_val, p_val) >= 0 {
-            return ("in_bounds".to_string(), None);
-        } else {
-            return ("divergent".to_string(), Some(format!("predicted >= {} for {}, observed {}", p_val, at, o_val)));
+        if split_decimal(o_val).is_none() {
+            return ("incomparable".to_string(), Some(format!("observed value \"{}\" for {} is not a decimal string", o_val, at)));
         }
+        return match compare_decimal(o_val, p_val) {
+            Some(cmp) if cmp >= 0 => ("in_bounds".to_string(), None),
+            Some(_) => ("divergent".to_string(), Some(format!("predicted >= {} for {}, observed {}", p_val, at, o_val))),
+            None => ("incomparable".to_string(), Some(format!("predicted value \"{}\" for {} is not a decimal string", p_val, at))),
+        };
     }
 
     if op == "range" {
         let p_min = p.get("min").and_then(|x| x.as_str()).unwrap_or("");
         let p_max = p.get("max").and_then(|x| x.as_str()).unwrap_or("");
-        if compare_decimal(o_val, p_min) < 0 {
-            return ("divergent".to_string(), Some(format!("predicted min {} for {}, observed {}", p_min, at, o_val)));
+        if split_decimal(o_val).is_none() {
+            return ("incomparable".to_string(), Some(format!("observed value \"{}\" for {} is not a decimal string", o_val, at)));
         }
-        if compare_decimal(o_val, p_max) > 0 {
-            return ("divergent".to_string(), Some(format!("predicted max {} for {}, observed {}", p_max, at, o_val)));
+        match compare_decimal(o_val, p_min) {
+            Some(cmp) if cmp < 0 => return ("divergent".to_string(), Some(format!("predicted min {} for {}, observed {}", p_min, at, o_val))),
+            Some(_) => {}
+            None => return ("incomparable".to_string(), Some(format!("predicted value \"{}\" for {} is not a decimal string", p_min, at))),
         }
-        return ("in_bounds".to_string(), None);
+        match compare_decimal(o_val, p_max) {
+            Some(cmp) if cmp > 0 => return ("divergent".to_string(), Some(format!("predicted max {} for {}, observed {}", p_max, at, o_val))),
+            Some(_) => return ("in_bounds".to_string(), None),
+            None => return ("incomparable".to_string(), Some(format!("predicted value \"{}\" for {} is not a decimal string", p_max, at))),
+        }
     }
 
     ("incomparable".to_string(), None)
@@ -739,4 +811,58 @@ fn nonempty_in(object: &serde_json::Map<String, Value>, key: &str) -> bool {
 fn push(mut errors: Vec<String>, reason: &str) -> Vec<String> {
     errors.push(reason.to_string());
     errors
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn decimal_order_is_numeric_for_equal_length_strings() {
+        assert_eq!(compare_decimal("10.0", "2.00"), Some(1));
+        assert_eq!(compare_decimal("9.00", "10.0"), Some(-1));
+        assert_eq!(compare_decimal("9.00", "10.00"), Some(-1));
+        assert_eq!(compare_decimal("10.0", "2.000"), Some(1));
+        assert_eq!(compare_decimal("1.50", "1.5"), Some(0));
+        assert_eq!(compare_decimal("1.10", "1.1"), Some(0));
+        assert_eq!(compare_decimal("-10.0", "-2.00"), Some(-1));
+        assert_eq!(compare_decimal("-2.00", "-10.0"), Some(1));
+        assert_eq!(compare_decimal("-0", "0.00"), Some(0));
+        assert_eq!(compare_decimal("01", "1"), None);
+        assert_eq!(compare_decimal("10.", "10"), None);
+    }
+
+    #[test]
+    fn policy_limits_use_numeric_order() {
+        let over = json!({
+            "effect_type": "payment",
+            "target": "acct:vendor-9",
+            "predicate": {"op": "lte", "value": "2.00"}
+        });
+        let observed_over = json!({
+            "effect_type": "payment",
+            "target": "acct:vendor-9",
+            "value": "10.0"
+        });
+        let (outcome, reason) = evaluate_entry(&over, &[&observed_over]);
+        assert_eq!(outcome, "divergent");
+        assert_eq!(
+            reason.as_deref(),
+            Some("predicted <= 2.00 for payment on acct:vendor-9, observed 10.0")
+        );
+
+        let under = json!({
+            "effect_type": "payment",
+            "target": "acct:vendor-9",
+            "predicate": {"op": "lte", "value": "10.0"}
+        });
+        let observed_under = json!({
+            "effect_type": "payment",
+            "target": "acct:vendor-9",
+            "value": "9.00"
+        });
+        let (outcome, reason) = evaluate_entry(&under, &[&observed_under]);
+        assert_eq!(outcome, "in_bounds");
+        assert_eq!(reason, None);
+    }
 }
