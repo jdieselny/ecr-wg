@@ -98,29 +98,28 @@ fn check_surrogate_escapes(input: &str) -> Result<(), String> {
             continue;
         }
         if bytes[i] == b'\\' && i + 1 < bytes.len() && bytes[i + 1] == b'u' {
-            if i + 5 < bytes.len() {
-                let hex_str = &input[i + 2..i + 6];
-                if let Ok(code) = u16::from_str_radix(hex_str, 16) {
-                    if (0xD800..=0xDBFF).contains(&code) {
-                        // High surrogate: must be followed by \uDC00-\uDFFF
-                        if i + 11 < bytes.len()
-                            && bytes[i + 6] == b'\\'
-                            && bytes[i + 7] == b'u'
-                        {
-                            let hex_str2 = &input[i + 8..i + 12];
-                            if let Ok(code2) = u16::from_str_radix(hex_str2, 16) {
-                                if (0xDC00..=0xDFFF).contains(&code2) {
-                                    // Valid surrogate pair
-                                    i += 12;
-                                    continue;
-                                }
-                            }
+            // Four ASCII hex digits only. Slicing the str here panics when a
+            // malformed escape is followed by a multibyte character, as in
+            // {"x":"\u0😀"}.
+            let Some(code) = ascii_hex4(bytes, i + 2) else {
+                return Err("malformed unicode escape".to_string());
+            };
+            if (0xD800..=0xDBFF).contains(&code) {
+                // High surrogate: must be followed by \uDC00-\uDFFF
+                if i + 7 < bytes.len()
+                    && bytes[i + 6] == b'\\'
+                    && bytes[i + 7] == b'u'
+                {
+                    if let Some(code2) = ascii_hex4(bytes, i + 8) {
+                        if (0xDC00..=0xDFFF).contains(&code2) {
+                            i += 12;
+                            continue;
                         }
-                        return Err(format!("unpaired high surrogate \\u{:04X}", code));
-                    } else if (0xDC00..=0xDFFF).contains(&code) {
-                        return Err(format!("unpaired low surrogate \\u{:04X}", code));
                     }
                 }
+                return Err(format!("unpaired high surrogate \\u{:04X}", code));
+            } else if (0xDC00..=0xDFFF).contains(&code) {
+                return Err(format!("unpaired low surrogate \\u{:04X}", code));
             }
             i += 6;
         } else {
@@ -128,6 +127,17 @@ fn check_surrogate_escapes(input: &str) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+/// Four ASCII hex digits at a byte offset. Never slices `str` mid-character.
+fn ascii_hex4(bytes: &[u8], start: usize) -> Option<u16> {
+    let end = start.checked_add(4)?;
+    let slice = bytes.get(start..end)?;
+    if !slice.iter().copied().all(|b| b.is_ascii_hexdigit()) {
+        return None;
+    }
+    let hex = std::str::from_utf8(slice).ok()?;
+    u16::from_str_radix(hex, 16).ok()
 }
 
 /// Check for duplicate object member names at every level in raw JSON text.
@@ -447,5 +457,12 @@ mod tests {
         assert!(check_surrogate_escapes(r#"{"s":"\ud800"}"#).is_err());
         assert!(check_surrogate_escapes(r#"{"s":"\udc00"}"#).is_err());
         assert!(check_surrogate_escapes(r#"{"s":"\ud800\udc00"}"#).is_ok());
+    }
+
+    #[test]
+    fn malformed_unicode_escape_before_emoji_refuses() {
+        let raw = "{\"x\":\"\\u0😀\"}";
+        assert!(check_surrogate_escapes(raw).is_err());
+        assert!(process_canonicalization(raw).is_err());
     }
 }
