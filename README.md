@@ -115,6 +115,17 @@ python run_tests.py
 
 Expect **163/163** on current public pack. Hostility lab: see crate + [planning/composer_handoff_cleanroom_hygiene.md](planning/composer_handoff_cleanroom_hygiene.md).
 
+### 5. IETF DMSC / IICP Monotonic Delegation & Sentinel Interlock (Zero-Dep Offline Trace)
+
+Companion reference runner for [`specs/TRACE_20261017_MONOTONIC_DELEGATION_AND_SENTINEL_REFUSAL.md`](specs/TRACE_20261017_MONOTONIC_DELEGATION_AND_SENTINEL_REFUSAL.md).
+Proves that static capability containment (CLC `ALLOW_UNRESOLVED`) is strictly decoupled from physical execution admission, tripping fail-closed when live telemetry detects loss-of-redundancy or thermal excursion (0 bytes mutated, signed `EP-RECEIPT-v1` emitted).
+
+```bash
+python examples/iicp_monotonic_trace/run_trace.py
+# or raw JSON:
+python examples/iicp_monotonic_trace/run_trace.py --json
+```
+
 ---
 
 ## Repository map
@@ -122,10 +133,10 @@ Expect **163/163** on current public pack. Hostility lab: see crate + [planning/
 | Path | Role |
 |------|------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | COSA stack thesis (ingress → overlay → return) |
-| [specs/](specs/) | GRACE, AIR, COGSTOR, Truth Root, Packing Slip, BoL |
+| [specs/](specs/) | GRACE, AIR, COGSTOR, Truth Root, Packing Slip, BoL, [TRACE-20261017](specs/TRACE_20261017_MONOTONIC_DELEGATION_AND_SENTINEL_REFUSAL.md) |
 | [papers/](papers/) | COSA papers + [05 grid curtailment profile](papers/05_ietf_cryptographic_grid_curtailment.md) |
 | [thesis/](thesis/) | COGOBJ schema, COGSTOR v2, audits |
-| [examples/](examples/) | Runnable demos (flagship is `scitt_four_layer`) |
+| [examples/](examples/) | Runnable demos (`scitt_four_layer`, `iicp_monotonic_trace`) |
 | [rust/ep-cleanroom-verifier/](rust/ep-cleanroom-verifier/) | Independent EP verifier (Rust) |
 | [rituals/](rituals/) | Reference gateway / routing / identity code |
 | [enrollments/](enrollments/) | Truth Root agent cards (Ed25519) |

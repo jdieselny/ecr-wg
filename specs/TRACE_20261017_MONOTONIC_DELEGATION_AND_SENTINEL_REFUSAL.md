@@ -1,0 +1,264 @@
+# Sanitized Implementation Trace: Monotonic Delegation & Live Operational Sentinel Refusal
+
+**Document Identifier:** `TRACE-20261017-01`  
+**Target Working Group:** IETF DMSC / IICP Architecture Touchpoint  
+**Recipient:** Roble Mumin (`mail@roblemumin.com`) & DMSC Working Group (`dmsc@ietf.org`)  
+**Origin:** Justin D. Kintzele (J Diesel NY, LLC) & Agent Smith (A:iB / Continuum Substrate)  
+**Status:** Cleanroom Non-Normative Implementation Trace  
+**Classification:** Public Engineering Reference Standard (Vendor-Neutral)  
+**Claim Boundary:** Read-only bench telemetry and synthetic cryptographic fixtures. No live physical iron actuated during trace generation.
+
+---
+
+## 1. Executive Context & Objective
+
+In response to technical discussions on the IETF DMSC mailing list regarding **Intent-Based Capability Profile (IICP)** and **Capability Language for Containment (CLC)**, this trace documents a concrete, running multi-agent execution pattern.
+
+Specifically, it demonstrates the critical boundary identified by Roble Mumin:
+> *"A scenario where an operation satisfies its delegated authorization constraints but must still be refused because of live operational conditions."*
+
+### The Core Architectural Premise
+
+1. **Intent Routing $\neq$ Tool Catalog Search:**  
+   Intent is routed through high-level, structured objective contracts (**Workorders**) between cryptographically identified agents—not by vector-searching thousands of micro-tool schemas.
+2. **Monotonic Narrowing across Delegation:**  
+   Every intermediate hop in an agent delegation cascade may only *narrow* constraints (bounds, allowable parameters, valid time window); it can never widen them.
+3. **Static Containment $\neq$ Execution Admission:**  
+   Syntactic parameter validation (e.g., CLC containment) establishes that an operation is *authorized in principle*. However, **Execution Admission** must remain the sole authority of local execution sentinels (clearinghouses) that evaluate **live, physical state and out-of-band telemetry** before energizing physical actuators or mutating irreversible state.
+
+---
+
+## 2. End-to-End Architectural Topology
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Operator as Grid Operator / Dispatcher
+    participant Root as Orchestrator Agent (Node Alpha)
+    participant Specialist as Power Control Specialist (Node Beta)
+    participant Sentinel as Local Consequence Sentinel (Node Gamma Gate)
+    participant Telemetry as Out-of-Band Physical Sensors (WattNode / Modbus)
+    participant Actuator as Physical Actuator (Vertiv Liebert UPS / SNMPv3)
+    participant Ledger as Immutable Transparency Ledger (EP-RECEIPT)
+
+    Note over Operator,Root: Hop 0: Root Intent & Macro Grant
+    Operator->>Root: Issue Signed Macro Curtailment Grant (G0)
+    
+    Note over Root,Specialist: Hop 1: Monotonic Delegation Narrowing
+    Root->>Root: Compute Monotonic Narrowing (G0 -> WO1)
+    Root->>Specialist: Dispatch Signed Workorder Envelope (WO1)
+    
+    Note over Specialist,Sentinel: Hop 2: Execution Request & Static Gating
+    Specialist->>Sentinel: Submit AdmittedAction Execution Request
+    Sentinel->>Sentinel: Verify Ed25519 Signatures & Token Freshness
+    Sentinel->>Sentinel: Evaluate CLC Containment (WO1 ⊆ G0) -> ALLOW_UNRESOLVED
+    
+    Note over Sentinel,Telemetry: Hop 3: Live-State Operational Interlock
+    Sentinel->>Telemetry: Query Live Telemetry (Thermal, ATS Redundancy, Bus Load)
+    Telemetry-->>Sentinel: Report: ATS Source B FAULT (Single Feed Loss-of-Redundancy)
+    
+    Note over Sentinel,Actuator: Consequential Decision: FAIL-CLOSED REFUSAL
+    Sentinel->>Sentinel: Evaluate Safety Invariant: Refuse Load Drop on Single-Feed
+    Sentinel--xActuator: ZERO BYTES TRANSMITTED (No SNMPv3 SET issued)
+    
+    Note over Sentinel,Ledger: Hop 4: Immutable Refusal Receipt
+    Sentinel->>Ledger: Commit Signed Refusal Receipt (EP-RECEIPT-v1)
+    Sentinel-->>Specialist: Return REFUSED_LIVE_STATE_INTERLOCK (Telemetry Digest Attached)
+    Specialist-->>Root: Propagate Nonce-Bound Terminal Refusal
+    Root-->>Operator: Final Status: REFUSED (Deterministic Evidence Logged)
+```
+
+---
+
+## 3. Concrete Worked Trace Artifacts
+
+### Artifact 1: Root Authority Grant (`G_0`)
+The root authority issues a broad curtailment grant to the regional orchestration cluster.
+
+```json
+{
+  "$schema": "https://emiliaprotocol.ai/schemas/ep-grant-v1.json",
+  "grant_id": "grant-nyiso-curtail-20261017-9901",
+  "issuer": "did:ep:nyiso:zone-c-grid-operator",
+  "issued_to": "did:ep:agent:dr-orchestrator-alpha",
+  "issued_at": "2026-10-17T00:30:00Z",
+  "valid_until": "2026-10-17T02:30:00Z",
+  "intent": "grid.curtailment.propose",
+  "constraints": {
+    "jurisdiction": "US-NY-TOMPKINS",
+    "target_assets": [
+      "vertiv-gxt5-node01",
+      "vertiv-gxt5-node02",
+      "wti-pdu-rack04"
+    ],
+    "action": "power.receptacle.shed",
+    "params": {
+      "max_power_shed_kw": 10.0,
+      "max_duration_sec": 7200,
+      "allowable_receptacle_groups": [1, 2, 3, 4]
+    }
+  },
+  "signature": {
+    "key_id": "ep:key:ed25519:operator-root-01",
+    "algorithm": "Ed25519",
+    "signature_b64u": "lq4F2...[synthetic-sig-g0]...K9wA"
+  }
+}
+```
+
+---
+
+### Artifact 2: Monotonically Narrowed Delegated Workorder (`WO_1`)
+The orchestrator cannot expand permissions. It delegates to the specialized edge power controller, monotonically restricting the parameters to a single asset, a single outlet group, a fraction of the power, and a 15-minute window.
+
+$$\text{Params}(\text{WO}_1) \subset \text{Params}(G_0) \quad \land \quad \text{Window}(\text{WO}_1) \subset \text{Window}(G_0)$$
+
+```json
+{
+  "$schema": "https://emiliaprotocol.ai/schemas/ep-workorder-v1.json",
+  "workorder_id": "wo-20261017-curtail-082",
+  "parent_grant_id": "grant-nyiso-curtail-20261017-9901",
+  "delegator": "did:ep:agent:dr-orchestrator-alpha",
+  "executor": "did:ep:agent:vertiv-controller-beta",
+  "created_at": "2026-10-17T00:45:00Z",
+  "valid_until": "2026-10-17T01:00:00Z",
+  "target_asset": "vertiv-gxt5-node01",
+  "action": "power.receptacle.shed",
+  "narrowed_parameters": {
+    "receptacle_group": 2,
+    "max_power_shed_kw": 2.7,
+    "duration_sec": 900
+  },
+  "delegation_proof": {
+    "consecutive_hop": 1,
+    "monotonic_narrowing_verified": true,
+    "signature": {
+      "key_id": "ep:key:ed25519:orchestrator-alpha",
+      "algorithm": "Ed25519",
+      "signature_b64u": "j8X2...[synthetic-sig-wo1]...vV1C"
+    }
+  }
+}
+```
+
+---
+
+### Artifact 3: Static Containment Verification (CLC Evaluator Output)
+Before any physical action is considered, the gate verifies that $WO_1$ is strictly contained within $G_0$.
+
+```json
+{
+  "evaluation_type": "STATIC_CONTAINMENT",
+  "evaluator": "emilia-clc-evaluator-v1.2",
+  "evaluated_at": "2026-10-17T00:45:02Z",
+  "verdict": "ALLOW_UNRESOLVED",
+  "containment_checks": {
+    "target_asset_contained": true,
+    "action_name_matched": true,
+    "receptacle_group_in_enum": true,
+    "power_bound_narrower": true,
+    "time_window_narrower": true
+  },
+  "unresolved_operational_constraints": [
+    "live_hardware_telemetry_check",
+    "power_path_redundancy_interlock",
+    "thermal_envelope_clearance"
+  ],
+  "notes": "Static authorization verified. Action cannot execute until local execution sentinel discharges unresolved operational constraints."
+}
+```
+
+---
+
+### Artifact 4: Live Out-of-Band Telemetry Capture (The Interlock Trip)
+The local consequence sentinel polls the independent Modbus/SNMP telemetry channels (WTI NPS-8 ATS and WattNode revenue meter) directly prior to admission.
+
+```json
+{
+  "telemetry_source": "hardware:edge-sentinel-ch01",
+  "read_timestamp": "2026-10-17T00:45:03.104Z",
+  "bus_readings": {
+    "wti_ats_source_a_volts": 120.4,
+    "wti_ats_source_b_volts": 0.0,
+    "wti_ats_active_source": "A",
+    "wti_ats_redundancy_status": "FAULT_SINGLE_FEED",
+    "rack_inlet_temp_c": 34.8,
+    "gxt5_load_percentage": 78.2
+  },
+  "interlock_evaluations": {
+    "minimum_power_redundancy": {
+      "required": "DUAL_FEED_ACTIVE",
+      "observed": "FAULT_SINGLE_FEED",
+      "passed": false
+    },
+    "max_inlet_temperature": {
+      "threshold_c": 32.0,
+      "observed_c": 34.8,
+      "passed": false
+    }
+  }
+}
+```
+
+---
+
+### Artifact 5: Terminal Immutable Refusal Receipt (`EP-RECEIPT-v1`)
+Because the live operational conditions violate the physical safety invariants, the sentinel refuses admission. Zero bytes are transmitted to the actuator. The sentinel emits an immutable, signed refusal receipt.
+
+```json
+{
+  "@version": "EP-RECEIPT-v1",
+  "receipt_id": "rcpt-20261017004503-refuse-094",
+  "issued_at": "2026-10-17T00:45:03.120Z",
+  "decision": "REFUSED",
+  "refusal_code": "REFUSED_LIVE_STATE_INTERLOCK",
+  "authority_context": {
+    "workorder_id": "wo-20261017-curtail-082",
+    "parent_grant_id": "grant-nyiso-curtail-20261017-9901",
+    "caller_id": "did:ep:agent:vertiv-controller-beta",
+    "caller_admission_tier": "CLASS_A"
+  },
+  "static_authorization_verdict": "ALLOW_UNRESOLVED",
+  "operational_refusal_reason": "Execution refused by local consequence sentinel: ATS Power Redundancy is FAULT_SINGLE_FEED and Rack Inlet Temperature (34.8C) exceeds maximum safe threshold (32.0C). Shedding outlet group 2 under degraded physical redundancy violates life-safety critical compute invariants.",
+  "telemetry_digest": "sha256:7e9b44c68f23789d20c5f2db617bb4a8d4fa962e21245ff6008bdf3b584a2ee6",
+  "hardware_mutation": {
+    "packets_sent": 0,
+    "bytes_written": 0,
+    "management_card_contacted": false
+  },
+  "gate_signature": {
+    "gate_id": "emilia-sentinel-edge-gamma-01",
+    "key_id": "ep:key:ed25519:sentinel-gamma",
+    "signature_b64u": "f7Z1...[synthetic-sig-receipt]...m89Q"
+  }
+}
+```
+
+---
+
+## 4. Alignment with IICP Management State Quadrants
+
+In his email of October 16, 2026, Roble Mumin emphasized that `iicp-management` explicitly separates:
+> *"desired, accepted, observed, and effective state."*
+
+This implementation trace demonstrates that four-state quadrant in action:
+
+| Quadrant | State in This Trace | Operational Manifestation |
+| :--- | :--- | :--- |
+| **1. Desired State** | `Shed 2.7 kW on Outlet Group 2` | Expressed by Operator in Workorder Envelope (`WO_1`) |
+| **2. Accepted State** | `Static Authorization Granted` | Confirmed by CLC Containment Evaluator (`ALLOW_UNRESOLVED`) |
+| **3. Observed State** | `Single-Feed Fault (0V Source B) + 34.8°C Thermal Trip` | Real-time sensor telemetry captured by Local Sentinel |
+| **4. Effective State** | `NO CHANGE (Actuation Blocked, 0 Bytes Mutated)` | Physical actuator preserved in safe operating condition |
+
+---
+
+## 5. Summary Findings for DMSC / IICP Collaboration
+
+1. **Clean Separation of Concerns:**  
+   * **IICP Core:** Handles capability discovery and candidate routing without needing knowledge of physical hardware constraints.
+   * **CLC / Profiles:** Provides the mathematical formalism for monotonic parameter narrowing across delegation chains.
+   * **Local Sentinel / Management:** Retains final execution admission authority based on live operational telemetry.
+2. **Defeating the Confused Deputy at the Iron Seam:**  
+   No matter how authoritative or senior an upstream AI agent or model appears in the call chain, it cannot override local physical reality. The sentinel owns the final trip.
+3. **Auditability of Failures:**  
+   Refusals are not silent drops or error codes lost in network buffers. A refused action produces a cryptographically signed receipt containing the exact sensor digest that triggered the interlock, closing the loop for automated incident analysis.
