@@ -101,7 +101,7 @@ The root authority issues a broad curtailment grant to the regional orchestratio
   "signature": {
     "key_id": "ep:key:ed25519:operator-root-01",
     "algorithm": "Ed25519",
-    "signature_b64u": "lq4F2...[synthetic-sig-g0]...K9wA"
+    "signature_b64u": "lq4F2syntheticGrantSigK9wA"
   }
 }
 ```
@@ -135,7 +135,7 @@ $$\text{Params}(\text{WO}_1) \subset \text{Params}(G_0) \quad \land \quad \text{
     "signature": {
       "key_id": "ep:key:ed25519:orchestrator-alpha",
       "algorithm": "Ed25519",
-      "signature_b64u": "j8X2...[synthetic-sig-wo1]...vV1C"
+      "signature_b64u": "j8X2syntheticWorkorderSigvV1C"
     }
   }
 }
@@ -184,18 +184,6 @@ The local consequence sentinel polls the independent Modbus/SNMP telemetry chann
     "wti_ats_redundancy_status": "FAULT_SINGLE_FEED",
     "rack_inlet_temp_c": 34.8,
     "gxt5_load_percentage": 78.2
-  },
-  "interlock_evaluations": {
-    "minimum_power_redundancy": {
-      "required": "DUAL_FEED_ACTIVE",
-      "observed": "FAULT_SINGLE_FEED",
-      "passed": false
-    },
-    "max_inlet_temperature": {
-      "threshold_c": 32.0,
-      "observed_c": 34.8,
-      "passed": false
-    }
   }
 }
 ```
@@ -219,8 +207,8 @@ Because the live operational conditions violate the physical safety invariants, 
     "caller_admission_tier": "CLASS_A"
   },
   "static_authorization_verdict": "ALLOW_UNRESOLVED",
-  "operational_refusal_reason": "Execution refused by local consequence sentinel: ATS Power Redundancy is FAULT_SINGLE_FEED and Rack Inlet Temperature (34.8C) exceeds maximum safe threshold (32.0C). Shedding outlet group 2 under degraded physical redundancy violates life-safety critical compute invariants.",
-  "telemetry_digest": "sha256:7e9b44c68f23789d20c5f2db617bb4a8d4fa962e21245ff6008bdf3b584a2ee6",
+  "operational_refusal_reason": "ATS Power Redundancy is FAULT_SINGLE_FEED (Source B = 0.0V). Shedding outlet group under degraded single-feed utility power violates N+1 critical continuity policy.",
+  "telemetry_digest": "sha256:6a4e0c42d283ad3f89ac24a48d311c0e159815525934f0c0134183582a903c00",
   "hardware_mutation": {
     "packets_sent": 0,
     "bytes_written": 0,
@@ -228,8 +216,8 @@ Because the live operational conditions violate the physical safety invariants, 
   },
   "gate_signature": {
     "gate_id": "emilia-sentinel-edge-gamma-01",
-    "key_id": "ep:key:ed25519:sentinel-gamma",
-    "signature_b64u": "f7Z1...[synthetic-sig-receipt]...m89Q"
+    "algorithm": "Ed25519",
+    "signature_b64u": "f7Z1syntheticReceiptSigSentinelGamma"
   }
 }
 ```
