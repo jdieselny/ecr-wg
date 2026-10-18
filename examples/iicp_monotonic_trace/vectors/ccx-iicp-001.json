@@ -1,0 +1,64 @@
+[
+  {
+    "id": "ccx-iicp-001",
+    "kind": "contain-crosswalk",
+    "spec_clause": "CLC §13.4.3/§13.8/§8.5",
+    "conformance_class": "CLC-D",
+    "ext_revision": "CLC-1.19",
+    "profile": "iicp->clc-v1",
+    "attribution": "Justin D. Kintzele (J Diesel NY / ECR-WG)",
+    "parent_source": {
+      "grant_id": "grant-nyiso-curtail-20261017-9901",
+      "capabilities": [
+        {
+          "id": "vertiv/power-shed-v1:demand-response:*",
+          "params": {
+            "max_power_shed_kw": 10.0,
+            "duration_sec": 7200,
+            "receptacle_groups": [1, 2, 3]
+          },
+          "constraints": [
+            "varwof/constraint-v1:time:[{\"start\":\"00:00\",\"end\":\"24:00\"}]",
+            "emilia/telemetry-v1:redundant_power_path",
+            "emilia/telemetry-v1:thermal_envelope_clear"
+          ]
+        }
+      ]
+    },
+    "child_source": {
+      "workorder_id": "wo-20261017-curtail-082",
+      "parent_grant_id": "grant-nyiso-curtail-20261017-9901",
+      "capabilities": [
+        {
+          "id": "vertiv/power-shed-v1:demand-response:vertiv-gxt5-node01",
+          "params": {
+            "max_power_shed_kw": 2.7,
+            "duration_sec": 900,
+            "receptacle_groups": [2]
+          },
+          "constraints": [
+            "varwof/constraint-v1:time:[{\"start\":\"14:00\",\"end\":\"14:15\"}]",
+            "emilia/telemetry-v1:redundant_power_path",
+            "emilia/telemetry-v1:thermal_envelope_clear"
+          ]
+        }
+      ]
+    },
+    "expect": {
+      "contains": true,
+      "static_verdict": "allow_unresolved",
+      "unresolved": [
+        "emilia/telemetry-v1:redundant_power_path",
+        "emilia/telemetry-v1:thermal_envelope_clear",
+        "varwof/constraint-v1:time:[{\"end\":\"14:15\",\"start\":\"14:00\"}]"
+      ],
+      "sentinel_resolution": {
+        "telemetry_fault": "FAULT_SINGLE_FEED",
+        "thermal_excursion_c": 34.8,
+        "resolved_verdict": "deny",
+        "refusal_reason": "redundant_power_path:violated"
+      }
+    },
+    "derivation": "IICP demand-response macro grant (10kW/120min/Groups 1-3) monotonically narrowed to Vertiv GXT5 (2.7kW/15min/Group 2). CLC-D Contains holds; Authorize returns allow_unresolved on telemetry constraints; Sentinel Resolve returns deny on ATS single-feed redundancy fault."
+  }
+]

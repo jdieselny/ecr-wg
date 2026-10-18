@@ -26,6 +26,12 @@ Specifically, it demonstrates the critical boundary identified by Roble Mumin:
 3. **Static Containment $\neq$ Execution Admission:**  
    Syntactic parameter validation (e.g., CLC containment) establishes that an operation is *authorized in principle*. However, **Execution Admission** must remain the sole authority of local execution sentinels (clearinghouses) that evaluate **live, physical state and out-of-band telemetry** before energizing physical actuators or mutating irreversible state.
 
+### Normative CLC Mapping & Runnable Artifacts
+This specification has been validated against `draft-wei-capability-language-core` under conformance class **CLC-D** (Profile **CLC-1.19**):
+- **Runnable cleanroom test runner:** [`examples/iicp_monotonic_trace/run_trace.py`](../examples/iicp_monotonic_trace/run_trace.py)
+- **Standalone crosswalk corpus vector:** [`examples/iicp_monotonic_trace/vectors/ccx-iicp-001.json`](../examples/iicp_monotonic_trace/vectors/ccx-iicp-001.json) formatted for direct ingestion into `varwof/capability` (`containment-crosswalk-vectors.json`).
+- **Cryptographic verification:** Real Ed25519 signatures across all hops using RFC 8785 canonical JSON serialization.
+
 ---
 
 ## 2. End-to-End Architectural Topology
@@ -144,27 +150,28 @@ $$\text{Params}(\text{WO}_1) \subset \text{Params}(G_0) \quad \land \quad \text{
 ---
 
 ### Artifact 3: Static Containment Verification (CLC Evaluator Output)
-Before any physical action is considered, the gate verifies that $WO_1$ is strictly contained within $G_0$.
+Before any physical action is considered, the gate verifies that $WO_1$ is strictly contained within $G_0$ under CLC-D / CLC-1.19 rules (§13.4.3 / §13.8).
 
 ```json
 {
-  "evaluation_type": "STATIC_CONTAINMENT",
-  "evaluator": "emilia-clc-evaluator-v1.2",
-  "evaluated_at": "2026-10-17T00:45:02Z",
-  "verdict": "ALLOW_UNRESOLVED",
-  "containment_checks": {
-    "target_asset_contained": true,
-    "action_name_matched": true,
-    "receptacle_group_in_enum": true,
-    "power_bound_narrower": true,
-    "time_window_narrower": true
+  "conformance_class": "CLC-D",
+  "ext_revision": "CLC-1.19",
+  "containment": {
+    "contains": true,
+    "clause": "CLC §13.4.3 / §13.8",
+    "reason": ""
   },
-  "unresolved_operational_constraints": [
-    "live_hardware_telemetry_check",
-    "power_path_redundancy_interlock",
-    "thermal_envelope_clearance"
-  ],
-  "notes": "Static authorization verified. Action cannot execute until local execution sentinel discharges unresolved operational constraints."
+  "authorization_decision": {
+    "verdict": "allow_unresolved",
+    "clause": "CLC §9",
+    "reason": "",
+    "unresolved": [
+      "emilia/telemetry-v1:redundant_power_path",
+      "emilia/telemetry-v1:thermal_envelope_clear",
+      "varwof/constraint-v1:time:[{\"end\":\"14:15\",\"start\":\"14:00\"}]"
+    ]
+  },
+  "notes": "Static authorization verified under CLC-D rules. Action cannot execute until local execution sentinel discharges unresolved operational constraints."
 }
 ```
 
@@ -191,7 +198,7 @@ The local consequence sentinel polls the independent Modbus/SNMP telemetry chann
 ---
 
 ### Artifact 5: Terminal Immutable Refusal Receipt (`EP-RECEIPT-v1`)
-Because the live operational conditions violate the physical safety invariants, the sentinel refuses admission. Zero bytes are transmitted to the actuator. The sentinel emits an immutable, signed refusal receipt.
+Because the live operational conditions violate the physical safety invariants, the sentinel resolves the obligations via CLC §8.5 (`redundant_power_path` is `violated`, collapsing the verdict to `deny`). The sentinel refuses admission. Zero bytes are transmitted to the actuator. The sentinel emits an immutable, Ed25519-signed refusal receipt.
 
 ```json
 {
@@ -206,7 +213,10 @@ Because the live operational conditions violate the physical safety invariants, 
     "caller_id": "did:ep:agent:vertiv-controller-beta",
     "caller_admission_tier": "CLASS_A"
   },
-  "static_authorization_verdict": "ALLOW_UNRESOLVED",
+  "clc_evaluation": {
+    "static_authorization_verdict": "allow_unresolved",
+    "sentinel_resolve_verdict": "deny"
+  },
   "operational_refusal_reason": "ATS Power Redundancy is FAULT_SINGLE_FEED (Source B = 0.0V). Shedding outlet group under degraded single-feed utility power violates N+1 critical continuity policy.",
   "telemetry_digest": "sha256:6a4e0c42d283ad3f89ac24a48d311c0e159815525934f0c0134183582a903c00",
   "hardware_mutation": {
@@ -217,12 +227,13 @@ Because the live operational conditions violate the physical safety invariants, 
   "gate_signature": {
     "gate_id": "emilia-sentinel-edge-gamma-01",
     "algorithm": "Ed25519",
-    "signature_b64u": "f7Z1syntheticReceiptSigSentinelGamma"
+    "signature_b64u": "O0Cp26N7Vp8uL1sFgt1eV6NC8xr1LquqXxtkLtrZt1LF_xeXMGYV26TR_Hfkx5ML6ahKQOVZYei5Si4fB4bZAw"
   }
 }
 ```
 
 ---
+
 
 ## 4. Alignment with IICP Management State Quadrants
 
