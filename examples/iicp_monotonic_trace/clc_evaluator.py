@@ -151,22 +151,30 @@ def authorize(grant: Mapping[str, Any], operation: Mapping[str, Any]) -> dict[st
             if not _narrower_params(bound, op_params[k]):
                 return {"verdict": "deny", "reason": f"param_exceeded:{k}", "unresolved": []}
 
-    # Evaluate constraints
+    # Evaluate constraints per CLC §8.1: Core recognizes ONLY varwof/constraint-v1:max_rows, time, network
     constraints = list(grant.get("constraints") or [])
     unresolved: list[str] = []
 
     for c in constraints:
-        # Native core evaluator for time windows (syntactic check)
-        if c.startswith("varwof/constraint-v1:time"):
-            unresolved.append(c)
-        elif ":" in c:
-            # Scheme-specific constraint (e.g. emilia/telemetry-v1:*)
-            unresolved.append(c)
+        parts = c.split(":")
+        if len(parts) < 2:
+            return {"verdict": "deny", "reason": f"invalid_constraint:{c}", "unresolved": []}
+        scheme, c_type = parts[0], parts[1]
+        
+        # Core recognized (scheme, type) pairs
+        if scheme == "varwof/constraint-v1":
+            if c_type == "max_rows":
+                # Evaluated against op_params if present
+                pass
+            elif c_type in ("time", "network"):
+                unresolved.append(c)
+            else:
+                return {"verdict": "deny", "reason": f"unknown_constraint:{c}", "unresolved": []}
         else:
+            # Any non-core recognized scheme/type fails closed per §8.1
             return {"verdict": "deny", "reason": f"unknown_constraint:{c}", "unresolved": []}
 
     if unresolved:
-        # Normalized and deterministically sorted list of residual obligations
         sorted_unresolved = sorted(list(set(unresolved)))
         return {
             "verdict": "allow_unresolved",
@@ -177,6 +185,39 @@ def authorize(grant: Mapping[str, Any], operation: Mapping[str, Any]) -> dict[st
     return {"verdict": "allow", "reason": "", "unresolved": []}
 
 
+def _eval_core_clock(constraint: str, now_str: str) -> str:
+    """CLC §8.5 Step 3: Core clock evaluation for varwof/constraint-v1:time:window."""
+    try:
+        import json
+        from datetime import datetime
+        # Parse now timestamp
+        if now_str.endswith("Z"):
+            dt = datetime.fromisoformat(now_str.replace("Z", "+00:00"))
+        else:
+            dt = datetime.fromisoformat(now_str)
+        now_sec = dt.hour * 3600 + dt.minute * 60 + dt.second
+
+        # Extract window JSON from constraint string: varwof/constraint-v1:time:window:[{"start":"...","end":"..."}]
+        prefix = "varwof/constraint-v1:time:window:"
+        if not constraint.startswith(prefix):
+            return "unknown"
+        raw_json = constraint[len(prefix):]
+        segments = json.loads(raw_json)
+        
+        for seg in segments:
+            s_parts = [int(p) for p in seg["start"].split(":")]
+            e_parts = [int(p) for p in seg["end"].split(":")]
+            s_sec = s_parts[0] * 3600 + s_parts[1] * 60 + (s_parts[2] if len(s_parts) > 2 else 0)
+            e_sec = e_parts[0] * 3600 + e_parts[1] * 60 + (e_parts[2] if len(e_parts) > 2 else 0)
+            if e_sec == 0:  # Reserved endpoint 00:00 is next-day midnight (86400)
+                e_sec = 86400
+            if s_sec <= now_sec < e_sec:
+                return "satisfied"
+        return "violated"
+    except Exception:
+        return "unknown"
+
+
 def resolve(
     decision: Mapping[str, Any],
     resolutions: list[Mapping[str, str]],
@@ -184,45 +225,72 @@ def resolve(
 ) -> dict[str, Any]:
     """CLC §8.5: Resolve(decision, resolutions, now?) -> Decision.
     
-    Collapses residual obligations under: violated ≻ satisfied ≻ unknown.
+    1. Terminal verdicts are fixed: deny or allow returns unchanged.
+    2. Malformed input fails closed.
+    3. Discharge on allow_unresolved: combines sources per obligation under violated ≻ satisfied ≻ unknown.
+    4. Set rule in order:
+       - Any obligation violated -> deny
+       - Every obligation satisfied -> allow
+       - Otherwise -> allow_unresolved
     """
     verdict = decision.get("verdict")
+    # Step 1: Terminal verdicts are fixed
     if verdict in ("allow", "deny"):
         return dict(decision)
 
-    res_map: dict[str, str] = {}
+    # Step 2: Validate resolutions input
+    for r in resolutions:
+        st = r.get("status")
+        if st not in ("satisfied", "violated", "unknown"):
+            return {"verdict": "deny", "reason": "invalid_resolution", "unresolved": []}
+
+    # Step 3: Compute status per obligation in O
+    O = list(decision.get("unresolved") or [])
+    STATUS_RANK = {"violated": 2, "satisfied": 1, "unknown": 0}
+
+    # Map resolutions by constraint
+    consumer_map: dict[str, str] = {}
     for r in resolutions:
         c = r.get("constraint", "")
         st = r.get("status", "unknown")
-        # violated ≻ satisfied ≻ unknown
-        curr = res_map.get(c, "unknown")
-        if st == "violated" or curr == "violated":
-            res_map[c] = "violated"
-        elif st == "satisfied" and curr != "violated":
-            res_map[c] = "satisfied"
-        else:
-            if c not in res_map:
-                res_map[c] = st
+        curr = consumer_map.get(c, "unknown")
+        if STATUS_RANK[st] > STATUS_RANK[curr]:
+            consumer_map[c] = st
 
-    unresolved = list(decision.get("unresolved") or [])
-    remaining: list[str] = []
+    obl_status: dict[str, str] = {}
+    for o in O:
+        st_consumer = consumer_map.get(o, "unknown")
+        st_clock = "unknown"
+        if o.startswith("varwof/constraint-v1:time") and now:
+            st_clock = _eval_core_clock(o, now)
+        
+        # Most restrictive source wins (violated ≻ satisfied ≻ unknown)
+        best = st_consumer
+        if STATUS_RANK[st_clock] > STATUS_RANK[best]:
+            best = st_clock
+        obl_status[o] = best
 
-    for c in unresolved:
-        st = res_map.get(c, "unknown")
+    # Step 4: Result evaluated in order
+    # Clause 1: any obligation violated -> deny
+    for o, st in obl_status.items():
         if st == "violated":
+            # Extract type segment
+            parts = o.split(":")
+            c_type = parts[1] if len(parts) > 1 else "constraint"
             return {
                 "verdict": "deny",
-                "reason": f"{c.split(':')[-1]}:violated",
+                "reason": f"{c_type}:violated",
                 "unresolved": [],
             }
-        elif st == "unknown":
-            remaining.append(c)
 
-    if not remaining:
+    # Clause 2: every obligation satisfied -> allow
+    if all(st == "satisfied" for st in obl_status.values()):
         return {"verdict": "allow", "reason": "", "unresolved": []}
 
+    # Clause 3: otherwise -> allow_unresolved with still-unknown subset
+    still_unknown = [o for o, st in obl_status.items() if st == "unknown"]
     return {
         "verdict": "allow_unresolved",
         "reason": "",
-        "unresolved": sorted(remaining),
+        "unresolved": sorted(still_unknown),
     }

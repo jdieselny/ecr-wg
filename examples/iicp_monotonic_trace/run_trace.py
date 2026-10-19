@@ -7,7 +7,7 @@ Repository: https://github.com/jdieselny/ecr-wg
 Conforming implementation exercising:
   1. Root Intent Grant (G0) with real Ed25519 cryptographic signature
   2. Monotonic Delegation Narrowing (WO1) with real Ed25519 delegation proof
-  3. Formal CLC-1.19 / CLC-D Containment (Contains(G0, WO1) -> true)
+  3. Formal CLC-1.15 / CLC-D Containment (Contains(G0, WO1) -> true)
   4. Decision Function Authorize(WO1, Op) -> ALLOW_UNRESOLVED
   5. Out-of-Band Physical Telemetry Evaluation (ATS Single-Feed & Thermal Trip)
   6. Sentinel Resolve(decision, resolutions) -> DENY (fail-closed, 0 bytes mutated)
@@ -30,7 +30,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Optional
 
-# Formal CLC-1.19 / CLC-D Reference Evaluator
+# Formal CLC-1.15 / CLC-D Reference Evaluator
 try:
     from . import clc_evaluator as clc
 except ImportError:
@@ -44,9 +44,19 @@ except ImportError:
     HAS_CRYPTOGRAPHY = False
 
 
+try:
+    import rfc8785
+    HAS_RFC8785 = True
+except ImportError:
+    HAS_RFC8785 = False
+
+
 def canonical_json_bytes(obj: Any) -> bytes:
-    """RFC 8785 Canonical JSON Serialization (JCS subset)."""
+    """RFC 8785 Canonical JSON Serialization (JCS)."""
+    if HAS_RFC8785:
+        return rfc8785.dumps(obj)
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+
 
 
 def sha256_digest(data: bytes) -> str:
@@ -110,16 +120,15 @@ class MacroGrant:
     def to_clc_grant(self) -> dict[str, Any]:
         """Maps native IICP grant to standard CLC Grant shape."""
         return {
-            "id": "vertiv/power-shed-v1:demand-response:*",
+            "id": "example/power-v1:curtail:*",
             "params": {
-                "max_power_shed_kw": self.max_power_shed_kw,
+                "circuit_groups": self.allowable_receptacle_groups,
                 "duration_sec": self.max_duration_sec,
-                "receptacle_groups": self.allowable_receptacle_groups,
+                "max_shed_kw": self.max_power_shed_kw,
             },
             "constraints": [
-                'varwof/constraint-v1:time:[{"end":"24:00","start":"00:00"}]',
-                "emilia/telemetry-v1:redundant_power_path",
-                "emilia/telemetry-v1:thermal_envelope_clear",
+                'varwof/constraint-v1:network:cidr:["10.0.0.0/16"]',
+                'varwof/constraint-v1:time:window:[{"end":"18:00","start":"08:00"}]',
             ],
         }
 
@@ -172,16 +181,15 @@ class DelegatedWorkorder:
     def to_clc_grant(self) -> dict[str, Any]:
         """Maps native delegated workorder to standard CLC Grant shape."""
         return {
-            "id": f"vertiv/power-shed-v1:demand-response:{self.target_asset}",
+            "id": f"example/power-v1:curtail:{self.target_asset}",
             "params": {
-                "max_power_shed_kw": self.max_power_shed_kw,
+                "circuit_groups": [self.receptacle_group],
                 "duration_sec": self.duration_sec,
-                "receptacle_groups": [self.receptacle_group],
+                "max_shed_kw": self.max_power_shed_kw,
             },
             "constraints": [
-                'varwof/constraint-v1:time:[{"end":"14:15","start":"14:00"}]',
-                "emilia/telemetry-v1:redundant_power_path",
-                "emilia/telemetry-v1:thermal_envelope_clear",
+                'varwof/constraint-v1:network:cidr:["10.0.1.0/24"]',
+                'varwof/constraint-v1:time:window:[{"end":"15:00","start":"14:00"}]',
             ],
         }
 
@@ -298,20 +306,20 @@ def run_full_trace() -> dict[str, Any]:
     priv_delegator, pub_delegator = _get_deterministic_ed25519_key(2)
     priv_sentinel, pub_sentinel = _get_deterministic_ed25519_key(3)
 
-    # 1. Hop 0: Root Macro Grant
+    # 1. Hop 0: Root Macro Grant (Synthetic Cleanroom Example)
     grant_unsigned = {
-        "grant_id": "grant-nyiso-curtail-20261017-9901",
-        "issuer": "did:ep:nyiso:zone-c-grid-operator",
-        "issued_to": "did:ep:agent:dr-orchestrator-alpha",
-        "issued_at": "2026-10-17T00:30:00Z",
-        "valid_until": "2026-10-17T02:30:00Z",
+        "grant_id": "grant-example-curtail-001",
+        "issuer": "did:ep:example:regional-grid-operator",
+        "issued_to": "did:ep:agent:orchestrator-alpha",
+        "issued_at": "2026-10-19T08:00:00Z",
+        "valid_until": "2026-10-19T18:00:00Z",
         "intent": "grid.curtailment.propose",
-        "jurisdiction": "US-NY-TOMPKINS",
-        "target_assets": ["vertiv-gxt5-node01", "vertiv-gxt5-node02", "wti-pdu-rack04"],
+        "jurisdiction": "US-EAST-GRID-01",
+        "target_assets": ["ups-unit-01", "ups-unit-02", "pdu-rack-01"],
         "action": "power.receptacle.shed",
         "max_power_shed_kw": 10.0,
         "max_duration_sec": 7200,
-        "allowable_receptacle_groups": [1, 2, 3, 4],
+        "allowable_receptacle_groups": [1, 2, 3],
     }
     grant_sig = _sign_payload(priv_issuer, canonical_json_bytes(grant_unsigned))
 
@@ -325,16 +333,16 @@ def run_full_trace() -> dict[str, Any]:
 
     # 2. Hop 1: Monotonically Narrowed Workorder
     wo_unsigned = {
-        "workorder_id": "wo-20261017-curtail-082",
+        "workorder_id": "wo-example-curtail-082",
         "parent_grant_id": grant.grant_id,
-        "delegator": "did:ep:agent:dr-orchestrator-alpha",
-        "executor": "did:ep:agent:vertiv-controller-beta",
-        "created_at": "2026-10-17T00:45:00Z",
-        "valid_until": "2026-10-17T01:00:00Z",
-        "target_asset": "vertiv-gxt5-node01",
+        "delegator": "did:ep:agent:orchestrator-alpha",
+        "executor": "did:ep:agent:actuator-sentinel-01",
+        "created_at": "2026-10-19T14:00:00Z",
+        "valid_until": "2026-10-19T15:00:00Z",
+        "target_asset": "ups-unit-01",
         "action": "power.receptacle.shed",
         "receptacle_group": 2,
-        "max_power_shed_kw": 2.7,
+        "max_power_shed_kw": 2.5,
         "duration_sec": 900,
         "delegation_hop": 1,
     }
@@ -352,11 +360,11 @@ def run_full_trace() -> dict[str, Any]:
     clc_g0 = grant.to_clc_grant()
     clc_wo1 = wo.to_clc_grant()
 
-    # Hop 2a: Formal CLC-D Containment check
+    # Hop 2a: Formal CLC-D Containment check (§13)
     containment_result = clc.contains(clc_g0, clc_wo1)
     assert containment_result["contains"] is True, f"CLC-D Containment failed: {containment_result}"
 
-    # Hop 2b: Formal CLC Authorization Decision Function
+    # Hop 2b: Formal CLC Authorization Decision Function (§9)
     op_payload = {
         "id": clc_wo1["id"],
         "params": clc_wo1["params"],
@@ -364,49 +372,43 @@ def run_full_trace() -> dict[str, Any]:
     auth_decision = clc.authorize(clc_wo1, op_payload)
     assert auth_decision["verdict"] == "allow_unresolved", f"Expected allow_unresolved, got {auth_decision}"
 
-    # 4. Hop 3: Live Telemetry Snapshot (Degraded Grid / Single Feed Loss)
+    # 4. Hop 3: Live Telemetry Snapshot
     telemetry = LiveTelemetrySnapshot(
         source_id="hardware:edge-sentinel-ch01",
-        timestamp="2026-10-17T00:45:03.104Z",
-        ats_source_a_volts=120.4,
+        timestamp="2026-10-19T15:30:03.104Z",
+        ats_source_a_volts=120.2,
         ats_source_b_volts=0.0,
         ats_active_source="A",
         ats_redundancy_status="FAULT_SINGLE_FEED",
-        rack_inlet_temp_c=34.8,
-        gxt5_load_pct=78.2,
+        rack_inlet_temp_c=22.4,
+        gxt5_load_pct=45.0,
     )
     telem_digest = sha256_digest(canonical_json_bytes(telemetry.to_dict()))
 
-    # 5. Hop 4: Consequence Sentinel Interlock & CLC Resolve
+    # 5. Hop 4: Consequence Sentinel Interlock & CLC Resolve (§8.5)
+    # Consumer reports network obligation satisfied; core clock evaluates time window against now
     resolutions = [
         {
-            "constraint": "emilia/telemetry-v1:redundant_power_path",
-            "status": "violated" if telemetry.ats_redundancy_status != "DUAL_FEED_ACTIVE" else "satisfied",
-        },
-        {
-            "constraint": "emilia/telemetry-v1:thermal_envelope_clear",
-            "status": "violated" if telemetry.rack_inlet_temp_c > 32.0 else "satisfied",
-        },
-        {
-            "constraint": 'varwof/constraint-v1:time:[{"end":"14:15","start":"14:00"}]',
+            "constraint": 'varwof/constraint-v1:network:cidr:["10.0.1.0/24"]',
             "status": "satisfied",
         },
     ]
 
-    # Collapses obligations via CLC §8.5 (violated ≻ satisfied ≻ unknown)
-    resolved_decision = clc.resolve(auth_decision, resolutions, now="2026-10-17T14:05:00Z")
+    # Collapses obligations via CLC §8.5: core clock at 15:30:00Z is outside [14:00, 15:00) -> time:violated -> deny
+    resolved_decision = clc.resolve(auth_decision, resolutions, now="2026-10-19T15:30:00Z")
     assert resolved_decision["verdict"] == "deny", f"Resolve should deny, got {resolved_decision}"
+    assert resolved_decision["reason"] == "time:violated", f"Expected time:violated, got {resolved_decision['reason']}"
 
-    refusal_code = "REFUSED_LIVE_STATE_INTERLOCK"
+    refusal_code = "REFUSED_TIME_WINDOW_EXPIRED"
     refusal_reason = (
-        f"ATS Power Redundancy is {telemetry.ats_redundancy_status} (Source B = {telemetry.ats_source_b_volts}V). "
-        "Shedding outlet group under degraded single-feed utility power violates N+1 critical continuity policy."
+        "Invocation at 15:30:00 UTC is outside the authorized time window [14:00, 15:00) UTC (time:violated). "
+        "Operation refused fail-closed under CLC §8.5 Clause 1."
     )
 
-    # 6. Hop 5: Signed Immutable Receipt
+    # 6. Hop 5: Signed Immutable Receipt (EP-RECEIPT-v1)
     receipt_unsigned = {
-        "receipt_id": "rcpt-20261017004503-refuse-094",
-        "issued_at": "2026-10-17T00:45:03.120Z",
+        "receipt_id": "rcpt-20261019153003-refuse-001",
+        "issued_at": "2026-10-19T15:30:03.120Z",
         "decision": "REFUSED",
         "refusal_code": refusal_code,
         "workorder_id": wo.workorder_id,
@@ -418,7 +420,7 @@ def run_full_trace() -> dict[str, Any]:
         "telemetry_digest": telem_digest,
         "bytes_written": 0,
         "packets_sent": 0,
-        "gate_id": "emilia-sentinel-edge-gamma-01",
+        "gate_id": "example-sentinel-edge-gamma-01",
     }
     rcpt_sig = _sign_payload(priv_sentinel, canonical_json_bytes(receipt_unsigned))
 
@@ -430,7 +432,7 @@ def run_full_trace() -> dict[str, Any]:
 
     return {
         "status": "COMPLETED",
-        "clc_version": "CLC-1.19 / CLC-D",
+        "clc_version": "CLC-1.15 / CLC-D",
         "crypto": {
             "algorithm": "Ed25519",
             "issuer_verified": True,

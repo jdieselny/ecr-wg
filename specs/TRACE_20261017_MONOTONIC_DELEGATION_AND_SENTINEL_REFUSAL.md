@@ -27,7 +27,7 @@ Specifically, it demonstrates the critical boundary identified by Roble Mumin:
    Syntactic parameter validation (e.g., CLC containment) establishes that an operation is *authorized in principle*. However, **Execution Admission** must remain the sole authority of local execution sentinels (clearinghouses) that evaluate **live, physical state and out-of-band telemetry** before energizing physical actuators or mutating irreversible state.
 
 ### Normative CLC Mapping & Runnable Artifacts
-This specification has been validated against `draft-wei-capability-language-core` under conformance class **CLC-D** (Profile **CLC-1.19**):
+This specification has been validated against `draft-wei-capability-language-core-00` under conformance class **CLC-D** (Specification Revision **CLC-1.15**):
 - **Runnable cleanroom test runner:** [`examples/iicp_monotonic_trace/run_trace.py`](../examples/iicp_monotonic_trace/run_trace.py)
 - **Standalone crosswalk corpus vector:** [`examples/iicp_monotonic_trace/vectors/ccx-iicp-001.json`](../examples/iicp_monotonic_trace/vectors/ccx-iicp-001.json) formatted for direct ingestion into `varwof/capability` (`containment-crosswalk-vectors.json`).
 - **Cryptographic verification:** Real Ed25519 signatures across all hops using RFC 8785 canonical JSON serialization.
