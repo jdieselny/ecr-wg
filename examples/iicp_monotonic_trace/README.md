@@ -18,9 +18,16 @@ It proves the critical boundary articulated during DMSC discussions:
 
 ---
 
-## Conformance Vector (`vectors/ccx-iicp-001.json`)
+## Crosswalk Vectors (`vectors/`) & Profile Declaration
 
-This runner includes the standalone test vector [`vectors/ccx-iicp-001.json`](vectors/ccx-iicp-001.json) formatted for direct ingestion into the upstream IETF DMSC conformance suite (`varwof/capability` / `containment-crosswalk-vectors.json`).
+This directory provides the standalone test vectors formatted for upstream ingestion into the IETF DMSC crosswalk corpus (`varwof/capability`):
+
+- **[`vectors/ccx-iicp-001.json`](vectors/ccx-iicp-001.json)** (`contain-crosswalk`): Formally asserts CLC-D Layer 1/2/3 monotonic containment (`Contains(parent, child) -> true`).
+- **[`vectors/cax-iicp-001.json`](vectors/cax-iicp-001.json)** (`authorize-crosswalk`): Formally asserts CLC §9 authorization (`Authorize(child, op) -> allow_unresolved` carrying residual network and time obligations).
+- **[`vectors/crx-iicp-001.json`](vectors/crx-iicp-001.json)** (`resolve-crosswalk`): Formally asserts CLC §8.5 resolution (`Resolve(decision, resolutions, now) -> deny` with refusal reason `time:violated`).
+- **[`profile-declarations.json`](profile-declarations.json)**: Declares the `iicp->clc-v1` crosswalk profile (`chain_check: hop-by-hop`, `union_axis: constraint-union`, `constraints_mode: conjunctive`, and carrier-enforced `out_of_scope` boundary dimensions).
+
+All vectors are canonicalized via RFC 8785 JSON Canonicalization Scheme (JCS).
 
 Attribution: `Justin D. Kintzele (J Diesel NY / ECR-WG)`.
 

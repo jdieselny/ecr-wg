@@ -14,8 +14,9 @@ import re
 from typing import Any, Mapping, Optional
 
 # CLC Section 3 scheme grammar regex: <vendor>/<product>-v<major>:<action-class>[:<segments>]
+# Note: Action segments support uppercase/mixed-case identifiers per CLC corpus.
 CID_PATTERN = re.compile(
-    r"^([a-z0-9_-]+)/([a-z0-9_-]+)-v([0-9]+):([a-z0-9_-]+)(?::([a-z0-9_*:-]+))?$"
+    r"^([a-z0-9_-]+)/([a-z0-9_-]+)-v([0-9]+):([a-zA-Z0-9_-]+)(?::([a-zA-Z0-9_*:-]+))?$"
 )
 
 
