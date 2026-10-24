@@ -1,0 +1,15 @@
+[package]
+name = "clc-rust-cleanroom"
+version = "0.1.0"
+edition = "2024"
+authors = ["Justin D. Kintzele <jkintzele@jdieselny.com>", "J Diesel NY, LLC"]
+license = "Apache-2.0"
+description = "Deterministic Independent Cleanroom Implementation of the Capability Language Core (CLC)"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+regex = "1.10"
+clap = { version = "4.5", features = ["derive"] }
+thiserror = "1.0"
+anyhow = "1.0"
