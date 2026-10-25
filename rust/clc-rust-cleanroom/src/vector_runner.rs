@@ -49,6 +49,17 @@ pub fn run_vector_file(path: &Path) -> Result<SuiteReport, Reason> {
 
 pub fn run_vector_text(text: &str, path: &Path) -> Result<SuiteReport, Reason> {
     let value: Value = serde_json::from_str(text).map_err(|_| Reason::InvalidParamsNumber)?;
+    let mut report = SuiteReport::default();
+
+    if let Value::Object(map) = &value {
+        if let Some(Value::Array(cases)) = map.get("cases") {
+            for (index, case_val) in cases.iter().enumerate() {
+                report.outcomes.push(execute_property_case(case_val, path, index));
+            }
+            return Ok(report);
+        }
+    }
+
     let vectors = match &value {
         Value::Array(items) => items.clone(),
         Value::Object(map) => {
@@ -60,7 +71,6 @@ pub fn run_vector_text(text: &str, path: &Path) -> Result<SuiteReport, Reason> {
         }
         _ => return Err(Reason::InvalidParamsNumber),
     };
-    let mut report = SuiteReport::default();
     for (index, vector) in vectors.into_iter().enumerate() {
         report.outcomes.push(execute_one(&vector, path, index));
     }
@@ -219,6 +229,115 @@ fn execute_one(vector: &Value, path: &Path, index: usize) -> VectorOutcome {
     }
 }
 
+fn execute_property_case(case_val: &Value, _path: &Path, index: usize) -> VectorOutcome {
+    let started = Instant::now();
+    let id = case_val
+        .get("id")
+        .and_then(Value::as_str)
+        .map(String::from)
+        .unwrap_or_else(|| format!("prop-{:04}", index + 1));
+
+    let Some(sources_val) = case_val.get("sources").and_then(Value::as_array) else {
+        return VectorOutcome {
+            id,
+            kind: "property".into(),
+            passed: false,
+            detail: "missing sources array".into(),
+            elapsed: started.elapsed(),
+        };
+    };
+
+    let grants: Vec<Grant> = sources_val.iter().filter_map(as_grant).collect();
+    if grants.len() != sources_val.len() {
+        return VectorOutcome {
+            id,
+            kind: "property".into(),
+            passed: false,
+            detail: "failed to parse all sources as grants".into(),
+            elapsed: started.elapsed(),
+        };
+    }
+
+    if grants.is_empty() {
+        return VectorOutcome {
+            id,
+            kind: "property".into(),
+            passed: false,
+            detail: "empty sources".into(),
+            elapsed: started.elapsed(),
+        };
+    }
+
+    let fwd = compute_intersection(&grants);
+
+    let mut rev_grants = grants.clone();
+    rev_grants.reverse();
+    let rev = compute_intersection(&rev_grants);
+
+    match (fwd, rev) {
+        (Err(f_err), Err(r_err)) => {
+            if f_err != r_err {
+                return VectorOutcome {
+                    id,
+                    kind: "property".into(),
+                    passed: false,
+                    detail: format!("commutativity mismatch: fwd={f_err}, rev={r_err}"),
+                    elapsed: started.elapsed(),
+                };
+            }
+            VectorOutcome {
+                id,
+                kind: "property".into(),
+                passed: true,
+                detail: format!("deny {f_err}"),
+                elapsed: started.elapsed(),
+            }
+        }
+        (Ok((f_params, f_cons)), Ok((r_params, r_cons))) => {
+            if f_params != r_params {
+                return VectorOutcome {
+                    id,
+                    kind: "property".into(),
+                    passed: false,
+                    detail: format!("commutativity params mismatch: fwd={f_params:?}, rev={r_params:?}"),
+                    elapsed: started.elapsed(),
+                };
+            }
+            if f_cons != r_cons {
+                return VectorOutcome {
+                    id,
+                    kind: "property".into(),
+                    passed: false,
+                    detail: format!("commutativity constraints mismatch: fwd={f_cons:?}, rev={r_cons:?}"),
+                    elapsed: started.elapsed(),
+                };
+            }
+
+            VectorOutcome {
+                id,
+                kind: "property".into(),
+                passed: true,
+                detail: "allow".into(),
+                elapsed: started.elapsed(),
+            }
+        }
+        (Ok(_), Err(r_err)) => VectorOutcome {
+            id,
+            kind: "property".into(),
+            passed: false,
+            detail: format!("commutativity violation: forward allowed, reverse denied with {r_err}"),
+            elapsed: started.elapsed(),
+        },
+        (Err(f_err), Ok(_)) => VectorOutcome {
+            id,
+            kind: "property".into(),
+            passed: false,
+            detail: format!("commutativity violation: forward denied with {f_err}, reverse allowed"),
+            elapsed: started.elapsed(),
+        },
+    }
+}
+
 fn run_contains(vector: &Value) -> Result<String, String> {
     let parent = source_grant(vector.get("parent_source"))?;
     let child = source_grant(vector.get("child_source"))?;
@@ -373,12 +492,30 @@ fn meet_param_set(grants: &[Grant]) -> Result<Value, String> {
         if map.is_empty() {
             continue;
         }
+        deny_empty_param_value(map)?;
         acc = Some(match acc {
             None => map.clone(),
             Some(prev) => meet_param_maps(&prev, map)?,
         });
     }
     Ok(Value::Object(acc.unwrap_or_default()))
+}
+
+fn deny_empty_param_value(map: &serde_json::Map<String, Value>) -> Result<(), String> {
+    fn walk(value: &Value) -> bool {
+        match value {
+            Value::Array(items) if items.is_empty() => true,
+            Value::Object(obj) if obj.is_empty() => true,
+            Value::Array(items) => items.iter().any(walk),
+            Value::Object(obj) => obj.values().any(walk),
+            _ => false,
+        }
+    }
+    if map.values().any(walk) {
+        Err("empty_bound_denies_class".into())
+    } else {
+        Ok(())
+    }
 }
 
 fn meet_param_maps(
@@ -854,5 +991,27 @@ mod tests {
             })
             .count();
         assert_eq!(core, 154);
+        assert_eq!(dir.failed(), 0);
+    }
+
+    #[test]
+    fn prop_0011_empty_bound_denies_class_commutatively() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("vectors/property-cases.json");
+        let text = fs::read_to_string(&path).unwrap();
+        let val: Value = serde_json::from_str(&text).unwrap();
+        let cases = val["cases"].as_array().unwrap();
+        let prop_11 = cases.iter().find(|c| c["id"] == "prop-0011").unwrap();
+        let outcome = execute_property_case(prop_11, &path, 10);
+        assert!(outcome.passed, "{}", outcome.detail);
+        assert_eq!(outcome.detail, "deny empty_bound_denies_class");
+    }
+
+    #[test]
+    fn property_cases_suite_passes_all_1184_cases() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("vectors/property-cases.json");
+        let report = run_vector_file(&path).unwrap();
+        assert_eq!(report.outcomes.len(), 1184);
+        assert_eq!(report.failed(), 0, "Failed: {}", report.failed());
+        assert_eq!(report.passed(), 1184);
     }
 }

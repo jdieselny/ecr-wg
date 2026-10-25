@@ -21,6 +21,10 @@ struct Args {
     #[arg(long)]
     vector: Option<PathBuf>,
 
+    /// One JSON property-cases file (e.g. property-cases.json).
+    #[arg(long)]
+    property_cases: Option<PathBuf>,
+
     /// Directory of JSON vector files.
     #[arg(long)]
     dir: Option<PathBuf>,
@@ -40,11 +44,14 @@ fn main() -> ExitCode {
 
 fn run() -> anyhow::Result<()> {
     let args = Args::parse();
-    if args.vector.is_none() && args.dir.is_none() {
-        bail!("pass --vector <path> or --dir <path>");
+    if args.vector.is_none() && args.dir.is_none() && args.property_cases.is_none() {
+        bail!("pass --vector <path>, --property-cases <path>, or --dir <path>");
     }
     let mut report = SuiteReport::default();
     if let Some(path) = &args.vector {
+        report.merge(run_vector_file(path).with_context(|| format!("read {}", path.display()))?);
+    }
+    if let Some(path) = &args.property_cases {
         report.merge(run_vector_file(path).with_context(|| format!("read {}", path.display()))?);
     }
     if let Some(path) = &args.dir {
@@ -53,10 +60,7 @@ fn run() -> anyhow::Result<()> {
     match args.report.as_str() {
         "json" => println!("{}", report_json(&report)),
         "junit" => println!("{}", report_junit(&report)),
-        _ => {
-            println!("{}", report_text(&report));
-            println!("{}", report_json(&report));
-        }
+        _ => println!("{}", report_text(&report)),
     }
     if report.failed() > 0 {
         std::process::exit(1);
