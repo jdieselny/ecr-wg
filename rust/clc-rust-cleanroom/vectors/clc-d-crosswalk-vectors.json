@@ -1,0 +1,838 @@
+[
+  {
+    "id": "clc-d-power-narrow-001",
+    "kind": "contain-crosswalk",
+    "profile": "iicp->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.2 / §13.4.3",
+    "derivation": "Same narrowing as vectors/ccx-iicp-001.json, which is left unchanged: 10 kW to 2.5 kW, 7200 s to 900 s, groups [1,2,3] to [2]. The tighter CIDR and window are recorded for the governor. Contains decides on the identifier and the parameters.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:*",
+          "params": {"circuit_groups": [1, 2, 3], "duration_sec": 7200, "max_shed_kw": 10},
+          "constraints": [
+            "varwof/constraint-v1:network:cidr:[\"10.0.0.0/16\"]",
+            "varwof/constraint-v1:time:window:[{\"end\":\"18:00\",\"start\":\"08:00\"}]"
+          ]
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"circuit_groups": [2], "duration_sec": 900, "max_shed_kw": 2.5},
+          "constraints": [
+            "varwof/constraint-v1:network:cidr:[\"10.0.1.0/24\"]",
+            "varwof/constraint-v1:time:window:[{\"end\":\"15:00\",\"start\":\"14:00\"}]"
+          ]
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-database-narrow-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "Query class narrowed to SELECT. max_rows 100 is under the parent upper bound 1000. The child table set is included in the parent set.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "std/database-v1:query:*",
+          "params": {"max_rows": 1000, "tables": ["orders", "customers"]}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "std/database-v1:query:SELECT",
+          "params": {"max_rows": 100, "tables": ["orders"]}
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-equal-set-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "Inclusion is subset-or-equal. Equal enum members in a different order still contain. A params number is an upper bound, so an equal number contains.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "std/database-v1:query:SELECT",
+          "params": {"max_rows": 100, "tables": ["orders", "customers"]}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "std/database-v1:query:SELECT",
+          "params": {"max_rows": 100, "tables": ["customers", "orders"]}
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-parent-unconstrained-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3 Rule 6",
+    "derivation": "A parent that omits params is unconstrained. The child may declare keys.",
+    "parent_source": {
+      "capabilities": [{"id": "example/power-v1:curtail:*"}]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"max_shed_kw": 2.5, "duration_sec": 900}
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-step-coarser-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "Child step 3 equals 3 times parent step 1, so the coarser grid narrows. The carrier shorthand step_not_multiple does not fire.",
+    "carrier_shorthand": "step_not_multiple",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {"min": 0, "max": 10, "step": 1}}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {"min": 0, "max": 10, "step": 3}}
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-vacuous-enum-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "An empty child array under a non-empty parent array is a vacuous inclusion. The other keys still narrow.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:*",
+          "params": {"circuit_groups": [1, 2, 3], "duration_sec": 7200, "max_shed_kw": 10}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"circuit_groups": [], "duration_sec": 900, "max_shed_kw": 2.5}
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-nested-object-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "Nested objects require the same keys and recurse. The nested limit is an upper bound and narrows from 100 to 25. The nested string stays exact.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "std/database-v1:query:SELECT",
+          "params": {"filter": {"table": "orders", "limit": 100}}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "std/database-v1:query:SELECT",
+          "params": {"filter": {"table": "orders", "limit": 25}}
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-specific-wildcard-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.2",
+    "derivation": "A broader parent wildcard covers a more-specific child wildcard on a segment boundary. The star matches one or more segments.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:*",
+          "params": {"max_shed_kw": 10}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups:*",
+          "params": {"max_shed_kw": 2.5}
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-identical-wildcard-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.2",
+    "derivation": "Identical wildcards cover each other when the parameters narrow or stay equal.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:*",
+          "params": {"max_shed_kw": 10}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:*",
+          "params": {"max_shed_kw": 10}
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-empty-bound-identity-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §6.5 / §13.4.3",
+    "derivation": "An empty param_bounds object on a declared key is key closure only. The child may add a numeric family under that key.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {}}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {"min": 1, "max": 4, "step": 1}}
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-nested-bounds-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "Nested param_bounds recurse. The child max is lowered and the child enum is included in the parent enum.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "std/database-v1:query:SELECT",
+          "param_bounds": {
+            "query": {
+              "nested": {
+                "limit": {"max": 100},
+                "table": {"enum": ["orders", "customers"]}
+              }
+            }
+          }
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "std/database-v1:query:SELECT",
+          "param_bounds": {
+            "query": {
+              "nested": {
+                "limit": {"max": 25},
+                "table": {"enum": ["orders"]}
+              }
+            }
+          }
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-time-leak-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.4",
+    "derivation": "The child window 17:00-19:00 is not inside the parent window 08:00-18:00. Contains still holds because constraints are outside the relation. The governor, on the union axis, keeps the parent window. Carrier shorthand time_window_not_contained is not a Contains code.",
+    "carrier_shorthand": "time_window_not_contained",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"max_shed_kw": 10},
+          "constraints": [
+            "varwof/constraint-v1:time:window:[{\"end\":\"18:00\",\"start\":\"08:00\"}]"
+          ]
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"max_shed_kw": 10},
+          "constraints": [
+            "varwof/constraint-v1:time:window:[{\"end\":\"19:00\",\"start\":\"17:00\"}]"
+          ]
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-cidr-escape-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.4",
+    "derivation": "10.1.0.0/24 is outside 10.0.0.0/16. Contains still holds. The parent CIDR stays on the union axis for the execution sentinel. Carrier shorthand cidr_not_contained is not a Contains code.",
+    "carrier_shorthand": "cidr_not_contained",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"max_shed_kw": 10},
+          "constraints": [
+            "varwof/constraint-v1:network:cidr:[\"10.0.0.0/16\"]"
+          ]
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"max_shed_kw": 10},
+          "constraints": [
+            "varwof/constraint-v1:network:cidr:[\"10.1.0.0/24\"]"
+          ]
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-sentinel-dropped-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.4",
+    "derivation": "The child omits the parent telemetry sentinel. Contains still holds. The governor unions the parent sentinel back onto the execution and will not actuate while that residual is unknown or violated.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"max_shed_kw": 10},
+          "constraints": ["emilia/telemetry-v1:redundant_power_path"]
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"max_shed_kw": 10},
+          "constraints": []
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-complex-domain-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "A filesystem path is an exact string for Contains and a BoundaryNotice for the carrier. complex_domain_risk does not deny containment.",
+    "carrier_shorthand": "complex_domain_risk",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"path": "/var/log/meter"}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"path": "/var/log/meter"}
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-bundle-any-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4",
+    "derivation": "A parent bundle contains the child when any one member does. The meter grant is a different namespace. The curtail wildcard contains the child. Canonical id order tries the meter grant first and still accepts on the second member.",
+    "parent_source": {
+      "capabilities": [
+        {"id": "example/meter-v1:read:site-01"},
+        {
+          "id": "example/power-v1:curtail:*",
+          "params": {"max_shed_kw": 10, "duration_sec": 7200}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"max_shed_kw": 2.5, "duration_sec": 900}
+        }
+      ]
+    },
+    "expect": {"contains": true}
+  },
+  {
+    "id": "clc-d-params-exceed-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3 / §13.5",
+    "derivation": "Child max_shed_kw 12 is above the parent upper bound 10. Carrier shorthand params_exceed_parent collapses to params_not_narrower.",
+    "carrier_shorthand": "params_exceed_parent",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:*",
+          "params": {"circuit_groups": [1, 2, 3], "duration_sec": 7200, "max_shed_kw": 10}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"circuit_groups": [2], "duration_sec": 900, "max_shed_kw": 12}
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "params_not_narrower"}
+  },
+  {
+    "id": "clc-d-undeclared-key-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3 / §13.5",
+    "derivation": "The child introduces extra_field, which the parent did not declare. Carrier shorthand undeclared_param_key collapses to params_not_narrower. Key sets must be equal once the parent declares any key.",
+    "carrier_shorthand": "undeclared_param_key",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:*",
+          "params": {"circuit_groups": [1, 2, 3], "duration_sec": 7200, "max_shed_kw": 10}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {
+            "circuit_groups": [2],
+            "duration_sec": 900,
+            "max_shed_kw": 2.5,
+            "extra_field": 1
+          }
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "params_not_narrower"}
+  },
+  {
+    "id": "clc-d-dropped-key-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "Dropping circuit_groups and duration_sec widens those axes to unconstrained. The child key set must equal the parent key set.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:*",
+          "params": {"circuit_groups": [1, 2, 3], "duration_sec": 7200, "max_shed_kw": 10}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"max_shed_kw": 2.5}
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "params_not_narrower"}
+  },
+  {
+    "id": "clc-d-step-mismatch-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3 / §13.5",
+    "derivation": "Child step 3 is not an integer multiple of parent step 2. Carrier shorthand step_not_multiple collapses to params_not_narrower.",
+    "carrier_shorthand": "step_not_multiple",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {"min": 0, "max": 10, "step": 2}}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {"min": 0, "max": 10, "step": 3}}
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "params_not_narrower"}
+  },
+  {
+    "id": "clc-d-step-finer-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "Child step 1 under parent step 2 admits points the parent excludes. A finer grid is not a multiple, so it does not narrow.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {"min": 0, "max": 10, "step": 2}}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {"min": 0, "max": 10, "step": 1}}
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "params_not_narrower"}
+  },
+  {
+    "id": "clc-d-step-omitted-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "The parent declares a step and the child omits it. Omitting the step widens the grid.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {"min": 0, "max": 10, "step": 1}}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {"min": 0, "max": 10}}
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "params_not_narrower"}
+  },
+  {
+    "id": "clc-d-min-lowered-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "A params number is an upper bound only. The lower bound lives in param_bounds.min. Child min -1 is below parent min 0.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {"min": 0, "max": 10, "step": 1}}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {"min": -1, "max": 10, "step": 1}}
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "params_not_narrower"}
+  },
+  {
+    "id": "clc-d-enum-escape-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "The child table set is not included in the parent set.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "std/database-v1:query:*",
+          "params": {"max_rows": 1000, "tables": ["orders", "customers"]}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "std/database-v1:query:SELECT",
+          "params": {"max_rows": 100, "tables": ["orders", "secrets"]}
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "params_not_narrower"}
+  },
+  {
+    "id": "clc-d-parent-empty-enum-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "A parent empty array denies the class inside Contains as params_not_narrower. empty_bound_denies_class remains the Authorize, Entail, and Intersect code.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "std/database-v1:query:SELECT",
+          "params": {"tables": []}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "std/database-v1:query:SELECT",
+          "params": {"tables": []}
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "params_not_narrower"}
+  },
+  {
+    "id": "clc-d-optional-widened-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "optional widens from required to optional. The numeric bounds are otherwise equal.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {"min": 0, "max": 10, "step": 1}}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {"min": 0, "max": 10, "step": 1, "optional": true}}
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "params_not_narrower"}
+  },
+  {
+    "id": "clc-d-cross-type-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "A string is not a narrowing of a number. JSON types stay exact. A boolean is not the number 1.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "std/database-v1:query:SELECT",
+          "params": {"max_rows": 100}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "std/database-v1:query:SELECT",
+          "params": {"max_rows": "100"}
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "params_not_narrower"}
+  },
+  {
+    "id": "clc-d-bool-mismatch-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.3",
+    "derivation": "Booleans match exactly. false is not contained in true.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"armed": true}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"armed": false}
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "params_not_narrower"}
+  },
+  {
+    "id": "clc-d-wildcard-escalation-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.2 / §13.5",
+    "derivation": "A literal parent does not cover a wildcard child. Carrier shorthand identifier_not_covered collapses to child_exceeds_parent.",
+    "carrier_shorthand": "identifier_not_covered",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"max_shed_kw": 10}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:*",
+          "params": {"max_shed_kw": 2.5}
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "child_exceeds_parent"}
+  },
+  {
+    "id": "clc-d-shorter-wildcard-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.2 / §13.5",
+    "derivation": "A shorter child wildcard escalates past the parent prefix. Coverage fails as child_exceeds_parent.",
+    "carrier_shorthand": "identifier_not_covered",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups:*",
+          "params": {"max_shed_kw": 10}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:*",
+          "params": {"max_shed_kw": 2.5}
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "child_exceeds_parent"}
+  },
+  {
+    "id": "clc-d-namespace-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4.2",
+    "derivation": "Namespace is scheme plus the first action segment. meter:read and power:curtail differ, so the code stays different_namespace.",
+    "parent_source": {
+      "capabilities": [{"id": "example/power-v1:curtail:*"}]
+    },
+    "child_source": {
+      "capabilities": [{"id": "example/meter-v1:read:site-01"}]
+    },
+    "expect": {"contains": false, "reason": "different_namespace"}
+  },
+  {
+    "id": "clc-d-bad-wildcard-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §3 / §13.4.1",
+    "derivation": "Layer 1 passes the grammar code through. A star that is not its own trailing segment is unsupported_wildcard, ahead of invalid_capability_id.",
+    "parent_source": {
+      "capabilities": [{"id": "example/power-v1:curtail:*"}]
+    },
+    "child_source": {
+      "capabilities": [{"id": "example/power-v1:curtail:ups*"}]
+    },
+    "expect": {"contains": false, "reason": "unsupported_wildcard"}
+  },
+  {
+    "id": "clc-d-binding-clash-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §6.5 / §13.4.1",
+    "derivation": "The same key in params and param_bounds is invalid_params_binding. Layer 1 does not rewrite that code as params_not_narrower.",
+    "parent_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "param_bounds": {"load_kw": {"max": 10}}
+        }
+      ]
+    },
+    "child_source": {
+      "capabilities": [
+        {
+          "id": "example/power-v1:curtail:ups-unit-01",
+          "params": {"load_kw": 5},
+          "param_bounds": {"load_kw": {"max": 5}}
+        }
+      ]
+    },
+    "expect": {"contains": false, "reason": "invalid_params_binding"}
+  },
+  {
+    "id": "clc-d-bundle-none-001",
+    "kind": "contain-crosswalk",
+    "profile": "clearinghouse->clc-v1",
+    "spec_clause": "draft-wei-capability-language-core-01 §13.4",
+    "derivation": "Neither parent member contains the child. The reported reason is the denial of the first id in UTF-8 order, example/meter-v1:read:site-01, which is different_namespace.",
+    "parent_source": {
+      "capabilities": [
+        {"id": "example/power-v1:curtail:other-unit"},
+        {"id": "example/meter-v1:read:site-01"}
+      ]
+    },
+    "child_source": {
+      "capabilities": [{"id": "example/power-v1:curtail:ups-unit-01"}]
+    },
+    "expect": {"contains": false, "reason": "different_namespace"}
+  }
+]

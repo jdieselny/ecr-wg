@@ -15,8 +15,8 @@ mod vector_runner;
 
 pub use error::Reason;
 pub use evaluator::{
-    evaluate_authorization, evaluate_containment, resolve, ContainmentResult, Decision, Grant,
-    Operation, Resolution, Verdict,
+    evaluate_authorization, evaluate_containment, evaluate_containment_any, resolve,
+    ContainmentResult, Decision, Grant, Operation, Resolution, Verdict,
 };
 pub use grammar::{parse_capability_id, CapabilityId};
 pub use lattice::LatticeState;

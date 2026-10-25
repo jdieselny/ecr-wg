@@ -193,6 +193,21 @@ struct Allowing<'a> {
     notices: Vec<BoundaryNotice>,
 }
 
+/// Contains(parent, child) for one grant pair (§13.4).
+///
+/// Layers, first failure wins:
+/// 1. Grant validity. Grammar and binding codes pass through.
+/// 2. Identifier coverage. `different_namespace`, otherwise
+///    `child_exceeds_parent`.
+/// 3. Parameter narrowing. Key closure, upper-bound numbers, enum
+///    inclusion, and `param_bounds` (min raised, max lowered, step an
+///    integer multiple) fail as `params_not_narrower`.
+///
+/// Constraints are the union axis (§13.4.4) and are not read here. A wider
+/// child window, CIDR, or a dropped sentinel does not change this result.
+/// `delegation_mode_not_narrower` is a binding-profile pre-check and is
+/// not produced here. Carrier shorthands collapse onto the two relation
+/// codes; see `docs/CLEARINGHOUSE_OPERATIONAL_PROFILE.md`.
 pub fn evaluate_containment(parent: &Grant, child: &Grant) -> ContainmentResult {
     let parent_id = match grammar::parse_capability_id(&parent.id) {
         Ok(id) => id,
@@ -230,6 +245,28 @@ pub fn evaluate_containment(parent: &Grant, child: &Grant) -> ContainmentResult 
         },
         Err(reason) => contain_fail(reason),
     }
+}
+
+/// Parent-bundle containment. The child is contained when any one parent
+/// grant contains it. Total failure reports the denial of the first parent
+/// in UTF-8 capability-id order. An empty bundle is `child_exceeds_parent`.
+pub fn evaluate_containment_any(parents: &[Grant], child: &Grant) -> ContainmentResult {
+    if parents.is_empty() {
+        return contain_fail(Reason::ChildExceedsParent);
+    }
+    let mut ordered: Vec<&Grant> = parents.iter().collect();
+    ordered.sort_by(|left, right| left.id.cmp(&right.id));
+    let mut first_fail = None;
+    for parent in ordered {
+        let result = evaluate_containment(parent, child);
+        if result.contains {
+            return result;
+        }
+        if first_fail.is_none() {
+            first_fail = Some(result);
+        }
+    }
+    first_fail.unwrap_or_else(|| contain_fail(Reason::ChildExceedsParent))
 }
 
 /// §8.5 Resolve. Terminal allow/deny decisions are returned unchanged.
@@ -471,5 +508,114 @@ mod tests {
             denied.reason.as_deref(),
             Some("redundant_power_path:violated")
         );
+    }
+
+    #[test]
+    fn containment_reason_codes_stay_on_the_stable_pair() {
+        let parent = grant(
+            "example/power-v1:curtail:*",
+            json!({"circuit_groups": [1, 2, 3], "duration_sec": 7200, "max_shed_kw": 10}),
+            &[],
+        );
+        let wider = grant(
+            "example/power-v1:curtail:ups-unit-01",
+            json!({"circuit_groups": [2], "duration_sec": 900, "max_shed_kw": 12}),
+            &[],
+        );
+        assert_eq!(
+            evaluate_containment(&parent, &wider).reason.as_deref(),
+            Some("params_not_narrower")
+        );
+        let extra = grant(
+            "example/power-v1:curtail:ups-unit-01",
+            json!({"circuit_groups": [2], "duration_sec": 900, "max_shed_kw": 2.5, "extra_field": 1}),
+            &[],
+        );
+        assert_eq!(
+            evaluate_containment(&parent, &extra).reason.as_deref(),
+            Some("params_not_narrower")
+        );
+        let literal = grant(
+            "example/power-v1:curtail:ups-unit-01",
+            json!({"circuit_groups": [1, 2, 3], "duration_sec": 7200, "max_shed_kw": 10}),
+            &[],
+        );
+        let star = grant(
+            "example/power-v1:curtail:*",
+            json!({"circuit_groups": [2], "duration_sec": 900, "max_shed_kw": 2.5}),
+            &[],
+        );
+        assert_eq!(
+            evaluate_containment(&literal, &star).reason.as_deref(),
+            Some("child_exceeds_parent")
+        );
+        let other = grant("example/meter-v1:read:site-01", json!({}), &[]);
+        assert_eq!(
+            evaluate_containment(&parent, &other).reason.as_deref(),
+            Some("different_namespace")
+        );
+
+        let step_two = bounds_grant(json!({"load_kw": {"min": 0, "max": 10, "step": 2}}));
+        let step_three = bounds_grant(json!({"load_kw": {"min": 0, "max": 10, "step": 3}}));
+        let step_one = bounds_grant(json!({"load_kw": {"min": 0, "max": 10, "step": 1}}));
+        assert_eq!(
+            evaluate_containment(&step_two, &step_three).reason.as_deref(),
+            Some("params_not_narrower")
+        );
+        assert!(evaluate_containment(&step_one, &step_three).contains);
+    }
+
+    #[test]
+    fn constraints_and_boundary_notices_do_not_decide_containment() {
+        let parent = grant(
+            "example/power-v1:curtail:ups-unit-01",
+            json!({"path": "/var/log/meter"}),
+            &[
+                "varwof/constraint-v1:network:cidr:[\"10.0.0.0/16\"]",
+                "varwof/constraint-v1:time:window:[{\"end\":\"18:00\",\"start\":\"08:00\"}]",
+                "emilia/telemetry-v1:redundant_power_path",
+            ],
+        );
+        let child = grant(
+            "example/power-v1:curtail:ups-unit-01",
+            json!({"path": "/var/log/meter"}),
+            &[
+                "varwof/constraint-v1:network:cidr:[\"10.1.0.0/24\"]",
+                "varwof/constraint-v1:time:window:[{\"end\":\"19:00\",\"start\":\"17:00\"}]",
+            ],
+        );
+        let result = evaluate_containment(&parent, &child);
+        assert!(result.contains, "{:?}", result.reason);
+        assert!(!result.boundary_notices.is_empty());
+    }
+
+    #[test]
+    fn parent_bundle_contains_when_any_member_does() {
+        let child = grant(
+            "example/power-v1:curtail:ups-unit-01",
+            json!({"max_shed_kw": 2.5}),
+            &[],
+        );
+        let meter = grant("example/meter-v1:read:site-01", json!({}), &[]);
+        let curtail = grant("example/power-v1:curtail:*", json!({"max_shed_kw": 10}), &[]);
+        let held = evaluate_containment_any(&[meter.clone(), curtail], &child);
+        assert!(held.contains, "{:?}", held.reason);
+
+        let other = grant("example/power-v1:curtail:other-unit", json!({}), &[]);
+        let missed = evaluate_containment_any(&[meter, other], &child);
+        assert_eq!(missed.reason.as_deref(), Some("different_namespace"));
+        assert_eq!(
+            evaluate_containment_any(&[], &child).reason.as_deref(),
+            Some("child_exceeds_parent")
+        );
+    }
+
+    fn bounds_grant(bounds: Value) -> Grant {
+        Grant {
+            id: "example/power-v1:curtail:ups-unit-01".into(),
+            params: None,
+            param_bounds: Some(bounds),
+            constraints: Vec::new(),
+        }
     }
 }

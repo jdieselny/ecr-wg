@@ -339,9 +339,9 @@ fn execute_property_case(case_val: &Value, _path: &Path, index: usize) -> Vector
 }
 
 fn run_contains(vector: &Value) -> Result<String, String> {
-    let parent = source_grant(vector.get("parent_source"))?;
+    let parents = source_grants(vector.get("parent_source"))?;
     let child = source_grant(vector.get("child_source"))?;
-    let result = evaluator::evaluate_containment(&parent, &child);
+    let result = evaluator::evaluate_containment_any(&parents, &child);
     let expect = vector.get("expect").cloned().unwrap_or(Value::Null);
     if let Some(flag) = expect.get("contains").and_then(Value::as_bool) {
         if result.contains != flag {
@@ -353,6 +353,15 @@ fn run_contains(vector: &Value) -> Result<String, String> {
         }
     } else if !result.contains {
         return Err(result.reason.unwrap_or_else(|| "contains false".into()));
+    }
+    if let Some(reason) = expect.get("reason").and_then(Value::as_str) {
+        let actual = result.reason.as_deref().unwrap_or("");
+        if actual != reason {
+            return Err(format!(
+                "contains={} reason={actual} expected {reason}",
+                result.contains
+            ));
+        }
     }
     Ok(if result.contains {
         "contains=true".into()
@@ -802,12 +811,27 @@ fn run_resolve(vector: &Value) -> Result<String, String> {
 }
 
 fn source_grant(source: Option<&Value>) -> Result<Grant, String> {
+    source_grants(source)?
+        .into_iter()
+        .next()
+        .ok_or_else(|| "empty capabilities".to_string())
+}
+
+/// Every capability on a parent source. The child side still uses the first
+/// capability: Contains is pairwise, and a bundle is existential over parents.
+fn source_grants(source: Option<&Value>) -> Result<Vec<Grant>, String> {
     let source = source.ok_or_else(|| "missing source".to_string())?;
     let caps = source
         .get("capabilities")
         .and_then(Value::as_array)
         .ok_or_else(|| "missing capabilities".to_string())?;
-    let cap = caps.first().ok_or_else(|| "empty capabilities".to_string())?;
+    if caps.is_empty() {
+        return Err("empty capabilities".into());
+    }
+    caps.iter().map(grant_from_capability).collect()
+}
+
+fn grant_from_capability(cap: &Value) -> Result<Grant, String> {
     Ok(Grant {
         id: cap
             .get("id")
@@ -1013,5 +1037,38 @@ mod tests {
         assert_eq!(report.outcomes.len(), 1184);
         assert_eq!(report.failed(), 0, "Failed: {}", report.failed());
         assert_eq!(report.passed(), 1184);
+    }
+
+    #[test]
+    fn clc_d_crosswalk_corpus_passes_with_stable_reasons() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("vectors/clc-d-crosswalk-vectors.json");
+        let report = run_vector_file(&path).unwrap();
+        assert_eq!(report.outcomes.len(), 34, "{}", report_text(&report));
+        assert_eq!(report.failed(), 0, "{}", report_text(&report));
+        let detail = |id: &str| {
+            report
+                .outcomes
+                .iter()
+                .find(|item| item.id == id)
+                .unwrap_or_else(|| panic!("missing {id}"))
+                .detail
+                .as_str()
+        };
+        assert_eq!(detail("clc-d-params-exceed-001"), "contains=false params_not_narrower");
+        assert_eq!(detail("clc-d-undeclared-key-001"), "contains=false params_not_narrower");
+        assert_eq!(detail("clc-d-step-mismatch-001"), "contains=false params_not_narrower");
+        assert_eq!(
+            detail("clc-d-wildcard-escalation-001"),
+            "contains=false child_exceeds_parent"
+        );
+        assert_eq!(detail("clc-d-namespace-001"), "contains=false different_namespace");
+        assert_eq!(detail("clc-d-bundle-none-001"), "contains=false different_namespace");
+        assert_eq!(detail("clc-d-bad-wildcard-001"), "contains=false unsupported_wildcard");
+        assert_eq!(detail("clc-d-binding-clash-001"), "contains=false invalid_params_binding");
+        assert_eq!(detail("clc-d-time-leak-001"), "contains=true");
+        assert_eq!(detail("clc-d-cidr-escape-001"), "contains=true");
+        assert_eq!(detail("clc-d-sentinel-dropped-001"), "contains=true");
+        assert_eq!(detail("clc-d-bundle-any-001"), "contains=true");
+        assert_eq!(detail("clc-d-power-narrow-001"), "contains=true");
     }
 }
