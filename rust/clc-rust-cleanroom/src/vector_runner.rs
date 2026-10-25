@@ -21,6 +21,11 @@ pub struct VectorOutcome {
     pub passed: bool,
     pub detail: String,
     pub elapsed: Duration,
+    /// Property cases only. Source order does not change the meet.
+    pub commutativity_verified: bool,
+    /// Property cases only. Every source was fed, and a successful meet
+    /// is a lower bound of each source.
+    pub full_source_coverage: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -175,7 +180,45 @@ pub fn report_text(report: &SuiteReport) -> String {
         passed = report.passed(),
         failed = report.failed(),
     ));
+    let property: Vec<_> = report
+        .outcomes
+        .iter()
+        .filter(|item| item.kind == "property")
+        .collect();
+    if !property.is_empty() {
+        let total = property.len();
+        let commutative = property
+            .iter()
+            .filter(|item| item.commutativity_verified)
+            .count();
+        let covered = property
+            .iter()
+            .filter(|item| item.full_source_coverage)
+            .count();
+        lines.push(format!(
+            "Commutativity verified: {} / {}",
+            grouped(commutative),
+            grouped(total)
+        ));
+        lines.push(format!(
+            "Full-source coverage verified: {} / {}",
+            grouped(covered),
+            grouped(total)
+        ));
+    }
     lines.join("\n")
+}
+
+fn grouped(n: usize) -> String {
+    let digits = n.to_string();
+    let mut out = String::new();
+    for (index, ch) in digits.chars().rev().enumerate() {
+        if index > 0 && index % 3 == 0 {
+            out.push(',');
+        }
+        out.push(ch);
+    }
+    out.chars().rev().collect()
 }
 
 fn execute_one(vector: &Value, path: &Path, index: usize) -> VectorOutcome {
@@ -218,6 +261,8 @@ fn execute_one(vector: &Value, path: &Path, index: usize) -> VectorOutcome {
             passed: true,
             detail,
             elapsed,
+            commutativity_verified: false,
+            full_source_coverage: false,
         },
         Err(detail) => VectorOutcome {
             id,
@@ -225,7 +270,21 @@ fn execute_one(vector: &Value, path: &Path, index: usize) -> VectorOutcome {
             passed: false,
             detail,
             elapsed,
+            commutativity_verified: false,
+            full_source_coverage: false,
         },
+    }
+}
+
+fn property_failure(id: String, elapsed: Duration, detail: &str) -> VectorOutcome {
+    VectorOutcome {
+        id,
+        kind: "property".into(),
+        passed: false,
+        detail: detail.to_string(),
+        elapsed,
+        commutativity_verified: false,
+        full_source_coverage: false,
     }
 }
 
@@ -238,103 +297,88 @@ fn execute_property_case(case_val: &Value, _path: &Path, index: usize) -> Vector
         .unwrap_or_else(|| format!("prop-{:04}", index + 1));
 
     let Some(sources_val) = case_val.get("sources").and_then(Value::as_array) else {
-        return VectorOutcome {
-            id,
-            kind: "property".into(),
-            passed: false,
-            detail: "missing sources array".into(),
-            elapsed: started.elapsed(),
-        };
+        return property_failure(id, started.elapsed(), "missing sources array");
     };
 
     let grants: Vec<Grant> = sources_val.iter().filter_map(as_grant).collect();
     if grants.len() != sources_val.len() {
-        return VectorOutcome {
-            id,
-            kind: "property".into(),
-            passed: false,
-            detail: "failed to parse all sources as grants".into(),
-            elapsed: started.elapsed(),
-        };
+        return property_failure(id, started.elapsed(), "failed to parse all sources as grants");
     }
 
     if grants.is_empty() {
-        return VectorOutcome {
-            id,
-            kind: "property".into(),
-            passed: false,
-            detail: "empty sources".into(),
-            elapsed: started.elapsed(),
-        };
+        return property_failure(id, started.elapsed(), "empty sources");
     }
 
     let fwd = compute_intersection(&grants);
-
     let mut rev_grants = grants.clone();
     rev_grants.reverse();
     let rev = compute_intersection(&rev_grants);
 
-    match (fwd, rev) {
-        (Err(f_err), Err(r_err)) => {
-            if f_err != r_err {
-                return VectorOutcome {
-                    id,
-                    kind: "property".into(),
-                    passed: false,
-                    detail: format!("commutativity mismatch: fwd={f_err}, rev={r_err}"),
-                    elapsed: started.elapsed(),
-                };
-            }
-            VectorOutcome {
-                id,
-                kind: "property".into(),
-                passed: true,
-                detail: format!("deny {f_err}"),
-                elapsed: started.elapsed(),
+    let (order_independent, order_detail) = match (&fwd, &rev) {
+        (Err(forward), Err(reverse)) if forward == reverse => (true, None),
+        (Err(forward), Err(reverse)) => (
+            false,
+            Some(format!("commutativity mismatch: fwd={forward}, rev={reverse}")),
+        ),
+        (Ok((forward_params, forward_constraints)), Ok((reverse_params, reverse_constraints))) => {
+            if forward_params != reverse_params {
+                (
+                    false,
+                    Some(format!(
+                        "commutativity params mismatch: fwd={forward_params:?}, rev={reverse_params:?}"
+                    )),
+                )
+            } else if forward_constraints != reverse_constraints {
+                (
+                    false,
+                    Some(format!(
+                        "commutativity constraints mismatch: fwd={forward_constraints:?}, rev={reverse_constraints:?}"
+                    )),
+                )
+            } else {
+                (true, None)
             }
         }
-        (Ok((f_params, f_cons)), Ok((r_params, r_cons))) => {
-            if f_params != r_params {
-                return VectorOutcome {
-                    id,
-                    kind: "property".into(),
-                    passed: false,
-                    detail: format!("commutativity params mismatch: fwd={f_params:?}, rev={r_params:?}"),
-                    elapsed: started.elapsed(),
-                };
-            }
-            if f_cons != r_cons {
-                return VectorOutcome {
-                    id,
-                    kind: "property".into(),
-                    passed: false,
-                    detail: format!("commutativity constraints mismatch: fwd={f_cons:?}, rev={r_cons:?}"),
-                    elapsed: started.elapsed(),
-                };
-            }
+        (Ok(_), Err(reverse)) => (
+            false,
+            Some(format!(
+                "commutativity violation: forward allowed, reverse denied with {reverse}"
+            )),
+        ),
+        (Err(forward), Ok(_)) => (
+            false,
+            Some(format!(
+                "commutativity violation: forward denied with {forward}, reverse allowed"
+            )),
+        ),
+    };
 
-            VectorOutcome {
-                id,
-                kind: "property".into(),
-                passed: true,
-                detail: "allow".into(),
-                elapsed: started.elapsed(),
-            }
+    // A denial has no meet to bound. Participation is the full source slice
+    // above. A successful meet must sit at or below every source.
+    let coverage = match &fwd {
+        Ok((params, constraints)) => intersection_covered_by_all(&grants, params, constraints),
+        Err(_) => Ok(()),
+    };
+    let full_source_coverage = coverage.is_ok();
+    let detail = if let Some(mismatch) = order_detail {
+        mismatch
+    } else if let Err(gap) = coverage {
+        format!("full-source coverage failed: {gap}")
+    } else {
+        match &fwd {
+            Err(code) => format!("deny {code}"),
+            Ok(_) => "allow".into(),
         }
-        (Ok(_), Err(r_err)) => VectorOutcome {
-            id,
-            kind: "property".into(),
-            passed: false,
-            detail: format!("commutativity violation: forward allowed, reverse denied with {r_err}"),
-            elapsed: started.elapsed(),
-        },
-        (Err(f_err), Ok(_)) => VectorOutcome {
-            id,
-            kind: "property".into(),
-            passed: false,
-            detail: format!("commutativity violation: forward denied with {f_err}, reverse allowed"),
-            elapsed: started.elapsed(),
-        },
+    };
+
+    VectorOutcome {
+        id,
+        kind: "property".into(),
+        passed: order_independent && full_source_coverage,
+        detail,
+        elapsed: started.elapsed(),
+        commutativity_verified: order_independent,
+        full_source_coverage,
     }
 }
 
@@ -611,6 +655,108 @@ fn union_constraints(grants: &[Grant]) -> Vec<String> {
     all.sort_by(|a, b| a.as_bytes().cmp(b.as_bytes()));
     all.dedup();
     all
+}
+
+/// Monotonic lower bound: `G_intersect ⊑ source` for every source that
+/// was fed to the meet. The source covers the intersection identifier,
+/// every source constraint survives in the union, and each declared
+/// source parameter is at least as wide as the meet.
+fn intersection_covered_by_all(
+    grants: &[Grant],
+    params: &Value,
+    constraints: &[String],
+) -> Result<(), String> {
+    if grants.is_empty() {
+        return Err("no source participated in the intersection".into());
+    }
+    let narrowest = narrow_identifier(grants)?;
+    let result_id = grammar::parse_capability_id(&narrowest).map_err(|reason| {
+        format!("intersection id {narrowest} failed to parse: {}", reason.code())
+    })?;
+    for source in grants {
+        let source_id = grammar::parse_capability_id(&source.id).map_err(|reason| {
+            format!("source {} failed to parse: {}", source.id, reason.code())
+        })?;
+        if grammar::covers(&source_id, &result_id).is_err() {
+            return Err(format!(
+                "source {} does not cover intersection {narrowest}",
+                source.id
+            ));
+        }
+        for constraint in &source.constraints {
+            if !constraints.iter().any(|got| got == constraint) {
+                return Err(format!(
+                    "source {} constraint is not covered by the intersection",
+                    source.id
+                ));
+            }
+        }
+        params_bounded_by_source(source, params)?;
+    }
+    Ok(())
+}
+
+fn params_bounded_by_source(source: &Grant, result: &Value) -> Result<(), String> {
+    let Some(params) = source.params.as_ref() else {
+        return Ok(());
+    };
+    if params.is_null() {
+        return Err(format!("source {} params are null", source.id));
+    }
+    let Value::Object(source_map) = params else {
+        return Err(format!("source {} params are not an object", source.id));
+    };
+    if source_map.is_empty() {
+        return Ok(());
+    }
+    let Value::Object(result_map) = result else {
+        return Err(format!(
+            "source {} intersection params are not an object",
+            source.id
+        ));
+    };
+    for (key, source_value) in source_map {
+        let Some(result_value) = result_map.get(key) else {
+            return Err(format!(
+                "source {} key {key} is missing from the intersection",
+                source.id
+            ));
+        };
+        if !value_bounded_by(result_value, source_value) {
+            return Err(format!(
+                "source {} does not cover intersection key {key}",
+                source.id
+            ));
+        }
+    }
+    Ok(())
+}
+
+/// `result` is narrower than or equal to `source` on one parameter value.
+fn value_bounded_by(result: &Value, source: &Value) -> bool {
+    match (result, source) {
+        (Value::Number(got), Value::Number(limit)) => match (got.as_f64(), limit.as_f64()) {
+            (Some(left), Some(right)) if left.is_finite() && right.is_finite() => left <= right,
+            _ => false,
+        },
+        (Value::String(got), Value::String(expected)) => got == expected,
+        (Value::Bool(got), Value::Bool(expected)) => got == expected,
+        (Value::Array(got), Value::Array(allowed)) => {
+            !allowed.is_empty()
+                && got
+                    .iter()
+                    .all(|item| allowed.iter().any(|member| values_match(item, member)))
+        }
+        (Value::Object(got), Value::Object(bound)) => {
+            !bound.is_empty()
+                && bound.keys().all(|key| got.contains_key(key))
+                && got.keys().all(|key| bound.contains_key(key))
+                && bound
+                    .iter()
+                    .all(|(key, value)| value_bounded_by(&got[key], value))
+        }
+        _ => false,
+    }
 }
 
 fn values_match(left: &Value, right: &Value) -> bool {
@@ -1037,6 +1183,63 @@ mod tests {
         assert_eq!(report.outcomes.len(), 1184);
         assert_eq!(report.failed(), 0, "Failed: {}", report.failed());
         assert_eq!(report.passed(), 1184);
+        assert!(report.outcomes.iter().all(|item| item.commutativity_verified));
+        assert!(report.outcomes.iter().all(|item| item.full_source_coverage));
+        let text = report_text(&report);
+        assert!(
+            text.contains("Commutativity verified: 1,184 / 1,184"),
+            "missing commutativity summary"
+        );
+        assert!(
+            text.contains("Full-source coverage verified: 1,184 / 1,184"),
+            "missing coverage summary"
+        );
+    }
+
+    #[test]
+    fn property_case_reports_a_source_that_fails_to_parse() {
+        let case = serde_json::json!({
+            "id": "prop-parse",
+            "sources": [
+                {"id": "std/database-v1:query:SELECT"},
+                {"params": {}}
+            ]
+        });
+        let outcome = execute_property_case(&case, Path::new("property-cases.json"), 0);
+        assert!(!outcome.passed);
+        assert!(!outcome.full_source_coverage);
+        assert!(
+            outcome.detail.contains("failed to parse all sources as grants"),
+            "{}",
+            outcome.detail
+        );
+    }
+
+    #[test]
+    fn coverage_failure_names_the_uncovered_source() {
+        let source = Grant {
+            id: "std/database-v1:query:SELECT".into(),
+            params: Some(serde_json::json!({"limit": 10})),
+            param_bounds: None,
+            constraints: vec!["varwof/constraint-v1:max_rows:10".into()],
+        };
+        let widened = intersection_covered_by_all(
+            &[source.clone()],
+            &serde_json::json!({"limit": 80}),
+            &["varwof/constraint-v1:max_rows:10".into()],
+        );
+        let err = widened.expect_err("a wider meet is not covered");
+        assert!(err.contains("std/database-v1:query:SELECT"), "{err}");
+        assert!(err.contains("limit"), "{err}");
+
+        let dropped = intersection_covered_by_all(
+            &[source],
+            &serde_json::json!({"limit": 10}),
+            &[],
+        );
+        let err = dropped.expect_err("a dropped constraint is not covered");
+        assert!(err.contains("std/database-v1:query:SELECT"), "{err}");
+        assert!(err.contains("constraint"), "{err}");
     }
 
     #[test]

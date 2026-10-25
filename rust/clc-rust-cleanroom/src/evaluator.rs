@@ -345,6 +345,79 @@ pub fn resolve(decision: &Decision, resolutions: &[Resolution], now: Option<&str
     }
 }
 
+/// Profile gate for one delegated use. Not a core verdict.
+///
+/// Authorize runs on the child. Deny stops. `Allow` and `AllowUnresolved`
+/// both build the parent-and-child constraint union before actuation.
+/// An empty union may actuate. Every obligation in a non-empty union has
+/// to be `Satisfied`. `Unknown` blocks. `Violated` denies with `{type}:violated`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ObligationGate {
+    ActuatePermitted,
+    Blocked,
+    Denied(String),
+}
+
+pub fn govern_delegated_execution(
+    parent: &Grant,
+    child: &Grant,
+    operation: &Operation,
+    resolutions: &[Resolution],
+) -> ObligationGate {
+    let decision = evaluate_authorization(std::slice::from_ref(child), Some(operation));
+    if decision.verdict == Verdict::Deny {
+        return ObligationGate::Denied(decision.reason.unwrap_or_else(|| "deny".into()));
+    }
+    let mut union = parent.constraints.clone();
+    union.extend(child.constraints.iter().cloned());
+    union.sort_by(|left, right| left.as_bytes().cmp(right.as_bytes()));
+    union.dedup();
+    if union.is_empty() {
+        return ObligationGate::ActuatePermitted;
+    }
+
+    let mut violated = None;
+    let mut unknown = false;
+    for obligation in &union {
+        let parts = resolutions
+            .iter()
+            .filter(|item| item.constraint == *obligation)
+            .map(|item| item.status);
+        match LatticeState::collapse(parts) {
+            LatticeState::Violated => {
+                if violated.is_none() {
+                    violated = Some(obligation_violation(obligation));
+                }
+            }
+            LatticeState::Unknown => unknown = true,
+            LatticeState::Satisfied => {}
+        }
+    }
+    if let Some(reason) = violated {
+        return ObligationGate::Denied(reason);
+    }
+    if unknown {
+        return ObligationGate::Blocked;
+    }
+    ObligationGate::ActuatePermitted
+}
+
+/// `{type}:violated`. A `sentinel:<name>` obligation reports `<name>`.
+fn obligation_violation(obligation: &str) -> String {
+    let ty = constraints::constraint_type_name(obligation);
+    let name = if ty == "sentinel" {
+        obligation
+            .rsplit_once(':')
+            .map(|(_, tail)| tail)
+            .filter(|tail| !tail.is_empty())
+            .unwrap_or("sentinel")
+            .to_string()
+    } else {
+        ty
+    };
+    format!("{name}:violated")
+}
+
 fn deny(reason: Reason, matched: Option<String>) -> Decision {
     Decision {
         verdict: Verdict::Deny,
@@ -608,6 +681,85 @@ mod tests {
             evaluate_containment_any(&[], &child).reason.as_deref(),
             Some("child_exceeds_parent")
         );
+    }
+
+    const GRID_SENTINEL: &str = "varwof/constraint-v1:sentinel:grid_curtailment_active";
+
+    fn sentinel_dropped_pair() -> (Grant, Grant, Operation) {
+        let parent = grant(
+            "example/power-v1:curtail:ups-unit-01",
+            json!({"max_shed_kw": 10}),
+            &[GRID_SENTINEL],
+        );
+        let child = grant(
+            "example/power-v1:curtail:ups-unit-01",
+            json!({"max_shed_kw": 10}),
+            &[],
+        );
+        let operation = Operation {
+            id: "example/power-v1:curtail:ups-unit-01".into(),
+            params: Some(json!({"max_shed_kw": 10})),
+        };
+        (parent, child, operation)
+    }
+
+    fn assert_child_allow_drops_parent_sentinel(parent: &Grant, child: &Grant, operation: &Operation) {
+        let contained = evaluate_containment(parent, child);
+        assert!(contained.contains, "{:?}", contained.reason);
+        let decision = evaluate_authorization(std::slice::from_ref(child), Some(operation));
+        assert_eq!(decision.verdict, Verdict::Allow);
+        assert!(decision.unresolved.is_empty());
+    }
+
+    #[test]
+    fn sentinel_dropped_parent_unknown_blocks_actuation() {
+        let (parent, child, operation) = sentinel_dropped_pair();
+        assert_child_allow_drops_parent_sentinel(&parent, &child, &operation);
+        let gate = govern_delegated_execution(
+            &parent,
+            &child,
+            &operation,
+            &[Resolution {
+                constraint: GRID_SENTINEL.into(),
+                status: LatticeState::Unknown,
+            }],
+        );
+        assert_eq!(gate, ObligationGate::Blocked);
+    }
+
+    #[test]
+    fn sentinel_dropped_parent_violated_denies_actuation() {
+        let (parent, child, operation) = sentinel_dropped_pair();
+        assert_child_allow_drops_parent_sentinel(&parent, &child, &operation);
+        let gate = govern_delegated_execution(
+            &parent,
+            &child,
+            &operation,
+            &[Resolution {
+                constraint: GRID_SENTINEL.into(),
+                status: LatticeState::Violated,
+            }],
+        );
+        assert_eq!(
+            gate,
+            ObligationGate::Denied("grid_curtailment_active:violated".into())
+        );
+    }
+
+    #[test]
+    fn sentinel_dropped_parent_satisfied_permits_actuation() {
+        let (parent, child, operation) = sentinel_dropped_pair();
+        assert_child_allow_drops_parent_sentinel(&parent, &child, &operation);
+        let gate = govern_delegated_execution(
+            &parent,
+            &child,
+            &operation,
+            &[Resolution {
+                constraint: GRID_SENTINEL.into(),
+                status: LatticeState::Satisfied,
+            }],
+        );
+        assert_eq!(gate, ObligationGate::ActuatePermitted);
     }
 
     fn bounds_grant(bounds: Value) -> Grant {

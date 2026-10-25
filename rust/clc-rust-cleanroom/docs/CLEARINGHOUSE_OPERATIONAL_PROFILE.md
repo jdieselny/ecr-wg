@@ -4,7 +4,7 @@
 **Profile id:** `clearinghouse->clc-v1`
 **Language:** `draft-wei-capability-language-core-01` (CLC-1.19)
 **Engine:** `clc-rust-cleanroom`, `evaluator::evaluate_containment` and `evaluator::evaluate_containment_any`
-**Workorder:** WO-20261025-134
+**Workorder:** WO-20261025-134; obligation-union gate hardened under WO-20261025-135
 
 This profile binds an external clearinghouse token to a CLC grant pair, runs the CLC-D containment gate, and hands residual constraints to an out-of-band governor. It does not add a constraint type, a reason code, or a verdict to the carrier-neutral core.
 
@@ -100,15 +100,17 @@ A database clearinghouse token maps the same way: the token names a workorder, a
 
 Authorize returns `AllowUnresolved` when a covering grant allows and its recognized-but-unevaluated constraints are non-empty. In this core those residuals are legal time windows, network CIDRs, and telemetry or physical sentinels. `max_rows` is evaluated in Authorize. Other constraint schemes follow the core rule already implemented: unknown schemes deny, while telemetry and sentinel forms residualize.
 
-The governor is outside the crate. Grid sensors, smart meters, and Watchtower discharge residuals. They do not extend the CLC type system.
+The governor is outside the core verdict. Grid sensors, smart meters, and Watchtower discharge residuals. They do not extend the CLC type system. `govern_delegated_execution` is the profile gate for one delegated use.
 
-On a delegated execution the governor builds the obligation set as the union of the parent grant's constraints and the child grant's constraints, then Resolve:
+The parent-and-child constraint union is an invariant of every delegated execution. The governor constructs that union before actuation, whether Authorize on the child returns `Allow` or `AllowUnresolved`. A child `Allow` whose own residual list is empty does not drop the parent obligations.
+
+On a delegated execution the governor builds the obligation set as the union of the parent grant's constraints and the child grant's constraints, then resolves each member:
 
 - A child window that sticks out past the parent window does not delete the parent window. The clock is judged against the parent obligation as well as the child obligation. A midnight-wrapping window is the pair of segments the core already accepts (`22:00→00:00` followed by `00:00→06:00`). That arithmetic belongs to the clock check inside Resolve, not to Contains.
 - A child CIDR outside the parent prefix does not delete the parent prefix. The source address has to satisfy the parent block. Bitwise prefix checks stay in the governor's network check.
 - A sentinel the child dropped is still in the union. `Unknown` does not actuate. `Violated` denies with `{type}:violated`. `Satisfied` from the sensor, meter, or Watchtower clears that one residual.
 
-Actuation waits until every residual in the union is `Satisfied`. `Allow` with an empty residual list needs no governor round-trip. `Deny` never reaches the governor.
+Actuation is permitted if and only if every obligation in the union is `Satisfied`. An empty union may actuate. `Unknown` blocks actuation. `Violated` denies execution. `Deny` from Authorize never reaches the governor.
 
 This is why a wider child constraint can still pass Contains. The parent's obligation remains in force at execution. The core stays carrier-neutral: it does not learn a grid-sensor type or a meter type.
 
@@ -117,7 +119,23 @@ This is why a wider child constraint can still pass Contains. The parent's oblig
 1. **Ingress.** The clearinghouse presents one child capability and one or more parent capabilities, plus the workorder id and the parent grant id. Those two ids are logged. They are not capability grammar.
 2. **Profile pre-check.** If the deployment defines delegation mode, it runs that lattice here. A failure is `delegation_mode_not_narrower` and stops the handoff. Deployments without that field skip this step.
 3. **CLC-D containment gate.** `evaluate_containment` for one parent, or `evaluate_containment_any` for a bundle. False stops the delegation. The stable reason is the one recorded on the receipt. Boundary notices are attached and do not by themselves stop the gate.
-4. **Execution sentinel.** At use, Authorize the operation against the child grant. `Deny` stops. `Allow` may actuate. `AllowUnresolved` hands the residual union (parent constraints and child constraints) to the governor. Resolve collapses each obligation. Actuation requires every obligation `Satisfied`.
+4. **Execution sentinel.** At use, Authorize the operation against the child grant. If Authorize returns Deny, execution terminates immediately. For both Allow and AllowUnresolved, the runtime governor constructs the obligation set as the union of parent constraints and child constraints.
+   - If the union is empty, Allow may actuate immediately.
+   - If the union contains obligations, the governor evaluates every residual:
+     - Unknown: Actuation BLOCKED (remains unresolved).
+     - Violated: Actuation TERMINATED (denied with `{type}:violated`).
+     - Satisfied: Obligation cleared.
+   Actuation is permitted if and only if EVERY obligation in the union is Satisfied.
+
+   Sentinel-dropped delegation keeps the parent sentinel in that union when the child omits it. The three states are invariants of this step:
+
+   | Case | Parent obligation | Governor |
+   | --- | --- | --- |
+   | `sentinel_dropped_parent_unknown` | `Unknown` | Actuation blocked. No actuation. |
+   | `sentinel_dropped_parent_violated` | `Violated` | Denied with `{type}:violated`. The fixture `varwof/constraint-v1:sentinel:grid_curtailment_active` denies as `grid_curtailment_active:violated`. |
+   | `sentinel_dropped_parent_satisfied` | `Satisfied` | Actuation permitted. The residual is cleared. |
+
+   Contains may still hold for the dropped sentinel. The execution sentinel is what blocks, denies, or permits.
 5. **SCITT / EP attestation.** An external receipt binds the workorder id, the parent and child capability ids, the containment boolean and reason (or the notices), the Authorize verdict, and the residual resolutions. This crate does not mint that receipt and does not define the COSE or SCITT bytes. The statement's CLC inputs are the values above, so a verifier can re-run Contains and Authorize without the clearinghouse's private vocabulary.
 
 ## 8. Corpus
