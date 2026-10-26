@@ -542,7 +542,7 @@ mod tests {
 
     #[test]
     fn telemetry_and_sentinel_obligations_residualize() {
-        let telemetry = "emilia/telemetry-v1:redundant_power_path";
+        let telemetry = "example/telemetry-v1:redundant_power_path";
         let outcome = evaluate_constraints(&[telemetry.into()], None);
         assert_eq!(outcome.unresolved, vec![telemetry.to_string()]);
         assert!(outcome.rejection.is_none());

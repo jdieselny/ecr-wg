@@ -4,6 +4,13 @@ Deterministic Independent Cleanroom Implementation of the **Capability Language 
 
 Authored by **Justin D. Kintzele (J Diesel NY / ECR-WG)** in response to the direct standards-track invitation from CLC author **Jijie Wei** (`pki@varwof.com`).
 
+This crate implements and provides conformance evidence for:
+
+1. **CLC-A Core Conformance Profile (§13.1):** 154/154 Core Vectors, 1,184/1,184 Property Cases (including commutativity and full-source coverage).
+2. **CLC-D Clearinghouse Operational Profile (§13.4, §13.5):** 34/34 Crosswalk Vectors, parent-bundle containment, and delegated obligation union governance. `govern_delegated_execution` enforces `Contains(parent, child)` before the parent-child constraint union. A child that is not contained returns `ObligationGate::Denied` with the containment reason.
+
+Extended §6.6 `param_bounds` Meet and full §12.1 general resolution are scoped to follow-on milestone profiles. The 34 crosswalk vectors are this crate's clearinghouse binding evidence. They are not a substitute for the official CLC-D corpus or for a `clc-profile-declarations-v1` declaration.
+
 ---
 
 ## 1. Cleanroom Mandate & Independence Invariant
@@ -53,50 +60,15 @@ This crate was built under strict cleanroom isolation to satisfy the project's *
 
 ### Unit Test Suite
 ```bash
-cargo test
+cargo test --lib
 ```
 
-```text
-running 37 tests
-test constraints::tests::max_rows_exact_bound_allows_and_outside_domain_violates ... ok
-test constraints::tests::telemetry_and_sentinel_obligations_residualize ... ok
-test grammar::tests::product_containing_dash_v_is_rejected ... ok
-test constraints::tests::time_and_network_grammar_and_residuals ... ok
-test evaluator::tests::clc_2_is_an_unsupported_language_revision ... ok
-test evaluator::tests::constraints_and_boundary_notices_do_not_decide_containment ... ok
-test evaluator::tests::empty_grants_and_forbidden_wildcard_use_stable_reasons ... ok
-test evaluator::tests::parent_bundle_contains_when_any_member_does ... ok
-test grammar::tests::class_position_star_is_a_namespace_before_it_is_an_invalid_id ... ok
-test grammar::tests::forbidden_wildcard_shapes_precede_generic_grammar ... ok
-test evaluator::tests::ccx_style_containment_holds_for_the_narrowed_shed ... ok
-test grammar::tests::revision_major_above_one_is_unsupported ... ok
-test grammar::tests::wildcard_matches_one_or_more_segments_on_a_boundary ... ok
-test lattice::tests::meet_is_the_greatest_lower_bound ... ok
-test evaluator::tests::telemetry_sentinel_stays_unresolved_until_a_violated_source_joins ... ok
-test grammar::tests::accepts_literal_and_trailing_wildcard ... ok
-test parameters::tests::boundary_notice_cites_parameter_risk_draft ... ok
-test lattice::tests::join_satisfied_unknown_and_unknown_identity ... ok
-test evaluator::tests::containment_reason_codes_stay_on_the_stable_pair ... ok
-test lattice::tests::sentinel_collapse_is_deterministic ... ok
-test lattice::tests::join_violated_absorbs_every_other_status ... ok
-test parameters::tests::decoded_jcs_length_matches_the_canonical_spelling ... ok
-test grammar::tests::literal_mismatch_and_equivalent_wildcards ... ok
-test parameters::tests::enum_member_missing_key_and_undeclared_key ... ok
-test parameters::tests::leading_bom_outranks_size ... ok
-test parameters::tests::jcs_number_spelling_and_safe_integer_bound ... ok
-test parameters::tests::numeric_lower_bound_tightens_and_boolean_is_not_a_number ... ok
-test parameters::tests::raw_params_reject_size_duplicates_surrogates_and_over_precision ... ok
-test tests::evaluate_dispatches_containment ... ok
-test parameters::tests::scalar_upper_bound_set_inclusion_and_key_closure ... ok
-test constraints::tests::clock_outside_window_is_violated_and_cidr_nesting_holds ... ok
-test vector_runner::tests::clc_d_crosswalk_corpus_passes_with_stable_reasons ... ok
-test evaluator::tests::authorize_residualizes_time_and_network_then_clock_denies ... ok
-test vector_runner::tests::prop_0011_empty_bound_denies_class_commutatively ... ok
-test vector_runner::tests::property_cases_suite_passes_all_1184_cases ... ok
-test vector_runner::tests::reporters_emit_json_and_junit ... ok
-test vector_runner::tests::published_ccx_vector_passes_and_is_under_a_millisecond ... ok
+Library unit tests pass under `#![forbid(unsafe_code)]` and `RUSTFLAGS=-D warnings`. The delegated-execution tests deny a child identifier the parent does not cover (`child_exceeds_parent`) and parameters that are not narrower (`params_not_narrower`) even when the child grant would authorize the operation on its own.
 
-test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+```text
+running 44 tests
+...
+test result: ok. 44 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
 ```
 
 ### Core Vector Suite (154/154)
@@ -113,7 +85,7 @@ PASS  params-070  entail  0.046 ms  allow
 
 ### Property Cases Suite (1,184/1,184)
 ```bash
-cargo run -- --vector vectors/property-cases.json
+cargo run -- --property-cases vectors/property-cases.json
 ```
 ```text
 CLC cleanroom  draft-wei-capability-language-core  CLC-1.19
@@ -121,6 +93,8 @@ PASS  prop-0001  property  0.080 ms  allow
 ...
 PASS  prop-1184  property  0.079 ms  deny empty_bound_denies_class
 1184 passed, 0 failed
+Commutativity verified: 1,184 / 1,184
+Full-source coverage verified: 1,184 / 1,184
 ```
 
 ### CLC-D Crosswalk Suite (34/34)

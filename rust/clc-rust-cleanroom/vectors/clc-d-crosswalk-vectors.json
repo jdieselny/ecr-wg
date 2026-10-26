@@ -354,7 +354,7 @@
         {
           "id": "example/power-v1:curtail:ups-unit-01",
           "params": {"max_shed_kw": 10},
-          "constraints": ["emilia/telemetry-v1:redundant_power_path"]
+          "constraints": ["example/telemetry-v1:redundant_power_path"]
         }
       ]
     },

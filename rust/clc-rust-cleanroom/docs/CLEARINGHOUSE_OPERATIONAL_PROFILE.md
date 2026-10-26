@@ -4,7 +4,7 @@
 **Profile id:** `clearinghouse->clc-v1`
 **Language:** `draft-wei-capability-language-core-01` (CLC-1.19)
 **Engine:** `clc-rust-cleanroom`, `evaluator::evaluate_containment` and `evaluator::evaluate_containment_any`
-**Workorder:** WO-20261025-134; obligation-union gate hardened under WO-20261025-135
+**Workorder:** WO-20261025-134; obligation-union gate hardened under WO-20261025-135; containment entry gate under WO-20261026-136
 
 This profile binds an external clearinghouse token to a CLC grant pair, runs the CLC-D containment gate, and hands residual constraints to an out-of-band governor. It does not add a constraint type, a reason code, or a verdict to the carrier-neutral core.
 
@@ -45,7 +45,7 @@ Constraints are outside the relation (§13.4.4). Folding time windows, CIDRs, or
 
 - `clc-d-time-leak-001`: child window `17:00–19:00` against parent `08:00–18:00` still contains.
 - `clc-d-cidr-escape-001`: `10.1.0.0/24` against parent `10.0.0.0/16` still contains.
-- `clc-d-sentinel-dropped-001`: a child that drops `emilia/telemetry-v1:redundant_power_path` still contains.
+- `clc-d-sentinel-dropped-001`: a child that drops `example/telemetry-v1:redundant_power_path` still contains.
 
 The execution sentinel, not Contains, refuses those leaks. See section 6.
 
@@ -102,7 +102,9 @@ Authorize returns `AllowUnresolved` when a covering grant allows and its recogni
 
 The governor is outside the core verdict. Grid sensors, smart meters, and Watchtower discharge residuals. They do not extend the CLC type system. `govern_delegated_execution` is the profile gate for one delegated use.
 
-The parent-and-child constraint union is an invariant of every delegated execution. The governor constructs that union before actuation, whether Authorize on the child returns `Allow` or `AllowUnresolved`. A child `Allow` whose own residual list is empty does not drop the parent obligations.
+`govern_delegated_execution` enforces `Contains(parent, child)` as its entry gate before it evaluates the parent-child constraint union. A delegation whose child is not contained returns `ObligationGate::Denied` with the containment reason (`child_exceeds_parent`, `params_not_narrower`, or the grant-validity code that failed). The union is not built. A caller cannot skip containment by invoking this function directly.
+
+The parent-and-child constraint union is an invariant of every delegated execution that has already passed that gate. The governor constructs that union before actuation, whether Authorize on the child returns `Allow` or `AllowUnresolved`. A child `Allow` whose own residual list is empty does not drop the parent obligations.
 
 On a delegated execution the governor builds the obligation set as the union of the parent grant's constraints and the child grant's constraints, then resolves each member:
 
@@ -110,7 +112,7 @@ On a delegated execution the governor builds the obligation set as the union of 
 - A child CIDR outside the parent prefix does not delete the parent prefix. The source address has to satisfy the parent block. Bitwise prefix checks stay in the governor's network check.
 - A sentinel the child dropped is still in the union. `Unknown` does not actuate. `Violated` denies with `{type}:violated`. `Satisfied` from the sensor, meter, or Watchtower clears that one residual.
 
-Actuation is permitted if and only if every obligation in the union is `Satisfied`. An empty union may actuate. `Unknown` blocks actuation. `Violated` denies execution. `Deny` from Authorize never reaches the governor.
+Actuation is permitted if and only if containment holds and every obligation in the union is `Satisfied`. An empty union may actuate. `Unknown` blocks actuation. `Violated` denies execution. A containment failure and an Authorize `Deny` both return `ObligationGate::Denied` and do not actuate.
 
 This is why a wider child constraint can still pass Contains. The parent's obligation remains in force at execution. The core stays carrier-neutral: it does not learn a grid-sensor type or a meter type.
 
@@ -119,7 +121,8 @@ This is why a wider child constraint can still pass Contains. The parent's oblig
 1. **Ingress.** The clearinghouse presents one child capability and one or more parent capabilities, plus the workorder id and the parent grant id. Those two ids are logged. They are not capability grammar.
 2. **Profile pre-check.** If the deployment defines delegation mode, it runs that lattice here. A failure is `delegation_mode_not_narrower` and stops the handoff. Deployments without that field skip this step.
 3. **CLC-D containment gate.** `evaluate_containment` for one parent, or `evaluate_containment_any` for a bundle. False stops the delegation. The stable reason is the one recorded on the receipt. Boundary notices are attached and do not by themselves stop the gate.
-4. **Execution sentinel.** At use, Authorize the operation against the child grant. If Authorize returns Deny, execution terminates immediately. For both Allow and AllowUnresolved, the runtime governor constructs the obligation set as the union of parent constraints and child constraints.
+4. **Execution sentinel.** `govern_delegated_execution` enforces `Contains(parent, child)` as its entry gate before the parent-child constraint union. Any delegation attempt where the child is not contained within the parent returns `ObligationGate::Denied` with the containment reason and does not evaluate the union.
+   When containment holds, Authorize the operation against the child grant. If Authorize returns Deny, execution terminates immediately as `ObligationGate::Denied`. For both Allow and AllowUnresolved, the runtime governor constructs the obligation set as the union of parent constraints and child constraints.
    - If the union is empty, Allow may actuate immediately.
    - If the union contains obligations, the governor evaluates every residual:
      - Unknown: Actuation BLOCKED (remains unresolved).

@@ -347,10 +347,13 @@ pub fn resolve(decision: &Decision, resolutions: &[Resolution], now: Option<&str
 
 /// Profile gate for one delegated use. Not a core verdict.
 ///
-/// Authorize runs on the child. Deny stops. `Allow` and `AllowUnresolved`
-/// both build the parent-and-child constraint union before actuation.
-/// An empty union may actuate. Every obligation in a non-empty union has
-/// to be `Satisfied`. `Unknown` blocks. `Violated` denies with `{type}:violated`.
+/// `Contains(parent, child)` is the entry gate. A child that is not
+/// contained returns `Denied` with the containment reason and does not
+/// build the union. Authorize then runs on the child. Deny stops.
+/// `Allow` and `AllowUnresolved` both build the parent-and-child
+/// constraint union before actuation. An empty union may actuate. Every
+/// obligation in a non-empty union has to be `Satisfied`. `Unknown`
+/// blocks. `Violated` denies with `{type}:violated`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ObligationGate {
     ActuatePermitted,
@@ -364,6 +367,14 @@ pub fn govern_delegated_execution(
     operation: &Operation,
     resolutions: &[Resolution],
 ) -> ObligationGate {
+    let containment = evaluate_containment(parent, child);
+    if !containment.contains {
+        return ObligationGate::Denied(
+            containment
+                .reason
+                .unwrap_or_else(|| "child_not_contained".into()),
+        );
+    }
     let decision = evaluate_authorization(std::slice::from_ref(child), Some(operation));
     if decision.verdict == Verdict::Deny {
         return ObligationGate::Denied(decision.reason.unwrap_or_else(|| "deny".into()));
@@ -553,7 +564,7 @@ mod tests {
 
     #[test]
     fn telemetry_sentinel_stays_unresolved_until_a_violated_source_joins() {
-        let telemetry = "emilia/telemetry-v1:redundant_power_path";
+        let telemetry = "example/telemetry-v1:redundant_power_path";
         let grants = [Grant {
             id: "example/power-v1:curtail:ups-unit-01".into(),
             params: None,
@@ -646,7 +657,7 @@ mod tests {
             &[
                 "varwof/constraint-v1:network:cidr:[\"10.0.0.0/16\"]",
                 "varwof/constraint-v1:time:window:[{\"end\":\"18:00\",\"start\":\"08:00\"}]",
-                "emilia/telemetry-v1:redundant_power_path",
+                "example/telemetry-v1:redundant_power_path",
             ],
         );
         let child = grant(
@@ -760,6 +771,66 @@ mod tests {
             }],
         );
         assert_eq!(gate, ObligationGate::ActuatePermitted);
+    }
+
+    #[test]
+    fn delegated_execution_denies_an_identifier_the_parent_does_not_cover() {
+        let parent = grant(
+            "example/power-v1:curtail:ups-unit-01",
+            json!({"max_shed_kw": 10}),
+            &[],
+        );
+        let child = grant(
+            "example/power-v1:curtail:ups-unit-01:extra",
+            json!({"max_shed_kw": 2.5}),
+            &[],
+        );
+        let operation = Operation {
+            id: "example/power-v1:curtail:ups-unit-01:extra".into(),
+            params: Some(json!({"max_shed_kw": 2.5})),
+        };
+        assert_eq!(
+            evaluate_containment(&parent, &child).reason.as_deref(),
+            Some("child_exceeds_parent")
+        );
+        assert_eq!(
+            evaluate_authorization(std::slice::from_ref(&child), Some(&operation)).verdict,
+            Verdict::Allow
+        );
+        assert_eq!(
+            govern_delegated_execution(&parent, &child, &operation, &[]),
+            ObligationGate::Denied("child_exceeds_parent".into())
+        );
+    }
+
+    #[test]
+    fn delegated_execution_denies_parameters_that_are_not_narrower() {
+        let parent = grant(
+            "example/power-v1:curtail:ups-unit-01",
+            json!({"max_shed_kw": 10}),
+            &[],
+        );
+        let child = grant(
+            "example/power-v1:curtail:ups-unit-01",
+            json!({"max_shed_kw": 12}),
+            &[],
+        );
+        let operation = Operation {
+            id: "example/power-v1:curtail:ups-unit-01".into(),
+            params: Some(json!({"max_shed_kw": 2.5})),
+        };
+        assert_eq!(
+            evaluate_containment(&parent, &child).reason.as_deref(),
+            Some("params_not_narrower")
+        );
+        assert_eq!(
+            evaluate_authorization(std::slice::from_ref(&child), Some(&operation)).verdict,
+            Verdict::Allow
+        );
+        assert_eq!(
+            govern_delegated_execution(&parent, &child, &operation, &[]),
+            ObligationGate::Denied("params_not_narrower".into())
+        );
     }
 
     fn bounds_grant(bounds: Value) -> Grant {
