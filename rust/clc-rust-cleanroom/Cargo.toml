@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 authors = ["Justin D. Kintzele <jkintzele@jdieselny.com>", "J Diesel NY, LLC"]
 license = "Apache-2.0"
-description = "Independent Cleanroom Implementation of the Capability Language Core (CLC-A Core Conformance Profile & CLC-D Clearinghouse Profile)"
+description = "Independent cleanroom Rust engine for Capability Language Core (CLC-A Core Corpus Conformance)"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }

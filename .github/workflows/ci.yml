@@ -1,5 +1,5 @@
-# Executable CI for jdieselny/ecr-wg. The crate-local copy is
-# rust/clc-rust-cleanroom/.github/workflows/ci.yml.
+# CLC cleanroom CI. This file and rust/clc-rust-cleanroom/.github/workflows/ci.yml
+# are identical. GitHub Actions loads the repository-root copy.
 # working-directory keeps every cargo and leash step inside the crate.
 name: ci
 
@@ -21,10 +21,10 @@ jobs:
         working-directory: rust/clc-rust-cleanroom
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Rust 1.99.0
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master 2026-10-16
         with:
           toolchain: "1.99.0"
           components: clippy, rustfmt

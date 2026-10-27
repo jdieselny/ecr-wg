@@ -1,21 +1,25 @@
 # `clc-rust-cleanroom`
 
-Deterministic Independent Cleanroom Implementation of the **Capability Language Core (CLC)** (`draft-wei-capability-language-core`, CLC-1.19).
+Deterministic Independent Cleanroom Implementation of the **Capability Language Core (CLC)** (`draft-wei-capability-language-core-01`, CLC-1.19). The locked claim is the CLC-A core corpus under Section 12.
 
 Authored by **Justin D. Kintzele (J Diesel NY / ECR-WG)** in response to the direct standards-track invitation from CLC author **Jijie Wei** (`pki@varwof.com`).
 
 This crate implements and provides conformance evidence for:
 
-1. **CLC-A Core Conformance (Section 12):** 154/154 core vectors and 1,184/1,184 property cases, including commutativity and full-source coverage. Section 12 is the authority for CLC-A core conformance. Section 13.1 is the Motivation overview of Section 13.
-2. **CLC-D Clearinghouse Operational Profile (§13.4, §13.5):** The 34 `clc-d-*` crosswalks are binding evidence for this profile, together with parent-bundle containment and delegated obligation union governance. `govern_delegated_execution` enforces `Contains(parent, child)` before the parent-child constraint union. A child that is not contained returns `ObligationGate::Denied` with the containment reason.
+1. **CLC-A Core Corpus Conformance (154/154 Core Vectors & 1,184/1,184 Property Cases)** under Section 12. Section 12 is the authority for this claim. Section 13.1 is the Motivation overview of Section 13. The counted evidence is 154 core vectors and 1,184 property cases, including commutativity and full-source coverage.
+2. **CLC-D Clearinghouse Operational Profile (§13.4, §13.5):** The 34 `clc-d-*` crosswalks are binding evidence for this profile, together with parent-bundle containment and delegated obligation union governance. `govern_delegated_execution` enforces `Contains(parent, child)` before the parent-child constraint union. A child that is not contained returns `ObligationGate::Denied` with the containment reason. These 34 vectors do not carry an official CLC-D claim.
 
-The full official CLC-D corpus is 45 `ccx-*` crosswalks, 64 containment vectors, 15 authorize-chain vectors, 3 reason-collapse vectors, and 784 property cases. The 34 `clc-d-*` vectors are binding clearinghouse operational profile evidence. They are not a replacement for that separate 45 `ccx-*` suite, and they are not a `clc-profile-declarations-v1` declaration.
+Follow-on CLC-1.19 extended language features (§6.6 meet, Resolve, ConstraintUnion) and the separate official CLC-D corpus (45 `ccx-*` crosswalks and 64 containment vectors) are tracked in subsequent milestones. The official CLC-D minimum is 64 containment vectors and 15 authorize-chain vectors. The clearinghouse profile corpora are 45 `ccx-*` crosswalks, 3 reason-collapse vectors, 5 mode-lattice vectors, and 784 containment property cases. The 34 `clc-d-*` vectors are not that corpus, and they are not a `clc-profile-declarations-v1` declaration.
 
-Extended §6.6 `param_bounds` Meet and full §12.1 general resolution are scoped to follow-on milestone profiles. **CLC-E (Evidence Profile)** is a separate profile. This engine does not cover it.
+**CLC-E (Evidence Profile)** is a separate profile. This engine does not cover it.
 
 The Rust 1.99.0 pin in `rust-toolchain.toml`, with `Cargo.lock` tracked, is for exact deterministic reproducibility. A secondary run on stable or Rust 1.98 that matches these results demonstrates cross-toolchain stability.
 
-Public CI for this crate is `rust/clc-rust-cleanroom/.github/workflows/ci.yml`, with the executable copy at the `jdieselny/ecr-wg` repository root, `.github/workflows/ci.yml`. GitHub Actions loads the root file. That job uses working directory `rust/clc-rust-cleanroom` and runs on `push` and `pull_request` to `main`.
+Public CI for this crate is the identical file `.github/workflows/ci.yml` at the `jdieselny/ecr-wg` repository root and at `rust/clc-rust-cleanroom/.github/workflows/ci.yml`. GitHub Actions loads the root file. The job working directory is `rust/clc-rust-cleanroom`. It runs on `push` and `pull_request` to `main`. `actions/checkout` and `dtolnay/rust-toolchain` are pinned to commit SHAs. The toolchain input remains Rust 1.99.0.
+
+## Conformance Reviewer & Independence Statement
+* **P12 Independence Bar:** Derived exclusively from the normative text of `draft-wei-capability-language-core-01`, public GitHub discussions, and published JSON test vectors. Zero inspection, reference, or access to varwof Go, Python, or TypeScript reference implementations. Vector files obtained by cryptographic hash and pinned on disk.
+* **Rerun Commitment:** Standing commitment to rerun the CLC-A core corpora upon each official specification and test vector revision published by the author.
 
 ---
 
