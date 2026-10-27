@@ -9,7 +9,7 @@ This crate implements and provides conformance evidence for:
 1. **CLC-A Core Corpus Conformance (154/154 Core Vectors & 1,184/1,184 Property Cases)** under Section 12. Section 12 is the authority for this claim. Section 13.1 is the Motivation overview of Section 13. The counted evidence is 154 core vectors and 1,184 property cases, including commutativity and full-source coverage.
 2. **CLC-D Clearinghouse Operational Profile (§13.4, §13.5):** The 34 `clc-d-*` crosswalks are binding evidence for this profile, together with parent-bundle containment and delegated obligation union governance. `govern_delegated_execution` enforces `Contains(parent, child)` before the parent-child constraint union. A child that is not contained returns `ObligationGate::Denied` with the containment reason. These 34 vectors do not carry an official CLC-D claim.
 
-Follow-on CLC-1.19 extended language features (§6.6 meet, Resolve, ConstraintUnion) and the separate official CLC-D corpus (45 `ccx-*` crosswalks and 64 containment vectors) are tracked in subsequent milestones. The official CLC-D minimum is 64 containment vectors and 15 authorize-chain vectors. The clearinghouse profile corpora are 45 `ccx-*` crosswalks, 3 reason-collapse vectors, 5 mode-lattice vectors, and 784 containment property cases. The 34 `clc-d-*` vectors are not that corpus, and they are not a `clc-profile-declarations-v1` declaration.
+Track B1 is the Section 12.1 minor-gate profile. A local Rust 1.99.0 release run of `--clc-v1` passed 668/668 required cases and 50/50 optional symmetry cases on the pinned `vectors/clc-v1/` suites. That run covers `param_bounds`, the §6.6 bound meet, Resolve, ConstraintUnion collation, quantity bounds, string domains, and CLC-SCHEME-v1 declarations. It does not replace the locked Section 12 core-corpus claim above, and it is not an official CLC-D record. The official CLC-D minimum is 64 containment vectors and 15 authorize-chain vectors. The clearinghouse profile corpora are 45 `ccx-*` crosswalks, 3 reason-collapse vectors, 5 mode-lattice vectors, and 784 containment property cases. The 34 `clc-d-*` vectors are not that corpus, and they are not a `clc-profile-declarations-v1` declaration. `vectors/clc-v1/profile-declarations.json` is outside the 668.
 
 **CLC-E (Evidence Profile)** is a separate profile. This engine does not cover it.
 
@@ -54,14 +54,31 @@ This crate was built under strict cleanroom isolation to satisfy the project's *
   - Step grids: Child step must be an integer multiple of parent step ($k \cdot \text{step}_P = \text{step}_C$).
   - Execution Union Axis: Time windows, network CIDRs, and physical sentinels remain on the execution union axis evaluated by the operational governor rather than prematurely failing the containment gate.
   - Complete operational lifecycle documented in [`docs/CLEARINGHOUSE_OPERATIONAL_PROFILE.md`](docs/CLEARINGHOUSE_OPERATIONAL_PROFILE.md).
-* **Constraints & Decision Pipeline (§8, §9, §13.4):**
+* **Parameter lattice meet (§6.6):**
+  - Bound meet over numeric intervals, enums, cardinality, nested bounds, and optional keys.
+  - An empty bound object is the identity for value families and still declares the key as required unless every source sets `optional: true`.
+  - An empty enum denies the class before the meet. A cross-family meet is `invalid_params_binding`.
+  - Distinct top-level keys union. Nested key sets must match or the meet is `no_overlap`.
+  - When both sides carry a step, the result keeps the coarser grid if one step is an integer multiple of the other, using the same binary64 test as parameter checks.
+* **Constraints, Resolve, and ConstraintUnion (§7.1, §8, §8.5, §9, §13.4):**
   - Evaluates `max_rows` bounds.
-  - Legal time and network CIDR windows—including midnight split intervals (`22:00→00:00` then `00:00→06:00`)—residualize as unresolved.
+  - Legal time and network CIDR windows—including midnight split intervals (`22:00→00:00` then `00:00→06:00`)—residualize as unresolved. A window end of `00:00` is the end of that day.
+  - Resolve keeps a terminal allow or deny unchanged. A malformed status or an empty constraint string is `invalid_resolution`. A malformed `now` is `invalid_timestamp`. Violated dominates satisfied and unknown.
+  - ConstraintUnion sorts by UTF-8 bytes, folds exact duplicates, and keeps every distinct string. An empty chain is `absent_source`.
   - Telemetry and physical sentinel obligations residualize safely.
   - Verdicts: `Allow`, `Deny`, `AllowUnresolved` with `unresolved_obligations()`.
+* **Quantity and string domains (§6.2):**
+  - Quantity amounts compare in the same unit after scale normalization. Authorize reports a different unit as `unit_mismatch`. Contains reports a different unit, or a wider amount, as `params_not_narrower`.
+  - A bare number mixed with an amount object is `invalid_params_binding`.
+  - String domains are `decimal-string`, `subdomain`, and `path-prefix`.
+* **Scheme declarations:**
+  - CLC-SCHEME-v1 declarations accept `bound`, `enum`, `quantity`, `subdomain`, `path-prefix`, and `decimal-string`.
+  - An unknown domain is `unsupported_domain`. A quantity without a unit, a bound that carries a unit, a missing scheme, or empty capabilities is `invalid_declaration`.
+  - A present digest must equal the SHA-256 of the declaration with the digest field removed. Otherwise the result is `declaration_digest_mismatch`.
 * **CLI & Test Vector Runner:**
-  - `cargo run -- --vector <path>`, `--property-cases <path>`, `--crosswalk <path>`, or `--dir <path>`.
+  - `cargo run -- --vector <path>`, `--property-cases <path>`, `--crosswalk <path>`, `--dir <path>`, or `--clc-v1`.
   - `--properties` is an alias of `--property-cases`. `--crosswalk` reads one crosswalk file through the same runner as `--vector`.
+  - Minor-gate flags: `--param-bounds`, `--param-bounds-meet`, `--resolve`, `--constraint-union`, `--scheme-declaration`, `--quantity`, `--string-domain`, and `--symmetry`.
   - Structured output reports: `--report text|json|junit`.
   - Exits with non-zero code on test failure.
 
@@ -118,6 +135,31 @@ PASS  clc-d-power-narrow-001  contain-crosswalk  0.080 ms  contains=true
 ...
 PASS  clc-d-bundle-none-001  contain-crosswalk  0.053 ms  contains=false different_namespace
 34 passed, 0 failed
+```
+
+### CLC-v1 minor-gate (668/668 required, 50/50 optional)
+
+```bash
+cargo run --release -- --clc-v1
+```
+
+Local Rust 1.99.0 release run on 2026-10-27, `RUSTFLAGS=-D warnings`, exit 0. The suites are pinned under `vectors/clc-v1/` in the working tree.
+
+```text
+suite                              cases  passed  failed
+param-bounds                          49      49       0
+param-bounds-equality                 11      11       0
+param-bounds-meet                     27      27       0
+param-bounds-meet-property           500     500       0
+resolve                               26      26       0
+constraint-union                      12      12       0
+constraint-union-collation             2       2       0
+scheme-declaration                     9       9       0
+quantity                               8       8       0
+string-domain                         24      24       0
+symmetry (optional)                   50      50       0
+REQUIRED                             668     668       0
+OPTIONAL                              50      50       0
 ```
 
 ### Published CCX Vector Execution

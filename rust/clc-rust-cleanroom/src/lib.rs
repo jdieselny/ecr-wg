@@ -10,6 +10,7 @@ mod error;
 mod evaluator;
 mod grammar;
 mod lattice;
+mod minor_gate;
 mod parameters;
 mod vector_runner;
 

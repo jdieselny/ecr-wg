@@ -8,6 +8,7 @@ use crate::error::Reason;
 use crate::evaluator::{self, Decision, Grant, Operation, Resolution, Verdict};
 use crate::grammar;
 use crate::lattice::LatticeState;
+use crate::minor_gate;
 use crate::parameters;
 use serde_json::Value;
 use std::fs;
@@ -58,6 +59,14 @@ pub fn run_vector_text(text: &str, path: &Path) -> Result<SuiteReport, Reason> {
 
     if let Value::Object(map) = &value {
         if let Some(Value::Array(cases)) = map.get("cases") {
+            if let Some(Value::Array(ops)) = map.get("ops") {
+                for (index, case_val) in cases.iter().enumerate() {
+                    report
+                        .outcomes
+                        .push(execute_bound_meet_property(case_val, ops, index));
+                }
+                return Ok(report);
+            }
             for (index, case_val) in cases.iter().enumerate() {
                 report.outcomes.push(execute_property_case(case_val, path, index));
             }
@@ -244,14 +253,27 @@ fn execute_one(vector: &Value, path: &Path, index: usize) -> VectorOutcome {
             "authorize"
         })
         .to_string();
-    let result = match kind.as_str() {
-        "contain-crosswalk" | "contains" => run_contains(vector),
-        "resolve" => run_resolve(vector),
-        "syntax" => run_syntax(vector),
-        "entail" => run_entail(vector),
-        "intersect" => run_intersect(vector),
-        "decide" => run_decide(vector),
-        _ => run_authorize(vector),
+    let result = if minor_gate::is_string_domain(vector) {
+        minor_gate::run_string_domain(vector)
+    } else if minor_gate::is_scheme_declaration(vector) {
+        minor_gate::run_scheme(vector)
+    } else {
+        match kind.as_str() {
+            "param-bounds" | "param-defaults" => minor_gate::run_param_bounds(vector),
+            "param-bounds-meet" => minor_gate::run_param_bounds_meet(vector),
+            "constraint-union" => minor_gate::run_constraint_union(vector),
+            "symmetry" => minor_gate::run_symmetry(vector),
+            "contain-crosswalk" => run_contains(vector),
+            "contains" if minor_gate::is_quantity(vector) => minor_gate::run_quantity(vector),
+            "contains" => run_contains(vector),
+            "resolve" => run_resolve(vector),
+            "syntax" => run_syntax(vector),
+            "entail" => run_entail(vector),
+            "intersect" => run_intersect(vector),
+            "decide" => run_decide(vector),
+            _ if minor_gate::is_quantity(vector) => minor_gate::run_quantity(vector),
+            _ => run_authorize(vector),
+        }
     };
     let elapsed = started.elapsed();
     match result {
@@ -273,6 +295,25 @@ fn execute_one(vector: &Value, path: &Path, index: usize) -> VectorOutcome {
             commutativity_verified: false,
             full_source_coverage: false,
         },
+    }
+}
+
+fn execute_bound_meet_property(case_val: &Value, ops: &[Value], index: usize) -> VectorOutcome {
+    let started = Instant::now();
+    let id = case_val
+        .get("id")
+        .and_then(Value::as_str)
+        .map(String::from)
+        .unwrap_or_else(|| format!("bmp-{:04}", index + 1));
+    let verdict = minor_gate::check_bound_meet_property(case_val, ops);
+    VectorOutcome {
+        id,
+        kind: "property".into(),
+        passed: verdict.passed,
+        detail: verdict.detail,
+        elapsed: started.elapsed(),
+        commutativity_verified: verdict.commutativity_verified,
+        full_source_coverage: verdict.full_source_coverage,
     }
 }
 
@@ -871,16 +912,31 @@ fn finish(
 ) -> Result<String, String> {
     let expect = vector.get("expect").cloned().unwrap_or(Value::Null);
     let expected_verdict = expect.get("verdict").and_then(Value::as_str).unwrap_or("");
-    let expected_reason = expect.get("reason").and_then(Value::as_str).unwrap_or("");
+    let expected_reason = match expect.get("reason") {
+        Some(Value::String(text)) => text.clone(),
+        Some(Value::Null) => "null".to_string(),
+        Some(other) => other.to_string(),
+        None => String::new(),
+    };
     let mut problems = Vec::new();
     if !expected_verdict.is_empty() && expected_verdict != verdict {
         problems.push(format!("verdict {verdict} != {expected_verdict}"));
     }
-    if expect.get("reason").is_some() && reason != Some(expected_reason) {
-        problems.push(format!(
-            "reason {} != {expected_reason}",
-            reason.unwrap_or("")
-        ));
+    match expect.get("reason") {
+        Some(Value::String(expected)) => {
+            if reason != Some(expected.as_str()) {
+                problems.push(format!("reason {} != {expected}", reason.unwrap_or("")));
+            }
+        }
+        Some(Value::Null) => {
+            if reason.is_some() {
+                problems.push(format!("reason {} != null", reason.unwrap_or("")));
+            }
+        }
+        Some(other) => {
+            problems.push(format!("reason {} != {other}", reason.unwrap_or("")));
+        }
+        None => {}
     }
     if let Some(list) = expect.get("unresolved").and_then(Value::as_array) {
         let expected = string_list(Some(&Value::Array(list.clone())));
@@ -930,7 +986,13 @@ fn run_authorize(vector: &Value) -> Result<String, String> {
 
 fn run_resolve(vector: &Value) -> Result<String, String> {
     let decision = parse_decision(vector.get("decision"))?;
-    let resolutions = parse_resolutions(vector.get("resolutions"))?;
+    let resolutions = match parse_resolutions(vector.get("resolutions")) {
+        Ok(items) => items,
+        Err(code) if code == "invalid_resolution" => {
+            return judge(vector, "deny", Some("invalid_resolution"), Some(&[]));
+        }
+        Err(other) => return Err(other),
+    };
     let now = vector.get("now").and_then(Value::as_str);
     let resolved = evaluator::resolve(&decision, &resolutions, now);
     let expect = vector.get("expect").cloned().unwrap_or(Value::Null);
@@ -1066,12 +1128,12 @@ fn parse_resolutions(value: Option<&Value>) -> Result<Vec<Resolution>, String> {
                 .and_then(Value::as_str)
                 .ok_or_else(|| "resolution constraint".to_string())?
                 .to_string();
-            let status = LatticeState::parse(
-                item.get("status")
-                    .and_then(Value::as_str)
-                    .ok_or_else(|| "resolution status".to_string())?,
-            )
-            .ok_or_else(|| "resolution status".to_string())?;
+            let status_text = item
+                .get("status")
+                .and_then(Value::as_str)
+                .ok_or_else(|| "invalid_resolution".to_string())?;
+            let status = LatticeState::parse(status_text)
+                .ok_or_else(|| "invalid_resolution".to_string())?;
             Ok(Resolution { constraint, status })
         })
         .collect()
