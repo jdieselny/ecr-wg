@@ -6,10 +6,16 @@ Authored by **Justin D. Kintzele (J Diesel NY / ECR-WG)** in response to the dir
 
 This crate implements and provides conformance evidence for:
 
-1. **CLC-A Core Conformance Profile (§13.1):** 154/154 Core Vectors, 1,184/1,184 Property Cases (including commutativity and full-source coverage).
-2. **CLC-D Clearinghouse Operational Profile (§13.4, §13.5):** 34/34 Crosswalk Vectors, parent-bundle containment, and delegated obligation union governance. `govern_delegated_execution` enforces `Contains(parent, child)` before the parent-child constraint union. A child that is not contained returns `ObligationGate::Denied` with the containment reason.
+1. **CLC-A Core Conformance (Section 12):** 154/154 core vectors and 1,184/1,184 property cases, including commutativity and full-source coverage. Section 12 is the authority for CLC-A core conformance. Section 13.1 is the Motivation overview of Section 13.
+2. **CLC-D Clearinghouse Operational Profile (§13.4, §13.5):** The 34 `clc-d-*` crosswalks are binding evidence for this profile, together with parent-bundle containment and delegated obligation union governance. `govern_delegated_execution` enforces `Contains(parent, child)` before the parent-child constraint union. A child that is not contained returns `ObligationGate::Denied` with the containment reason.
 
-Extended §6.6 `param_bounds` Meet and full §12.1 general resolution are scoped to follow-on milestone profiles. The 34 crosswalk vectors are this crate's clearinghouse binding evidence. They are not a substitute for the official CLC-D corpus or for a `clc-profile-declarations-v1` declaration.
+The full official CLC-D corpus is 45 `ccx-*` crosswalks, 64 containment vectors, 15 authorize-chain vectors, 3 reason-collapse vectors, and 784 property cases. The 34 `clc-d-*` vectors are binding clearinghouse operational profile evidence. They are not a replacement for that separate 45 `ccx-*` suite, and they are not a `clc-profile-declarations-v1` declaration.
+
+Extended §6.6 `param_bounds` Meet and full §12.1 general resolution are scoped to follow-on milestone profiles. **CLC-E (Evidence Profile)** is a separate profile. This engine does not cover it.
+
+The Rust 1.99.0 pin in `rust-toolchain.toml`, with `Cargo.lock` tracked, is for exact deterministic reproducibility. A secondary run on stable or Rust 1.98 that matches these results demonstrates cross-toolchain stability.
+
+Public CI for this crate is `rust/clc-rust-cleanroom/.github/workflows/ci.yml`, with the executable copy at the `jdieselny/ecr-wg` repository root, `.github/workflows/ci.yml`. GitHub Actions loads the root file. That job uses working directory `rust/clc-rust-cleanroom` and runs on `push` and `pull_request` to `main`.
 
 ---
 
@@ -50,7 +56,8 @@ This crate was built under strict cleanroom isolation to satisfy the project's *
   - Telemetry and physical sentinel obligations residualize safely.
   - Verdicts: `Allow`, `Deny`, `AllowUnresolved` with `unresolved_obligations()`.
 * **CLI & Test Vector Runner:**
-  - `cargo run -- --vector <path>`, `--property-cases <path>`, or `--dir <path>`.
+  - `cargo run -- --vector <path>`, `--property-cases <path>`, `--crosswalk <path>`, or `--dir <path>`.
+  - `--properties` is an alias of `--property-cases`. `--crosswalk` reads one crosswalk file through the same runner as `--vector`.
   - Structured output reports: `--report text|json|junit`.
   - Exits with non-zero code on test failure.
 

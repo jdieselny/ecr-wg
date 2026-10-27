@@ -1,6 +1,6 @@
 //! CLC cleanroom vector runner.
 //!
-//! `cargo run -- --vector <path>` or `cargo run -- --dir <path>`.
+//! `cargo run -- --vector <path>`, `--property-cases <path>`, `--crosswalk <path>`, or `--dir <path>`.
 
 #![forbid(unsafe_code)]
 
@@ -22,8 +22,13 @@ struct Args {
     vector: Option<PathBuf>,
 
     /// One JSON property-cases file (e.g. property-cases.json).
-    #[arg(long)]
+    /// `--properties` selects the same file.
+    #[arg(long, visible_alias = "properties")]
     property_cases: Option<PathBuf>,
+
+    /// One JSON crosswalk file. Same runner as `--vector`.
+    #[arg(long)]
+    crosswalk: Option<PathBuf>,
 
     /// Directory of JSON vector files.
     #[arg(long)]
@@ -44,14 +49,23 @@ fn main() -> ExitCode {
 
 fn run() -> anyhow::Result<()> {
     let args = Args::parse();
-    if args.vector.is_none() && args.dir.is_none() && args.property_cases.is_none() {
-        bail!("pass --vector <path>, --property-cases <path>, or --dir <path>");
+    if args.vector.is_none()
+        && args.dir.is_none()
+        && args.property_cases.is_none()
+        && args.crosswalk.is_none()
+    {
+        bail!(
+            "pass --vector <path>, --property-cases <path>, --properties <path>, --crosswalk <path>, or --dir <path>"
+        );
     }
     let mut report = SuiteReport::default();
     if let Some(path) = &args.vector {
         report.merge(run_vector_file(path).with_context(|| format!("read {}", path.display()))?);
     }
     if let Some(path) = &args.property_cases {
+        report.merge(run_vector_file(path).with_context(|| format!("read {}", path.display()))?);
+    }
+    if let Some(path) = &args.crosswalk {
         report.merge(run_vector_file(path).with_context(|| format!("read {}", path.display()))?);
     }
     if let Some(path) = &args.dir {
