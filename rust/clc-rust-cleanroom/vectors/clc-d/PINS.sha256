@@ -1,0 +1,7 @@
+# Upstream CLC-D corpora vendored byte-exact from varwof/capability.
+# Source commit: 80e483f  (main, after the merge of jdieselny PR #11)
+# Verified in CI by scripts/verify_vector_pins.py. Do not edit by hand;
+# regenerate only by re-exporting the file from the pinned upstream commit.
+# .gitattributes marks these files -text so no checkout converts their bytes.
+1ae22422c4c8632fa2d391473f1a9a244845d079baf381875134597409fcfa12  authorize-chain-vectors.json
+3d03e5318f1e0cef07bd6cb38111cf6b7fbcc24aa13bd83fb7728ee1d4527b13  containment-vectors.json

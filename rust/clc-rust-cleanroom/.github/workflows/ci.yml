@@ -50,6 +50,9 @@ jobs:
       - name: CLC-v1 minor-gate suites
         run: cargo run --release -- --clc-v1
 
+      - name: CLC-D corpora
+        run: cargo run --release -- --clc-d
+
       - name: Cleanroom leash
         shell: bash
         run: |

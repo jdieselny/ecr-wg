@@ -263,6 +263,8 @@ fn execute_one(vector: &Value, path: &Path, index: usize) -> VectorOutcome {
             "param-bounds-meet" => minor_gate::run_param_bounds_meet(vector),
             "constraint-union" => minor_gate::run_constraint_union(vector),
             "symmetry" => minor_gate::run_symmetry(vector),
+            "contain" => run_containment_official(vector),
+            "authorize-chain" => run_authorize_chain(vector),
             "contain-crosswalk" => run_contains(vector),
             "contains" if minor_gate::is_quantity(vector) => minor_gate::run_quantity(vector),
             "contains" => run_contains(vector),
@@ -453,6 +455,116 @@ fn run_contains(vector: &Value) -> Result<String, String> {
     } else {
         format!("contains=false {}", result.reason.unwrap_or_default())
     })
+}
+
+/// Official CLC-D containment corpus (§13.4).
+///
+/// The official vectors carry bare `parent` and `child` grants, where the
+/// binding-profile crosswalks use a `parent_source` bundle. Contains is the
+/// same relation either way, so this only adapts the shape and then asserts
+/// `contains` plus, when present, the exact reason code.
+fn run_containment_official(vector: &Value) -> Result<String, String> {
+    let parent = grant_from_capability(
+        vector
+            .get("parent")
+            .ok_or_else(|| "missing parent".to_string())?,
+    )?;
+    let child = grant_from_capability(
+        vector
+            .get("child")
+            .ok_or_else(|| "missing child".to_string())?,
+    )?;
+    let result = evaluator::evaluate_containment(&parent, &child);
+    let expect = vector.get("expect").cloned().unwrap_or(Value::Null);
+    if let Some(flag) = expect.get("contains").and_then(Value::as_bool) {
+        if result.contains != flag {
+            return Err(format!(
+                "contains={} reason={}",
+                result.contains,
+                result.reason.unwrap_or_default()
+            ));
+        }
+    }
+    if let Some(reason) = expect.get("reason").and_then(Value::as_str) {
+        if !reason.is_empty() {
+            let actual = result.reason.as_deref().unwrap_or("");
+            if actual != reason {
+                return Err(format!(
+                    "contains={} reason={actual} expected {reason}",
+                    result.contains
+                ));
+            }
+        }
+    }
+    Ok(if result.contains {
+        "contains=true".into()
+    } else {
+        format!("contains=false {}", result.reason.unwrap_or_default())
+    })
+}
+
+/// Official CLC-D AuthorizeWithChain corpus (§13.11).
+///
+/// Three rules, in this order, and the order is asserted by the corpus:
+///
+/// 1. An empty chain fails closed as `absent_source` (§7 rule 5).
+/// 2. Every hop must be contained in its parent; the first failing hop ends
+///    the call. This gate runs *before* operation validation, which is what
+///    `ac-007` pins down: a broken hop is reported even when the request
+///    carries no id at all.
+/// 3. The request is authorized against the *effective intersection* of the
+///    whole chain, not the leaf grant. `ac-009` is the case that matters: the
+///    child carries no constraint, and the ancestor's `max_rows` is only in
+///    force if the effective grant is the meet of every link.
+fn run_authorize_chain(vector: &Value) -> Result<String, String> {
+    let chain = vector
+        .get("chain")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "missing chain".to_string())?;
+
+    if chain.is_empty() {
+        return judge(vector, "deny", Some("absent_source"), Some(&[]));
+    }
+
+    let grants = chain
+        .iter()
+        .map(grant_from_capability)
+        .collect::<Result<Vec<Grant>, String>>()?;
+
+    for hop in grants.windows(2) {
+        let contained = evaluator::evaluate_containment(&hop[0], &hop[1]);
+        if !contained.contains {
+            let code = contained.reason.unwrap_or_default();
+            return judge(vector, "deny", Some(&code), Some(&[]));
+        }
+    }
+
+    let (params, param_bounds) = minor_gate::chain_intersection(chain)?;
+    let leaf = grants.last().ok_or_else(|| "empty chain".to_string())?;
+    let effective = Grant {
+        id: leaf.id.clone(),
+        params,
+        param_bounds,
+        constraints: union_constraints(&grants),
+    };
+
+    let request = vector.get("request").cloned().unwrap_or(Value::Null);
+    let operation = Operation {
+        id: request
+            .get("id")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_string(),
+        params: request.get("params").cloned().filter(|value| !value.is_null()),
+    };
+
+    let decision = evaluator::evaluate_authorization(&[effective], Some(&operation));
+    judge(
+        vector,
+        verdict_name(decision.verdict),
+        decision.reason.as_deref(),
+        Some(&decision.unresolved),
+    )
 }
 
 fn run_syntax(vector: &Value) -> Result<String, String> {
@@ -923,6 +1035,11 @@ fn finish(
         problems.push(format!("verdict {verdict} != {expected_verdict}"));
     }
     match expect.get("reason") {
+        Some(Value::String(expected)) if expected.is_empty() => {
+            // An empty string is not a reason code. One upstream vector
+            // (ac-012) carries `"reason": ""` on an allow; treating that as
+            // an assertion would require inventing an empty reason code.
+        }
         Some(Value::String(expected)) => {
             if reason != Some(expected.as_str()) {
                 problems.push(format!("reason {} != {expected}", reason.unwrap_or("")));

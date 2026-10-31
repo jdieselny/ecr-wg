@@ -437,6 +437,21 @@ fn meet_eq(left: &Meet, right: &Meet) -> bool {
     }
 }
 
+/// Chain intersection for the CLC-D `authorize-chain` corpus (§13.11).
+///
+/// AuthorizeWithChain authorizes the request against the *effective* grant,
+/// not the leaf: the §6.6 meet of every grant in the chain. `ac-009` is the
+/// case that pins this down — the child carries no constraint, so authorizing
+/// against the leaf alone would allow a request the ancestor forbids.
+///
+/// Returns `(params, param_bounds)` already met across the whole chain.
+pub(crate) fn chain_intersection(
+    sources: &[Value],
+) -> Result<(Option<Value>, Option<Value>), String> {
+    let met = meet_sources(sources)?;
+    Ok((met.params, met.param_bounds))
+}
+
 fn meet_sources(sources: &[Value]) -> Result<Meet, String> {
     if sources.is_empty() {
         return Err("absent_source".into());

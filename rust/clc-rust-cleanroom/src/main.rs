@@ -41,6 +41,10 @@ struct Args {
     #[arg(long)]
     clc_v1: bool,
 
+    /// Run the official CLC-D corpora (§13.4 containment, §13.11 authorize-chain).
+    #[arg(long)]
+    clc_d: bool,
+
     /// `vectors/clc-v1` param-bounds and equality suites.
     #[arg(long)]
     param_bounds: bool,
@@ -99,7 +103,8 @@ fn run() -> anyhow::Result<()> {
         || args.property_cases.is_some()
         || args.crosswalk.is_some();
     let suites = selected_clc_suites(&args);
-    if !classic && suites.is_empty() {
+    let d_suites = selected_clc_d_suites(&args);
+    if !classic && suites.is_empty() && d_suites.is_empty() {
         bail!(
             "pass --vector <path>, --property-cases <path>, --properties <path>, --crosswalk <path>, --dir <path>, or --clc-v1"
         );
@@ -126,7 +131,10 @@ fn run() -> anyhow::Result<()> {
     }
     let mut clc_failed = 0usize;
     if !suites.is_empty() {
-        clc_failed = run_clc_suites(&args, &suites)?;
+        clc_failed += run_clc_suites(&args, &suites, "clc-v1", CLC_V1_TITLE)?;
+    }
+    if !d_suites.is_empty() {
+        clc_failed += run_clc_suites(&args, &d_suites, "clc-d", CLC_D_TITLE)?;
     }
     if report.failed() > 0 || clc_failed > 0 {
         std::process::exit(1);
@@ -244,6 +252,30 @@ fn selected_clc_suites(args: &Args) -> Vec<ClcSuite> {
     out
 }
 
+const CLC_V1_TITLE: &str = "CLC-v1 minor-gate  draft-wei-capability-language-core  CLC-1.19";
+const CLC_D_TITLE: &str = "CLC-D  containment (\u{a7}13.4) + authorize-chain (\u{a7}13.11)  draft-wei-capability-language-core";
+
+/// The official CLC-D corpora. Both are required for a base CLC-D claim
+/// (`CONFORMANCE.md` \u{a7}2). The crosswalk, reason-collapse, mode-lattice and
+/// containment-property corpora belong to a profile claim and are not run here.
+fn selected_clc_d_suites(args: &Args) -> Vec<ClcSuite> {
+    if !args.clc_d {
+        return Vec::new();
+    }
+    vec![
+        ClcSuite {
+            label: "containment",
+            file: "containment-vectors.json",
+            required: true,
+        },
+        ClcSuite {
+            label: "authorize-chain",
+            file: "authorize-chain-vectors.json",
+            required: true,
+        },
+    ]
+}
+
 fn push_unique(out: &mut Vec<ClcSuite>, suite: ClcSuite) {
     if out.iter().any(|item| item.file == suite.file) {
         return;
@@ -251,12 +283,17 @@ fn push_unique(out: &mut Vec<ClcSuite>, suite: ClcSuite) {
     out.push(suite);
 }
 
-fn run_clc_suites(args: &Args, suites: &[ClcSuite]) -> anyhow::Result<usize> {
+fn run_clc_suites(
+    args: &Args,
+    suites: &[ClcSuite],
+    base: &str,
+    title: &str,
+) -> anyhow::Result<usize> {
     let mut rows = Vec::new();
     let mut failed_required = 0usize;
     let mut failed_optional = 0usize;
     for suite in suites {
-        let path = clc_path(suite.file);
+        let path = clc_path(suite.file, base);
         let report = run_vector_file(&path).with_context(|| format!("read {}", path.display()))?;
         let failed = report.failed();
         if suite.required {
@@ -285,24 +322,24 @@ fn run_clc_suites(args: &Args, suites: &[ClcSuite]) -> anyhow::Result<usize> {
             }
             println!("{}", report_junit(&merged));
         }
-        _ => print_clc_table(&rows),
+        _ => print_clc_table(&rows, title),
     }
     Ok(failed_required + failed_optional)
 }
 
-fn clc_path(file: &str) -> PathBuf {
-    let relative = Path::new("vectors").join("clc-v1").join(file);
+fn clc_path(file: &str, base: &str) -> PathBuf {
+    let relative = Path::new("vectors").join(base).join(file);
     if relative.exists() {
         return relative;
     }
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("vectors")
-        .join("clc-v1")
+        .join(base)
         .join(file)
 }
 
-fn print_clc_table(rows: &[( &ClcSuite, SuiteReport)]) {
-    println!("CLC-v1 minor-gate  draft-wei-capability-language-core  CLC-1.19");
+fn print_clc_table(rows: &[(&ClcSuite, SuiteReport)], title: &str) {
+    println!("{title}");
     println!(
         "{:<32} {:>7} {:>7} {:>7}",
         "suite", "cases", "passed", "failed"
