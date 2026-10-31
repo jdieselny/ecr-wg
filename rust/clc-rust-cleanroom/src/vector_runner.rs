@@ -425,7 +425,37 @@ fn execute_property_case(case_val: &Value, _path: &Path, index: usize) -> Vector
     }
 }
 
+/// Expectation keys the containment runners know how to assert.
+const CONTAINS_EXPECT_KEYS: [&str; 2] = ["contains", "reason"];
+
+/// Refuse to judge a vector whose expectation this runner cannot check.
+///
+/// A suite that reports PASS on an expectation it never evaluated is
+/// self-grading. `ccx-047` asserts `{"map_error": "linkage_mismatch"}` — a
+/// carrier-mapping precondition that fails closed before the relation — and the
+/// containment runner has no way to decide it. Passing it silently is worse
+/// than failing it loudly.
+fn reject_unasserted_expectations(vector: &Value) -> Result<(), String> {
+    let Some(expect) = vector.get("expect").and_then(Value::as_object) else {
+        return Ok(());
+    };
+    let unknown: Vec<&str> = expect
+        .keys()
+        .map(String::as_str)
+        .filter(|key| !CONTAINS_EXPECT_KEYS.contains(key))
+        .collect();
+    if unknown.is_empty() {
+        Ok(())
+    } else {
+        Err(format!(
+            "unasserted expectation key(s): {} — this runner cannot verify this vector",
+            unknown.join(", ")
+        ))
+    }
+}
+
 fn run_contains(vector: &Value) -> Result<String, String> {
+    reject_unasserted_expectations(vector)?;
     let parents = source_grants(vector.get("parent_source"))?;
     let child = source_grant(vector.get("child_source"))?;
     let result = evaluator::evaluate_containment_any(&parents, &child);
@@ -464,6 +494,7 @@ fn run_contains(vector: &Value) -> Result<String, String> {
 /// same relation either way, so this only adapts the shape and then asserts
 /// `contains` plus, when present, the exact reason code.
 fn run_containment_official(vector: &Value) -> Result<String, String> {
+    reject_unasserted_expectations(vector)?;
     let parent = grant_from_capability(
         vector
             .get("parent")
