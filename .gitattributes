@@ -4,3 +4,11 @@
 # rewrites them to CRLF on Windows checkouts while Linux CI stays LF.
 rust/clc-rust-cleanroom/vectors/clc-v1/*.json -text
 rust/clc-rust-cleanroom/vectors/clc-d/*.json -text
+
+# The CLC-A core corpora sit at the vectors/ root rather than in a subdirectory,
+# so they need their own rule. They are upstream files too: their committed
+# blobs hash to 3c1a5672… (vectors.json) and f00ed1f4… (property-cases.json),
+# which are the exact digests the CLC registry baseline quotes. Normalization
+# would make a Windows checkout hash differently from the registry entry.
+rust/clc-rust-cleanroom/vectors/clc-a-core-vectors.json -text
+rust/clc-rust-cleanroom/vectors/property-cases.json -text

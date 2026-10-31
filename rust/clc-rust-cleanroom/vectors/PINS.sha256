@@ -1,0 +1,16 @@
+# Upstream CLC-A corpora vendored byte-exact from varwof/capability.
+# Source commit: 80e483f  (main, after the merge of jdieselny PR #11)
+# Verified in CI by scripts/verify_vector_pins.py. Do not edit by hand;
+# regenerate only by re-exporting the file from the pinned upstream commit.
+# .gitattributes marks these files -text so no checkout converts their bytes.
+#
+# These two digests are also the ones the CLC conformance registry baseline
+# quotes for clc-v1/vectors.json and clc-v1/property-cases.json, so a mismatch
+# here means we are running a different corpus from the one recorded upstream.
+#
+# This directory also holds project-owned vectors (ccx-iicp-001.json,
+# clc-d-crosswalk-vectors.json). Unlike vectors/clc-v1 and vectors/clc-d, the
+# checker verifies only the files listed below here; it does not require every
+# *.json in this directory to be pinned.
+3c1a5672d6f107444903f06c51a71ce92451f1b45ca92c5a84a345b0de5a5bbd  clc-a-core-vectors.json
+f00ed1f49299293ac9fff1e10287b9642aa49d6dacf25b2b4a1be2d7103b2f07  property-cases.json

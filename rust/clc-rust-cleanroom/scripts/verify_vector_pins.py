@@ -1,18 +1,27 @@
 #!/usr/bin/env python3
 """Verify that the vendored CLC corpora are byte-exact upstream copies.
 
-`vectors/clc-v1/` and `vectors/clc-d/` hold third-party corpus files. They must
-stay unmodified: the cleanroom independence claim says the vectors were
-"obtained by cryptographic hash and pinned", and a silently edited expectation
-would turn a passing run into a self-graded one. This check is the mechanism
-behind that claim, so the directories can be excluded from the vendor-string
-leash without leaving a hole.
+`vectors/clc-v1/`, `vectors/clc-d/` and the two CLC-A core files at the
+`vectors/` root are third-party corpus files. They must stay unmodified: the
+cleanroom independence claim says the vectors were "obtained by cryptographic
+hash and pinned", and a silently edited expectation would turn a passing run
+into a self-graded one. This check is the mechanism behind that claim, so the
+directories can be excluded from the vendor-string leash without leaving a hole.
 
-Each directory carries a `PINS.sha256`:
+Each checked directory carries a `PINS.sha256`:
 
     <sha256>  <filename>
 
-Exits non-zero on any missing, altered, or unpinned JSON file.
+Two modes:
+
+- ``strict`` — every ``*.json`` in the directory must appear in the pin file.
+  Used where the directory holds only upstream corpora.
+- ``listed`` — only the files named in the pin file are verified. Used for
+  ``vectors/``, which mixes upstream corpora with project-owned vectors
+  (``ccx-iicp-001.json``, ``clc-d-crosswalk-vectors.json``).
+
+Exits non-zero on any missing or altered pinned file, or any unpinned JSON file
+in a strict directory.
 """
 
 from __future__ import annotations
@@ -20,9 +29,22 @@ from __future__ import annotations
 import hashlib
 import pathlib
 import sys
+from dataclasses import dataclass
 
-VECTOR_DIRS = [pathlib.Path("vectors/clc-v1"), pathlib.Path("vectors/clc-d")]
 PINS_NAME = "PINS.sha256"
+
+
+@dataclass(frozen=True)
+class VectorDir:
+    path: pathlib.Path
+    strict: bool
+
+
+VECTOR_DIRS = [
+    VectorDir(pathlib.Path("vectors/clc-v1"), strict=True),
+    VectorDir(pathlib.Path("vectors/clc-d"), strict=True),
+    VectorDir(pathlib.Path("vectors"), strict=False),
+]
 
 
 def read_pins(pins_path: pathlib.Path) -> dict[str, str]:
@@ -38,8 +60,8 @@ def read_pins(pins_path: pathlib.Path) -> dict[str, str]:
     return pins
 
 
-def check_dir(vector_dir: pathlib.Path) -> tuple[int, list[str]]:
-    pins_path = vector_dir / PINS_NAME
+def check_dir(vector_dir: VectorDir) -> tuple[int, list[str]]:
+    pins_path = vector_dir.path / PINS_NAME
     if not pins_path.is_file():
         return 0, [f"missing   {pins_path}"]
 
@@ -47,21 +69,22 @@ def check_dir(vector_dir: pathlib.Path) -> tuple[int, list[str]]:
     problems: list[str] = []
 
     for name, expected in sorted(pins.items()):
-        path = vector_dir / name
+        path = vector_dir.path / name
         if not path.is_file():
-            problems.append(f"missing   {vector_dir}/{name}")
+            problems.append(f"missing   {path}")
             continue
         actual = hashlib.sha256(path.read_bytes()).hexdigest()
         if actual != expected:
             problems.append(
-                f"altered   {vector_dir}/{name}\n"
+                f"altered   {path}\n"
                 f"            pinned {expected}\n"
                 f"            actual {actual}"
             )
 
-    for path in sorted(vector_dir.glob("*.json")):
-        if path.name not in pins:
-            problems.append(f"unpinned  {vector_dir}/{path.name}")
+    if vector_dir.strict:
+        for path in sorted(vector_dir.path.glob("*.json")):
+            if path.name not in pins:
+                problems.append(f"unpinned  {path}")
 
     return len(pins), problems
 
