@@ -35,6 +35,9 @@ jobs:
       - name: Test
         run: cargo test --verbose
 
+      - name: Vector pins
+        run: python3 scripts/verify_vector_pins.py
+
       - name: Core vectors
         run: cargo run --release -- --vector vectors/clc-a-core-vectors.json
 
@@ -43,6 +46,9 @@ jobs:
 
       - name: Crosswalk vectors
         run: cargo run --release -- --crosswalk vectors/clc-d-crosswalk-vectors.json
+
+      - name: CLC-v1 minor-gate suites
+        run: cargo run --release -- --clc-v1
 
       - name: Cleanroom leash
         shell: bash
@@ -69,6 +75,11 @@ jobs:
               pathlib.Path("rust-toolchain.toml"),
           ]
           suffixes = {".rs", ".md", ".yml", ".yaml", ".toml", ".json"}
+          # vectors/clc-v1 holds upstream corpora, which must be vendored
+          # verbatim. They are third-party prose and cannot be edited to suit a
+          # substring leash, so they are covered by the "Vector pins" step
+          # instead: byte-exact SHA-256 digests, checked on every run.
+          upstream = pathlib.Path("vectors/clc-v1")
           files = []
           parent_ci = pathlib.Path("../../.github/workflows/ci.yml")
           if parent_ci.is_file():
@@ -79,7 +90,8 @@ jobs:
               elif root.is_dir():
                   for path in root.rglob("*"):
                       if path.is_file() and "target" not in path.parts:
-                          files.append(path)
+                          if upstream not in path.parents:
+                              files.append(path)
           hits = []
           for path in files:
               if path.name.startswith("GROK_HANDOFF"):

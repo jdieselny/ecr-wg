@@ -1,0 +1,5 @@
+# Upstream CLC corpora are vendored byte-exact and verified by SHA-256.
+# Any end-of-line conversion would change the bytes and break the pins, so
+# these files must never be normalized. Without this rule, core.autocrlf=true
+# rewrites them to CRLF on Windows checkouts while Linux CI stays LF.
+rust/clc-rust-cleanroom/vectors/clc-v1/*.json -text

@@ -1,0 +1,17 @@
+# Upstream CLC-1.19 corpora vendored byte-exact from varwof/capability.
+# Source commit: 80e483f  (main, after the merge of jdieselny PR #11)
+# Verified in CI by scripts/verify_vector_pins.py. Do not edit by hand;
+# regenerate only by re-exporting the file from the pinned upstream commit.
+# .gitattributes marks these files -text so no checkout converts their bytes.
+1395e4298e7aa2f7321a1a529dd7dfecaa5c2bd916eb2e69d60c6213c2eb5d91  constraint-union-collation-vectors.json
+3fa1224f94a0357e03fbd66ce414654601bf53f5b23eae493e38a6de7a87e98b  constraint-union-vectors.json
+ffdcc3153890125c1bfe0edf3e5d5733155050a7f5696497d3fb2f117af64ec3  param-bounds-equality-vectors.json
+c102f75ba0791be3220ecfaf35c6439b4f791e0d32fa161eeb80a1b6ce5e2e50  param-bounds-meet-property-cases.json
+26faff835c2e3f5c6793e7f03375b8dd572b65262a1016682991374a7c848680  param-bounds-meet-vectors.json
+f37ad8dfa21c36b9ddc40961a844856cf674130355fe3d1fd3097789e7b9f82e  param-bounds-vectors.json
+a4255866db996e430d611d6e898fe75c997af1c498d8b21753a02e24aeaf074b  profile-declarations.json
+739f95be0735e7b917457e5f35f3c95e844dd4506e5d4757a001e72922242111  quantity-vectors.json
+1f9217f6f6257ccd599a2b650c811bf6f92f302ad5e44019bfd8fdf5e7293498  resolve-vectors.json
+382007d2c8b9af8d4acddfa2d336575a485c8ad104859aa20695ddf0a6acd98a  scheme-declaration-vectors.json
+15e977d06e73b9a956665ceafcd790536a754a10fb7785a954461707decf88f0  string-domain-vectors.json
+a6ddd5e03220ad4ee3756432854f88ea1ed6e7219a6c6e57e929bbee7e7dec1d  symmetry-vectors.json
