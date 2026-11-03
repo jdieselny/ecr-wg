@@ -45,6 +45,11 @@ struct Args {
     #[arg(long)]
     clc_d: bool,
 
+    /// Run the CLC-D profile layer that needs no carrier mapping: the
+    /// containment property cases (784) and the reason-collapse vectors (3).
+    #[arg(long)]
+    clc_d_profile: bool,
+
     /// `vectors/clc-v1` param-bounds and equality suites.
     #[arg(long)]
     param_bounds: bool,
@@ -104,7 +109,8 @@ fn run() -> anyhow::Result<()> {
         || args.crosswalk.is_some();
     let suites = selected_clc_suites(&args);
     let d_suites = selected_clc_d_suites(&args);
-    if !classic && suites.is_empty() && d_suites.is_empty() {
+    let p_suites = selected_clc_d_profile_suites(&args);
+    if !classic && suites.is_empty() && d_suites.is_empty() && p_suites.is_empty() {
         bail!(
             "pass --vector <path>, --property-cases <path>, --properties <path>, --crosswalk <path>, --dir <path>, or --clc-v1"
         );
@@ -135,6 +141,9 @@ fn run() -> anyhow::Result<()> {
     }
     if !d_suites.is_empty() {
         clc_failed += run_clc_suites(&args, &d_suites, "clc-d", CLC_D_TITLE)?;
+    }
+    if !p_suites.is_empty() {
+        clc_failed += run_clc_suites(&args, &p_suites, "clc-d", CLC_D_PROFILE_TITLE)?;
     }
     if report.failed() > 0 || clc_failed > 0 {
         std::process::exit(1);
@@ -258,6 +267,30 @@ const CLC_D_TITLE: &str = "CLC-D  containment (\u{a7}13.4) + authorize-chain (\u
 /// The official CLC-D corpora. Both are required for a base CLC-D claim
 /// (`CONFORMANCE.md` \u{a7}2). The crosswalk, reason-collapse, mode-lattice and
 /// containment-property corpora belong to a profile claim and are not run here.
+const CLC_D_PROFILE_TITLE: &str = "CLC-D profile layer  containment property (784) + reason-collapse (3)  no carrier mapping required";
+
+/// The CLC-D profile corpora this engine can exercise without the §13.8.1
+/// carrier mapping. The crosswalk (47 + 1) and mode-lattice (5) corpora need
+/// carrier and profile semantics and are a separate decision, so they are not
+/// run here and no claim is made about them.
+fn selected_clc_d_profile_suites(args: &Args) -> Vec<ClcSuite> {
+    if !args.clc_d_profile {
+        return Vec::new();
+    }
+    vec![
+        ClcSuite {
+            label: "containment-property",
+            file: "containment-property-cases.json",
+            required: true,
+        },
+        ClcSuite {
+            label: "reason-collapse",
+            file: "reason-collapse-vectors.json",
+            required: true,
+        },
+    ]
+}
+
 fn selected_clc_d_suites(args: &Args) -> Vec<ClcSuite> {
     if !args.clc_d {
         return Vec::new();
@@ -302,7 +335,11 @@ fn run_clc_suites(
             failed_optional += failed;
         }
         if failed > 0 {
-            for item in report.outcomes.iter().filter(|item| !item.passed) {
+            for item in report
+                .outcomes
+                .iter()
+                .filter(|item| !item.passed && !item.not_applicable)
+            {
                 eprintln!(
                     "FAIL  {id}  {kind}  {detail}",
                     id = item.id,
@@ -346,8 +383,10 @@ fn print_clc_table(rows: &[(&ClcSuite, SuiteReport)], title: &str) {
     );
     let mut required_cases = 0usize;
     let mut required_passed = 0usize;
+    let mut required_na = 0usize;
     let mut optional_cases = 0usize;
     let mut optional_passed = 0usize;
+    let mut optional_na = 0usize;
     for (suite, report) in rows {
         let cases = report.outcomes.len();
         let passed = report.passed();
@@ -358,12 +397,28 @@ fn print_clc_table(rows: &[(&ClcSuite, SuiteReport)], title: &str) {
             passed,
             report.failed()
         );
+        if report.not_applicable() > 0 {
+            println!(
+                "{:<32} {:>7} {:>7} {:>7}   ({} not applicable)",
+                "", "", "", "",
+                report.not_applicable()
+            );
+        }
+        if report.witnesses() > 0 {
+            println!(
+                "{:<32} {:>7}",
+                "  witnesses exercised",
+                report.witnesses()
+            );
+        }
         if suite.required {
             required_cases += cases;
             required_passed += passed;
+            required_na += report.not_applicable();
         } else {
             optional_cases += cases;
             optional_passed += passed;
+            optional_na += report.not_applicable();
         }
     }
     println!(
@@ -371,15 +426,22 @@ fn print_clc_table(rows: &[(&ClcSuite, SuiteReport)], title: &str) {
         "REQUIRED",
         required_cases,
         required_passed,
-        required_cases - required_passed
+        required_cases - required_passed - required_na
     );
+    if required_na > 0 {
+        println!(
+            "{:<32} {:>7}",
+            "  of which not applicable",
+            required_na
+        );
+    }
     if optional_cases > 0 {
         println!(
             "{:<32} {:>7} {:>7} {:>7}",
             "OPTIONAL",
             optional_cases,
             optional_passed,
-            optional_cases - optional_passed
+            optional_cases - optional_passed - optional_na
         );
     }
 }
@@ -395,6 +457,8 @@ fn clc_json(rows: &[(&ClcSuite, SuiteReport)]) -> String {
                 "cases": report.outcomes.len(),
                 "passed": report.passed(),
                 "failed": report.failed(),
+                "not_applicable": report.not_applicable(),
+                "witnesses": report.witnesses(),
             })
         })
         .collect();

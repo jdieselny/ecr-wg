@@ -53,6 +53,9 @@ jobs:
       - name: CLC-D corpora
         run: cargo run --release -- --clc-d
 
+      - name: CLC-D profile layer
+        run: cargo run --release -- --clc-d-profile
+
       - name: Cleanroom leash
         shell: bash
         run: |

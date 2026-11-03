@@ -5,6 +5,7 @@
 
 #![forbid(unsafe_code)]
 
+mod clcd_profile;
 mod constraints;
 mod error;
 mod evaluator;

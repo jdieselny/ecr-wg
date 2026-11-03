@@ -27,6 +27,14 @@ pub struct VectorOutcome {
     /// Property cases only. Every source was fed, and a successful meet
     /// is a lower bound of each source.
     pub full_source_coverage: bool,
+    /// Property cases only. Operation-level checks actually exercised. A
+    /// property that no input ever exercises is not evidence, so this is
+    /// carried rather than assumed.
+    pub witnesses: usize,
+    /// Property cases only. The case exercises behaviour this implementation
+    /// does not have. Neither a pass nor a failure: an inapplicable case must
+    /// never be counted as evidence.
+    pub not_applicable: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -39,8 +47,23 @@ impl SuiteReport {
         self.outcomes.iter().filter(|item| item.passed).count()
     }
 
+    /// Cases that genuinely failed. A case reported not-applicable is neither
+    /// passed nor failed, so it is excluded from both counts.
     pub fn failed(&self) -> usize {
-        self.outcomes.len() - self.passed()
+        self.outcomes
+            .iter()
+            .filter(|item| !item.passed && !item.not_applicable)
+            .count()
+    }
+
+    /// Cases this implementation cannot evidence.
+    pub fn not_applicable(&self) -> usize {
+        self.outcomes.iter().filter(|item| item.not_applicable).count()
+    }
+
+    /// Total operation-level checks actually exercised across the suite.
+    pub fn witnesses(&self) -> usize {
+        self.outcomes.iter().map(|item| item.witnesses).sum()
     }
 
     pub fn merge(&mut self, other: SuiteReport) {
@@ -60,10 +83,21 @@ pub fn run_vector_text(text: &str, path: &Path) -> Result<SuiteReport, Reason> {
     if let Value::Object(map) = &value {
         if let Some(Value::Array(cases)) = map.get("cases") {
             if let Some(Value::Array(ops)) = map.get("ops") {
+                // Two corpora share the {cases, ops} shape: the bound-meet
+                // property cases carry `sources`, the containment property
+                // cases carry bare `parent` / `child`. Routing on the case
+                // shape keeps them apart; feeding one to the other's checker
+                // would fail every case for the wrong reason.
+                let containment = cases
+                    .first()
+                    .is_some_and(crate::clcd_profile::is_containment_property_case);
                 for (index, case_val) in cases.iter().enumerate() {
-                    report
-                        .outcomes
-                        .push(execute_bound_meet_property(case_val, ops, index));
+                    let outcome = if containment {
+                        execute_containment_property(case_val, ops, index)
+                    } else {
+                        execute_bound_meet_property(case_val, ops, index)
+                    };
+                    report.outcomes.push(outcome);
                 }
                 return Ok(report);
             }
@@ -166,7 +200,12 @@ pub fn report_text(report: &SuiteReport) -> String {
         "\u{1b}[1mCLC cleanroom\u{1b}[0m  draft-wei-capability-language-core  CLC-1.19".to_string(),
     ];
     for item in &report.outcomes {
-        let (color, word) = if item.passed {
+        // Three states, three labels. A case this implementation cannot evidence
+        // must never be rendered as PASS, and rendering it as FAIL overstates
+        // the defect. `N/A` is the honest third word.
+        let (color, word) = if item.not_applicable {
+            ("\u{1b}[33m", "N/A ")
+        } else if item.passed {
             ("\u{1b}[32m", "PASS")
         } else {
             ("\u{1b}[31m", "FAIL")
@@ -185,9 +224,14 @@ pub fn report_text(report: &SuiteReport) -> String {
         "\u{1b}[33m"
     };
     lines.push(format!(
-        "{summary_color}{passed} passed, {failed} failed\u{1b}[0m",
+        "{summary_color}{passed} passed, {failed} failed{failed_suffix}\u{1b}[0m",
         passed = report.passed(),
         failed = report.failed(),
+        failed_suffix = if report.not_applicable() > 0 {
+            format!(", {} not applicable", report.not_applicable())
+        } else {
+            String::new()
+        },
     ));
     let property: Vec<_> = report
         .outcomes
@@ -253,6 +297,23 @@ fn execute_one(vector: &Value, path: &Path, index: usize) -> VectorOutcome {
             "authorize"
         })
         .to_string();
+    // reason-collapse has three outcomes, not two: a code this implementation
+    // cannot emit is neither a pass nor a failure, and counting it as a pass
+    // would be the vacuous-result trap. Handled before the two-state dispatch.
+    if kind == "reason-collapse" {
+        let verdict = crate::clcd_profile::check_reason_collapse(vector);
+        return VectorOutcome {
+            id,
+            kind,
+            passed: verdict.passed,
+            detail: verdict.detail,
+            elapsed: started.elapsed(),
+            commutativity_verified: false,
+            full_source_coverage: false,
+            witnesses: 0,
+            not_applicable: verdict.not_applicable,
+        };
+    }
     let result = if minor_gate::is_string_domain(vector) {
         minor_gate::run_string_domain(vector)
     } else if minor_gate::is_scheme_declaration(vector) {
@@ -287,6 +348,8 @@ fn execute_one(vector: &Value, path: &Path, index: usize) -> VectorOutcome {
             elapsed,
             commutativity_verified: false,
             full_source_coverage: false,
+            witnesses: 0,
+            not_applicable: false,
         },
         Err(detail) => VectorOutcome {
             id,
@@ -296,7 +359,32 @@ fn execute_one(vector: &Value, path: &Path, index: usize) -> VectorOutcome {
             elapsed,
             commutativity_verified: false,
             full_source_coverage: false,
+            witnesses: 0,
+            not_applicable: false,
         },
+    }
+}
+
+/// CLC-D §13.4 containment property cases: totality, forward closure, and
+/// antisymmetry on semantic classes.
+fn execute_containment_property(case_val: &Value, ops: &[Value], index: usize) -> VectorOutcome {
+    let started = Instant::now();
+    let id = case_val
+        .get("id")
+        .and_then(Value::as_str)
+        .map(String::from)
+        .unwrap_or_else(|| format!("contain-prop-{:04}", index + 1));
+    let verdict = crate::clcd_profile::check(case_val, ops);
+    VectorOutcome {
+        id,
+        kind: "contain-property".into(),
+        passed: verdict.passed,
+        detail: verdict.detail,
+        elapsed: started.elapsed(),
+        commutativity_verified: false,
+        full_source_coverage: false,
+        witnesses: verdict.closure_witnesses,
+        not_applicable: verdict.not_applicable,
     }
 }
 
@@ -316,6 +404,8 @@ fn execute_bound_meet_property(case_val: &Value, ops: &[Value], index: usize) ->
         elapsed: started.elapsed(),
         commutativity_verified: verdict.commutativity_verified,
         full_source_coverage: verdict.full_source_coverage,
+        witnesses: 0,
+        not_applicable: false,
     }
 }
 
@@ -328,6 +418,8 @@ fn property_failure(id: String, elapsed: Duration, detail: &str) -> VectorOutcom
         elapsed,
         commutativity_verified: false,
         full_source_coverage: false,
+        witnesses: 0,
+        not_applicable: false,
     }
 }
 
@@ -422,6 +514,8 @@ fn execute_property_case(case_val: &Value, _path: &Path, index: usize) -> Vector
         elapsed: started.elapsed(),
         commutativity_verified: order_independent,
         full_source_coverage,
+        witnesses: 0,
+        not_applicable: false,
     }
 }
 
