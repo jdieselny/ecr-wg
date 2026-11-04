@@ -434,6 +434,13 @@ fn print_clc_table(rows: &[(&ClcSuite, SuiteReport)], title: &str) {
             "  of which not applicable",
             required_na
         );
+        // Name the gap in the table itself. A reader who screenshots the table
+        // must not come away thinking every case was evidenced by this engine.
+        println!(
+            "{:<32} {}",
+            "  gap",
+            "stated by this implementation, not a defect in the corpora"
+        );
     }
     if optional_cases > 0 {
         println!(

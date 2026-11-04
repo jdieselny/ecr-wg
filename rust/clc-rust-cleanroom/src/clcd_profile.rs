@@ -274,10 +274,15 @@ pub(crate) fn check_reason_collapse(vector: &Value) -> PropertyVerdict {
         .unwrap_or(false);
 
     if !EMITTABLE.contains(&code) {
+        // Frame this as OUR gap, not as a defect in the corpus. The vector is
+        // well-formed and correct; this implementation simply does not produce
+        // the code it names. Stating the direction matters: a reader must not
+        // be able to mistake an implementation limit for a corpus problem.
         return PropertyVerdict::not_applicable(format!(
-            "{code} ({origin}) is not produced by this implementation; \
-             the engine implements the capabilities projection and no binding-profile \
-             pre-check, so collapsibility cannot be evidenced here"
+            "{code} ({origin}) is not produced by this implementation, so collapsibility \
+             cannot be evidenced here. This is a gap in this engine, not in the vector: the \
+             engine implements the capabilities projection and no binding-profile pre-check. \
+             The vector is unmodified and remains correct for a profile that emits this code."
         ));
     }
 
