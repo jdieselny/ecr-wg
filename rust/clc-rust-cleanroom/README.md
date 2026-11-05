@@ -138,13 +138,18 @@ PASS  clc-d-bundle-none-001  contain-crosswalk  0.053 ms  contains=false differe
 34 passed, 0 failed
 ```
 
-### CLC-v1 minor-gate (668/668 required, 50/50 optional)
+### CLC-v1 minor-gate (669/669 required, 50/50 optional)
 
 ```bash
 cargo run --release -- --clc-v1
 ```
 
-Local Rust 1.99.0 release run on 2026-10-27, `RUSTFLAGS=-D warnings`, exit 0. The suites are pinned under `vectors/clc-v1/` in the working tree.
+Local Rust 1.99.0 release run, `RUSTFLAGS=-D warnings`, exit 0. The suites are pinned under `vectors/clc-v1/` in the working tree.
+
+`resolve` is 27 rather than 26 because `resolve-027` is part of the published
+corpus; the earlier 668-case total predated it. The figure below is the count the
+public CI run prints, so the transcript can be checked against a run rather than
+trusted.
 
 ```text
 suite                              cases  passed  failed
@@ -152,14 +157,14 @@ param-bounds                          49      49       0
 param-bounds-equality                 11      11       0
 param-bounds-meet                     27      27       0
 param-bounds-meet-property           500     500       0
-resolve                               26      26       0
+resolve                               27      27       0
 constraint-union                      12      12       0
 constraint-union-collation             2       2       0
 scheme-declaration                     9       9       0
 quantity                               8       8       0
 string-domain                         24      24       0
 symmetry (optional)                   50      50       0
-REQUIRED                             668     668       0
+REQUIRED                             669     669       0
 OPTIONAL                              50      50       0
 ```
 
